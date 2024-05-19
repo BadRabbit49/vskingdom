@@ -1,0 +1,134 @@
+{
+	"code": "post-temp",
+	"entityClass": "BlockEntityPost",
+	"entityBehaviors": [ { "name": "Resupply" } ],
+	"attributes": { },
+	"behaviors": [ { "name": "HeatSource", "properties": { "heatStrength": 4 } } ],
+	"enabled": true,
+	"heldTpIdleAnimation": "holdunderarm",
+	"variantgroups": [
+		{ "code": "metal", "states": [ "electrum" ] },
+		{ "code": "fuels", "states": [ "null", "temp" ] },
+		{ "code": "state", "states": [ "none", "live", "done" ] },
+		{ "code": "level", "states": [ "good", "hurt", "dead" ] }
+	],
+	"shapeByType": {
+		"*-good": { "base": "vskingdom:block/post/brazier1_rough_{fuels}" },
+		"*-hurt": { "base": "vskingdom:block/post/brazier2_rough_{fuels}" },
+		"*-dead": { "base": "vskingdom:block/post/brazier3_rough_{fuels}" }
+	},
+	"texturesByType": {
+		"*-none-*": {
+			"metal": { "base": "vskingdom:block/metal/{metal}" },
+			"fuels": { "base": "vskingdom:block/fuels/{fuels}" },
+			"burns": { "base": "vskingdom:block/burns/none" },
+			"fires": { "base": "vskingdom:block/fuels/temp" }
+		},
+		"*-live-*": {
+			"metal": { "base": "vskingdom:block/metal/{metal}" },
+			"fuels": { "base": "vskingdom:block/fires/{fuels}" },
+			"burns": { "base": "vskingdom:block/burns/temp" },
+			"fires": { "base": "vskingdom:block/fires/temp" }
+		},
+		"*-done-*": {
+			"metal": { "base": "vskingdom:block/metal/{metal}" },
+			"fuels": { "base": "vskingdom:block/fuels/{fuels}" },
+			"burns": { "base": "vskingdom:block/burns/worn" },
+			"fires": { "base": "vskingdom:block/fires/temp" }
+	  }
+	},
+	"creativeinventory": { "general": ["*"] },
+	"blockmaterial": "Metal",
+	"replaceable": 100,
+	"resistance": 2,
+	"requiredMiningTier": 2,
+	"lightAbsorption": 0,
+	"lightHsvByType": {
+		"*-live-good": [ 180, 7, 10 ],
+		"*-live-hurt": [ 180, 7, 10 ],
+		"*-dead": [ 0, 0, 0 ]
+	},
+	"maxStackSize": 1,
+	"sidesolid": { "all": false },
+	"sideopaque": { "all": false },
+	"collisionSelectionBoxesByType": {
+		"*-good": [ { "x1": 0.206, "y1": 0, "z1": 0.218, "x2": 0.794, "y2": 0.937, "z2": 0.794 } ],
+		"*-hurt": [ { "x1": 0.175, "y1": 0, "z1": 0.206, "x2": 0.782, "y2": 0.906, "z2": 0.813 } ],
+		"*-dead": [ { "x1": 0.188, "y1": 0, "z1": 0.200, "x2": 0.813, "y2": 0.813, "z2": 0.813 } ]
+	},
+	"particlePropertiesByType": {
+		"*-live-good":
+			[
+				{
+					"__comment": "Temporal cubes",
+					"hsvaColor": [ { "avg": 180, "var": 180 }, { "avg": 255, "var": 50 }, { "avg": 255, "var": 50 }, { "avg": 255, "var": 0 } ],
+					"gravityEffect": { "avg": 0, "var": 0 },
+					"velocity": [ { "avg": 0.2, "var": 0.05 }, { "avg": 0.5, "var": 0.1 }, { "avg": 0, "var": 0.2 } ],
+					"posOffset": [ { "var": 0.2 }, { "var": 0.1 }, { "var": 0.2 } ],
+					"quantity": { "avg": 0 },
+					"size": { "avg": 0.25, "var": 0 },
+					"vertexFlags": 128,
+					"sizeEvolve": { "transform": "quadratic", "factor": -0.5 },
+					"selfPropelled": true
+				},
+				{
+					"__comment": "Temporal quads",
+					"hsvaColor": [ { "avg": 180, "var": 180 }, { "avg": 255, "var": 50 }, { "avg": 255, "var": 50 }, { "avg": 255, "var": 0 } ],
+					"opacityEvolve": { "transform": "quadratic", "factor": -16 },
+					"gravityEffect": { "avg": 0, "var": 0 },
+					"velocity": [ { "avg": 0, "var": 0.02 }, { "avg": 0.2, "var": 0.02 }, { "avg": 0, "var": 0.02 } ],
+					"posOffset": [ { "var": 0.2 }, { "var": 0.1 }, { "var": 0.2 } ],
+					"quantity": { "avg": 0 },
+					"size": { "avg": 0.3, "var": 0.05 },
+					"vertexFlags": 128,
+					"sizeEvolve": { "transform": "linear", "factor": 1.5 },
+					"particleModel": "Quad",
+					"lifeLength": { "avg": 0.5 },
+					"selfPropelled": true
+				}
+			],
+		"*-live-hurt":
+			[
+				{
+					"__comment": "Temporal quads",
+					"hsvaColor": [ { "avg": 180, "var": 180 }, { "avg": 255, "var": 50 }, { "avg": 255, "var": 50 }, { "avg": 255, "var": 0 } ],
+					"opacityEvolve": { "transform": "quadratic", "factor": -16 },
+					"gravityEffect": { "avg": 0, "var": 0 },
+					"velocity": [ { "avg": 0, "var": 0.02 }, { "avg": 0.2, "var": 0.02 }, { "avg": 0, "var": 0.02 } ],
+					"posOffset": [ { "var": 0.2 }, { "var": 0.1 }, { "var": 0.2 } ],
+					"quantity": { "avg": 0 },
+					"size": { "avg": 0.3, "var": 0.05 },
+					"vertexFlags": 128,
+					"sizeEvolve": { "transform": "linear", "factor": 1.5 },
+					"particleModel": "Quad",
+					"lifeLength": { "avg": 0.5 },
+					"selfPropelled": true
+				}
+			],
+		"*": [ ]
+	},
+	"sounds": {
+		"place": "game:block/anvil",
+		"break": "game:block/anvil",
+		"hit": "game:block/anvil",
+		"walk": "game:walk/stone*"
+	},
+	"tpHandTransform": {
+		"translation": { "x": -0.9, "y": -0.3, "z": -0.5 },
+		"rotation": { "x": 0, "y": 0, "z": -110 },
+		"scale": 0.6
+	},
+	"guiTransform": {
+		"rotation": { "x": -20, "y": -41, "z": 0 },
+		"origin": { "x": 0.46, "y": 0.34, "z": 0.5 },
+		"scale": 1.48
+	},
+	"groundTransform": {
+		"origin": { "x": 0.5, "y": 0, "z": 0.5 },
+		"scale": 2
+	},
+	"fpHandTransform": {
+		"rotation": { "x": 12, "y": -22, "z": 0 },
+		"origin": { "x": 0.5, "y": 0.3, "z": 0.5 }
+	}
+}

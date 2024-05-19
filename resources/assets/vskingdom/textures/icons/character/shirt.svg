@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve">
+<style type="text/css">
+	.st0{fill:#1D1D1B;}
+</style>
+<g id="Layer_1">
+	<path class="st0" d="M32,144l48,64,64-32-16,304c64,16,192,16,256,0l-16-304,64,32,48-64-112-96-48-16c-16,64-112,64-128,0l-48,16z">
+	</path>
+</g>
+</svg>

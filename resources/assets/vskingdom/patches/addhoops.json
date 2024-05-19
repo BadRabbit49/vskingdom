@@ -1,0 +1,50 @@
+[
+	{
+		"file": "game:itemtypes/parts/hoop.json",
+		"path": "/variantgroups/0/states/8",
+		"op": "add",
+		"value": "lead"
+	},
+	{
+		"file": "game:recipes/smithing/hoop.json",
+		"path": "/variantgroups/0/states/9",
+		"op": "add",
+		"value": "brass"
+	},
+	{
+		"file": "game:recipes/smithing/hoop.json",
+		"path": "/variantgroups/0/states/10",
+		"op": "add",
+		"value": "copper"
+	},
+	{
+		"file": "game:recipes/smithing/hoop.json",
+		"path": "/variantgroups/0/states/11",
+		"op": "add",
+		"value": "electrum"
+	},
+	{
+		"file": "game:recipes/smithing/hoop.json",
+		"path": "/ingredient/allowedVariants/-",
+		"op": "add",
+		"value": "lead"
+	},
+	{
+		"file": "game:recipes/smithing/hoop.json",
+		"path": "/ingredient/allowedVariants/-",
+		"op": "add",
+		"value": "brass"
+	},
+	{
+		"path": "/ingredient/allowedVariants/-",
+		"file": "game:recipes/smithing/hoop.json",
+		"op": "add",
+		"value": "copper"
+	},
+	{
+		"file": "game:recipes/smithing/hoop.json",
+		"path": "/ingredient/allowedVariants/-",
+		"op": "add",
+		"value": "electrum"
+	}
+]

@@ -6,9 +6,11 @@ namespace VSKingdom {
 	public class AiTaskSoldierGuardingPos : AiTaskBase {
 		public AiTaskSoldierGuardingPos(EntityAgent entity) : base(entity) { }
 
+		public bool commandActive { get; set; }
 		public Vec3d PosXYZ;
-		float maxDistance = 10f;
-		bool stuck = false;
+
+		protected float maxDistance = 10f;
+		protected bool stuck = false;
 
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) { }
 

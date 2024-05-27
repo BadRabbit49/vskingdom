@@ -1,18 +1,16 @@
 {
-	"game:tabname-vskingdom": "Soldier Command",
-
-	"item-creature-human-melee-male": "Soldier",
-	"item-creature-human-melee-female": "Soldier",
-	"item-creature-human-range-male": "Archer",
-	"item-creature-human-range-female": "Archer",
-	"item-people-human-melee-male": "Soldier",
-	"item-people-human-melee-female": "Soldier",
-	"item-people-human-range-male": "Archer",
-	"item-people-human-range-female": "Archer",
-	"item-dead-creature-human-melee-male": "Dead Soldier",
-	"item-dead-creature-human-melee-female": "Dead Soldier",
-	"item-dead-creature-human-range-male": "Dead Archer",
-	"item-dead-creature-human-range-female": "Dead Archer",
+	"item-creature-archer-masc": "Archer",
+	"item-creature-archer-femm": "Archer",
+	"item-creature-knight-masc": "Knight",
+	"item-creature-knight-femm": "Knight",
+	"item-people-archer-masc": "Male Archer",
+	"item-people-archer-femm": "Female Archer",
+	"item-people-knight-masc": "Male Knight",
+	"item-people-knight-femm": "Female Knight",
+	"item-dead-creature-archer-masc": "Dead Archer",
+	"item-dead-creature-archer-femm": "Dead Archer",
+	"item-dead-creature-knight-masc": "Dead Knight",
+	"item-dead-creature-knight-femm": "Dead Knight",
 
 	"block-post-copper-dead": "Copper Guard Post",
 	"block-post-copper-live": "Copper Guard Post",
@@ -214,9 +212,9 @@
 	"gui-enlistment-deserter": "Deserter",
 
 	"gui-specialist-empty": "Unarmed",
-	"gui-specialist-melee": "Soldier",
+	"gui-specialist-melee": "Knight",
 	"gui-specialist-range": "Archer",
-	"gui-specialist-bannr": "Bannerman",
+	"gui-specialist-bannr": "Banner",
 	"gui-specialist-medic": "Medic",
 
 	"gui-profession-range-xsbow": "Crossbowman",
@@ -242,5 +240,10 @@
 	"gui-outpost-name": "Outpost: ",
 	"gui-kingdom-guid": "KingdomUid: ",
 	"gui-leaders-guid": "LeadersUid: ",
-	"gui-outpost-xyzd": "OutpostPos: "
+	"gui-outpost-xyzd": "OutpostPos: ",
+
+	"game:tabname-vskingdom": "Kingdom",
+
+	"kingdomguide-title": "Kingdoms and Soldiers",
+	"kingdomguide-texts": "<strong>Kingdoms and Soldiers</strong>\n\nKingdoms are civilizations that exist in the world created by players used to distinguish themselves as political entities that govern land, tax the populace, raise soldiers, and rule as they see fit.\n\nKingdoms are used as a way to better distinguish friend from foe, however unless a kingdom has declared war on another the two sides will remain neutral.\n\nSoldiers are dependent mobs that will guard areas, follow their leader, and fight for them. While soldiers will fight for their country, their first priority is fighting for their leaders. If a citizen of a kingdom rebels, for instance, the soldiers under the command of that citizen will also become hostile to the kingdom. Additionally, soldiers cannot typically be harmed by other players unless at war or by their leader.\n\n<a href=\"handbook://block-vskingdom:post-iron-wood-live-good\">Outposts</a> are rally points for soldiers. These outposts act as a central hub for soldiers who won't stray too far from it. Different types of outposts have different stats depending on material and fuel. These outposts are used as a central respawn point for soldiers that get lost or die. Each death of a soldier will result in one token being subtracted however, which can eventually destroy the outpost completely."
 }

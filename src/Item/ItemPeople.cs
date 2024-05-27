@@ -60,10 +60,6 @@ public class ItemPeople : Item {
 			}
 		}
 
-		// I think this links them? I don't want that.
-		//entity.WatchedAttributes.SetAttribute("loyalties", byEntity.WatchedAttributes.GetTreeAttribute("loyalties"));
-		//entity.WatchedAttributes.SetAttribute("loyalties", new TreeAttribute());
-
 		// SPAWNING ENTITY!
 		byEntity.World.SpawnEntity(entity);
 

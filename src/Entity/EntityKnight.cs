@@ -9,11 +9,11 @@ using Vintagestory.API.Util;
 using Vintagestory.GameContent;
 
 namespace VSKingdom {
-	public class EntityArcher : EntityHumanoid {
-		public EntityArcher() { }
-		public InventoryArcher gearInv { get; set; }
+	public class EntityKnight : EntityHumanoid {
+		public EntityKnight() { }
+		public InventoryKnight gearInv { get; set; }
 		public EntityTalkUtil talkUtil { get; set; }
-		public InvArcherDialog InventoryDialog { get; set; }
+		public InvKnightDialog InventoryDialog { get; set; }
 		public virtual string inventoryId => "gear-" + EntityId;
 		public virtual string kingdomUID => WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdomUID");
 		public virtual string leadersUID => WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("leadersUID");
@@ -21,14 +21,14 @@ namespace VSKingdom {
 		public override ItemSlot LeftHandItemSlot => gearInv[15];
 		public override ItemSlot RightHandItemSlot => gearInv[16];
 		public virtual ItemSlot BackItemSlot => gearInv[17];
-		public virtual ItemSlot AmmoItemSlot => gearInv[18];
+		public virtual ItemSlot FoodItemSlot => gearInv[18];
 		public virtual ItemSlot HealItemSlot => gearInv[19];
 		
 		public override void Initialize(EntityProperties properties, ICoreAPI api, long InChunkIndex3d) {
 			base.Initialize(properties, api, InChunkIndex3d);
 			// Initialize gear slots if not done yet.
 			if (gearInv is null) {
-				gearInv = new InventoryArcher(inventoryId, api);
+				gearInv = new InventoryKnight(inventoryId, api);
 				gearInv.SlotModified += GearInvSlotModified;
 			} else {
 				gearInv.LateInitialize(inventoryId, api);
@@ -61,17 +61,17 @@ namespace VSKingdom {
 		public override void OnReceivedClientPacket(IServerPlayer player, int packetid, byte[] data) {
 			base.OnReceivedClientPacket(player, packetid, data);
 			// Opening and Closing inventory packets.
-			if (packetid == 1501) {
+			if (packetid == 1504) {
 				player.InventoryManager.OpenInventory(GearInventory);
 			}
-			if (packetid == 1502) {
+			if (packetid == 1505) {
 				player.InventoryManager.CloseInventory(GearInventory);
 			}
 		}
 
 		public override void OnReceivedServerPacket(int packetid, byte[] data) {
 			base.OnReceivedServerPacket(packetid, data);
-			if (packetid == 1500) {
+			if (packetid == 1503) {
 				TreeAttribute tree = new TreeAttribute();
 				SerializerUtil.FromBytes(data, (r) => tree.FromBytes(r));
 				gearInv.FromTreeAttributes(tree);
@@ -79,7 +79,7 @@ namespace VSKingdom {
 					slot.OnItemSlotModified(slot.Itemstack);
 				}
 			}
-			if (packetid == 1502) {
+			if (packetid == 1505) {
 				(World as IClientWorldAccessor).Player.InventoryManager.CloseInventory(GearInventory);
 				InventoryDialog?.TryClose();
 			}
@@ -106,7 +106,7 @@ namespace VSKingdom {
 		public override void FromBytes(BinaryReader reader, bool forClient) {
 			base.FromBytes(reader, forClient);
 			if (gearInv is null) {
-				gearInv = new InventoryArcher(Code.Path, "gearInv-" + EntityId, null);
+				gearInv = new InventoryKnight(Code.Path, "gearInv-" + EntityId, null);
 			}
 			gearInv.FromTreeAttributes(GetInventoryTree());
 		}
@@ -133,7 +133,7 @@ namespace VSKingdom {
 			WatchedAttributes.MarkPathDirty("inventory");
 			// If on server-side, not client, sent the packetid on the channel.
 			if (Api is ICoreServerAPI sapi) {
-				sapi.Network.BroadcastEntityPacket(EntityId, 1500, SerializerUtil.ToBytes((w) => tree.ToBytes(w)));
+				sapi.Network.BroadcastEntityPacket(EntityId, 1503, SerializerUtil.ToBytes((w) => tree.ToBytes(w)));
 			}
 			UpdateAllVariables();
 		}
@@ -144,14 +144,14 @@ namespace VSKingdom {
 			} else {
 				var capi = (ICoreClientAPI)Api;
 				if (InventoryDialog is null) {
-					InventoryDialog = new InvArcherDialog(gearInv, this, capi);
+					InventoryDialog = new InvKnightDialog(gearInv, this, capi);
 					InventoryDialog.OnClosed += OnInventoryDialogClosed;
 				}
 				if (!InventoryDialog.TryOpen()) {
 					return;
 				}
 				player.InventoryManager.OpenInventory(GearInventory);
-				capi.Network.SendEntityPacket(EntityId, 1501);
+				capi.Network.SendEntityPacket(EntityId, 1504);
 				return;
 			}
 		}
@@ -159,7 +159,7 @@ namespace VSKingdom {
 		public virtual void OnInventoryDialogClosed() {
 			var capi = (ICoreClientAPI)Api;
 			capi.World.Player.InventoryManager.CloseInventory(GearInventory);
-			capi.Network.SendEntityPacket(EntityId, 1502);
+			capi.Network.SendEntityPacket(EntityId, 1505);
 			InventoryDialog?.Dispose();
 			InventoryDialog = null;
 		}

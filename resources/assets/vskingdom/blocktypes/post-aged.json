@@ -23,7 +23,10 @@
 		"burns": { "base": "vskingdom:block/burns/{state}" },
 		"fires": { "base": "vskingdom:block/fires/{fuels}" }
 	},
-	"creativeinventory": { "general": ["*"] },
+	"creativeinventory": {
+		"general": [ "*" ],
+		"vskingdom": [ "*" ]
+	},
 	"blockmaterial": "Metal",
 	"replaceable": 100,
 	"resistance": 2,

@@ -8,7 +8,7 @@ using Vintagestory.API.Server;
 
 namespace VSKingdom {
 	public class KingdomData {
-		private static string command_create = LangUtility.Get("command-success-create");
+		/**private static string command_create = LangUtility.Get("command-success-create");
 		private static string command_delete = LangUtility.Get("command-success-delete");
 		private static string command_invite = LangUtility.Get("command-success-invite");
 		private static string command_become = LangUtility.Get("command-success-become");
@@ -69,7 +69,7 @@ namespace VSKingdom {
 				return false;
 			}
 			if (kingdom.governance != Governance.REPUBLIC) {
-				if (kingdom.LeadersUID == caller.PlayerUID) {
+				if (kingdom.LeadersGUID == caller.PlayerUID) {
 					return true;
 				}
 				return kingdom.classright[role].canVote;
@@ -84,7 +84,7 @@ namespace VSKingdom {
 			if (caller.Role.Code == "admin") {
 				return false;
 			}
-			if (kingdom.governance != Governance.REPUBLIC && kingdom.LeadersUID == caller.PlayerUID) {
+			if (kingdom.governance != Governance.REPUBLIC && kingdom.LeadersGUID == caller.PlayerUID) {
 				return false;
 			}
 			if (kingdom.PlayerUIDs.Count == 1) {
@@ -95,6 +95,6 @@ namespace VSKingdom {
 
 		private bool IsDemocratic(Kingdom kingdom) {
 			return kingdom.governance == Governance.REPUBLIC;
-		}
+		}**/
 	}
 }

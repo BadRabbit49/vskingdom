@@ -5,10 +5,11 @@ namespace VSKingdom {
 	public class AiTaskSoldierReturningTo : AiTaskBase {
 		public AiTaskSoldierReturningTo(EntityAgent entity) : base(entity) { }
 
-		public float moveSpeed = 0.035f;
+		public bool commandActive { get; set; }
 
-		public bool completed;
-		public bool canReturn;
+		protected float moveSpeed = 0.035f;
+		protected bool completed;
+		protected bool canReturn;
 
 		long lastCheckTotalMs { get; set; }
 		long lastCheckCooldown { get; set; } = 500;
@@ -28,6 +29,9 @@ namespace VSKingdom {
 		}
 
 		public override bool ShouldExecute() {
+			if (!commandActive) {
+				return false;
+			}
 			if (entity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("currentCommand") != "RETURN") {
 				CheckDistance();
 				return false;
@@ -68,6 +72,7 @@ namespace VSKingdom {
 		public override void FinishExecute(bool cancelled) {
 			soldierPathTraverser.Stop();
 			base.FinishExecute(cancelled);
+			commandActive = false;
 		}
 
 		public void UpdatePostEnt(BlockEntityPost soldierPost) {

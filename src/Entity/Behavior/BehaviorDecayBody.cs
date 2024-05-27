@@ -87,13 +87,11 @@ namespace VSKingdom {
 			
 			Vec3d pos = entity.SidedPos.XYZ;
 			pos.Y += entity.Properties.DeadCollisionBoxSize.Y / 2;
-
 			entity.World.SpawnParticles(new EntityCubeParticles(entity.World, entity.EntityId, pos, 0.15f, (int)(40 + entity.Properties.DeadCollisionBoxSize.X * 60), 0.4f, 1f));
 		}
 
 		public override void OnEntityDeath(DamageSource damageSourceForDeath) {
 			base.OnEntityDeath(damageSourceForDeath);
-
 			TotalHoursDead = entity.World.Calendar.TotalHours;
 			if (damageSourceForDeath is null) {
 				DiedNaturally = false;

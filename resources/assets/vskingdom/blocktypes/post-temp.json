@@ -37,7 +37,10 @@
 			"fires": { "base": "vskingdom:block/fires/temp" }
 	  }
 	},
-	"creativeinventory": { "general": ["*"] },
+	"creativeinventory": {
+		"general": [ "*" ],
+		"vskingdom": [ "*" ]
+	},
 	"blockmaterial": "Metal",
 	"replaceable": 100,
 	"resistance": 2,

@@ -1,6 +1,9 @@
 ﻿using Vintagestory.API.MathTools;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
+using System.Linq;
+using System.Text;
+using System;
 
 namespace VSKingdom {
 	internal static class MathUtility {
@@ -26,6 +29,20 @@ namespace VSKingdom {
 				}
 			}
 			return closest;
+		}
+
+		public static string GenerateID(int size) {
+			Random rnd = new Random();
+			StringBuilder strBuilder = new StringBuilder();
+			Enumerable
+				.Range(65, 26)
+				.Select(e => ((char)e).ToString())
+				.Concat(Enumerable.Range(97, 26).Select(e => ((char)e).ToString()))
+				.Concat(Enumerable.Range(0, 7).Select(e => e.ToString()))
+				.OrderBy(e => Guid.NewGuid())
+				.Take(size)
+				.ToList().ForEach(e => strBuilder.Append(e));
+			return strBuilder.ToString();
 		}
 	}
 }

@@ -40,7 +40,7 @@ namespace VSKingdom {
 			if (target is EntityArcher || target is EntityPlayer) {
 				EntityBehaviorLoyalties behaviorLoyalties = entity.GetBehavior<EntityBehaviorLoyalties>();
 				// Get the target's allegiances to a group or owner. If they have none just don't. 
-				if (target is EntityArcher) {
+				if (target is EntityArcher || target is EntityKnight) {
 					EntityBehaviorLoyalties targetLoyalties = entity.GetBehavior<EntityBehaviorLoyalties>();
 					if (targetLoyalties.leadersUID == behaviorLoyalties.leadersUID || targetLoyalties.kingdomUID == behaviorLoyalties.kingdomUID) {
 						return true;
@@ -84,26 +84,25 @@ namespace VSKingdom {
 	}
 
 	internal static class HealthUtility {
-		public static float handleDamaged(ICoreAPI api, EntityArcher ent, float damage, DamageSource dmgSource) {
-			EnumDamageType type = dmgSource.Type;
-
+		public static float handleDamaged(ICoreAPI api, EntityHumanoid ent, float dmg, DamageSource src) {
+			EnumDamageType type = src.Type;
 			// Reduce damage if ent holds a shield
-			damage = applyShieldProtection(api, ent, damage, dmgSource);
+			dmg = applyShieldProtection(api, ent, dmg, src);
 			// No reason to do all this if the damage was less than 0.
-			if (damage <= 0) {
+			if (dmg <= 0) {
 				return 0;
 			}
 			// The code below only the server needs to execute.
 			if (api.Side == EnumAppSide.Client) {
-				return damage;
+				return dmg;
 			}
 			// Does not protect against non-attack damages.
 			if (type != EnumDamageType.BluntAttack && type != EnumDamageType.PiercingAttack && type != EnumDamageType.SlashingAttack) {
-				return damage;
+				return dmg;
 			}
 			// Does not protect against stuff like hunger or poisoning.
-			if (dmgSource.Source == EnumDamageSource.Internal || dmgSource.Source == EnumDamageSource.Suicide) {
-				return damage;
+			if (src.Source == EnumDamageSource.Internal || src.Source == EnumDamageSource.Suicide) {
+				return dmg;
 			}
 
 			ItemSlot armorSlot;
@@ -147,14 +146,14 @@ namespace VSKingdom {
 					if (type == EnumDamageType.PiercingAttack) {
 						mul = 0.5f;
 					}
-					float diff = -damage / 100 * mul;
+					float diff = -dmg / 100 * mul;
 					(targetslot.Itemstack.Collectible as ItemWearable)?.ChangeCondition(targetslot, diff);
 				}
-				return damage;
+				return dmg;
 			}
 
 			ProtectionModifiers protMods = (armorSlot.Itemstack.Item as ItemWearable).ProtectionModifiers;
-			int weaponTier = dmgSource.DamageTier;
+			int weaponTier = src.DamageTier;
 			float flatDmgProt = protMods.FlatDamageReduction;
 			float percentProt = protMods.RelativeProtection;
 			for (int tier = 1; tier <= weaponTier; tier++) {
@@ -170,20 +169,20 @@ namespace VSKingdom {
 				percentProt *= 1 - percLoss;
 			}
 			// Durability loss is the one before the damage reductions.
-			float durabilityLoss = 0.5f + damage * Math.Max(0.5f, (weaponTier - protMods.ProtectionTier) * 3);
+			float durabilityLoss = 0.5f + dmg * Math.Max(0.5f, (weaponTier - protMods.ProtectionTier) * 3);
 			int durabilityLossInt = GameMath.RoundRandom(api.World.Rand, durabilityLoss);
 			// Now reduce the damage.
-			damage = Math.Max(0, damage - flatDmgProt);
-			damage *= 1 - Math.Max(0, percentProt);
+			dmg = Math.Max(0, dmg - flatDmgProt);
+			dmg *= 1 - Math.Max(0, percentProt);
 			armorSlot.Itemstack.Collectible.DamageItem(api.World, ent, armorSlot, durabilityLossInt);
 			// If the armorSlot is now empty from breaking, play a sound effect.
 			if (armorSlot.Empty) {
 				api.World.PlaySoundAt(new AssetLocation("sounds/effect/toolbreak"), ent);
 			}
-			return damage;
+			return dmg;
 		}
 
-		public static float applyShieldProtection(ICoreAPI api, EntityArcher ent, float damage, DamageSource dmgSource) {
+		public static float applyShieldProtection(ICoreAPI api, EntityHumanoid ent, float damage, DamageSource dmgSource) {
 			double horizontalAngleProtectionRange = 120 / 2 * GameMath.DEG2RAD;
 			ItemSlot[] shieldSlots = new ItemSlot[] { ent.LeftHandItemSlot, ent.RightHandItemSlot };
 			for (int i = 0; i < shieldSlots.Length; i++) {

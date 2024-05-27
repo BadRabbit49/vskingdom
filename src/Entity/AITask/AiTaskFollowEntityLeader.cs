@@ -1,4 +1,3 @@
-using Newtonsoft.Json.Linq;
 using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
@@ -7,6 +6,8 @@ using Vintagestory.GameContent;
 namespace VSKingdom {
 	public class AiTaskFollowEntityLeader : AiTaskStayCloseToEntity {
 		public AiTaskFollowEntityLeader(EntityAgent entity) : base(entity) { }
+
+		public bool commandActive { get; set; }
 
 		protected double targetX;
 		protected double targetY;
@@ -23,7 +24,7 @@ namespace VSKingdom {
 		}
 
 		public override bool ShouldExecute() {
-			if (entity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("currentCommand") != "FOLLOW") {
+			if (!commandActive) {
 				return false;
 			}
 			if (targetEntity is null || !targetEntity.Alive || targetEntity.ShouldDespawn || !targetEntity.IsInteractable) {
@@ -47,11 +48,9 @@ namespace VSKingdom {
 
 		public override bool ContinueExecute(float dt) {
 			UpdatedXYZ();
-
 			pathTraverser.CurrentTarget.X = targetX;
 			pathTraverser.CurrentTarget.Y = targetY;
 			pathTraverser.CurrentTarget.Z = targetZ;
-
 			if (targetD < 3 * 3) {
 				pathTraverser.Stop();
 				return false;
@@ -59,8 +58,7 @@ namespace VSKingdom {
 			if (allowTeleport && targetD > teleportAfterRange * teleportAfterRange) {
 				tryTeleport();
 			}
-
-			return !stuck && pathTraverser.Active;
+			return !stuck && pathTraverser.Active && commandActive;
 		}
 
 		public override void OnNoPath(Vec3d target) {

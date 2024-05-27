@@ -3,15 +3,18 @@
 	"class": "ItemPeople",
 	"maxstacksize": 1,
 	"variantgroups": [
-		{ "code": "type", "states": [ "human" ] },
-		{ "code": "weapon", "states": [ "melee", "range" ] },
-		{ "code": "gender", "states": [ "male", "female" ] }
+		{ "code": "type", "states": [ "archer", "knight" ] },
+		{ "code": "gender", "states": [ "masc", "femm" ] }
 	],
 	"shapeByType": { "*": { "base": "vskingdom:entity/humanoid/human" } },
 	"texturesByType": { "*": { "skin": { "base": "game:entity/humanoid/seraphskinparts/body/skin1" } } },
-	"creativeinventory": { "general": [ "*" ], "creatures": [ "*" ] },
+	"creativeinventory": {
+		"general": [ "*" ],
+		"creatures": [ "*" ],
+		"vskingdom": [ "*" ]
+	},
 	"materialDensity": 600,
-	"guiTransformByType": { "*-human-*": { "rotate": true, "rotation": { "x": 0, "y": -90, "z": -178 }, "origin": { "x": 0.6, "y": 0.78, "z": 0.5 } } },
-	"tpHandTransformByType": { "*-human-*": { "translation": { "x": -0.6, "y": -1.1, "z": -0.2 }, "rotation": { "x": -85, "y": -11, "z": 89 }, "origin": { "x": 0.5, "y": 1, "z": 0.5 }, "scale": 0.7 } },
-	"fpHandTransformByType": { "*-human-*": { "translation": { "x": 0.05, "y": -0.3, "z": 0 }, "rotation": { "x": 165, "y": 76, "z": -180 } } }
+	"guiTransform": { "rotate": true, "rotation": { "x": 0, "y": -90, "z": -178 }, "origin": { "x": 0.6, "y": 0.78, "z": 0.5 } },
+	"tpHandTransform":{ "translation": { "x": -0.6, "y": -1.1, "z": -0.2 }, "rotation": { "x": -85, "y": -11, "z": 89 }, "origin": { "x": 0.5, "y": 1, "z": 0.5 } },
+	"fpHandTransform": { "translation": { "x": 0.05, "y": -0.3, "z": 0 }, "rotation": { "x": 165, "y": 76, "z": -180 } }
 }

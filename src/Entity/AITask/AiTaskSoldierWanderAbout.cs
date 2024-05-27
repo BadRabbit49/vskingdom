@@ -6,16 +6,16 @@ using Vintagestory.API.Datastructures;
 namespace VSKingdom {
 	public class AiTaskSoldierWanderAbout : AiTaskBase {
 		public AiTaskSoldierWanderAbout(EntityAgent entity) : base(entity) { }
-		
+
+		public bool commandActive { get; set; } = true;
 		public Vec3d MainTarget;
 
-		bool done;
-		
-		float moveSpeed = 0.03f;
-		float wanderChance = 0.02f;
-		float maxHeight = 7f;
-		float? preferredLightLevel;
-		float targetDistance = 0.12f;
+		protected bool done;
+		protected float moveSpeed = 0.035f;
+		protected float wanderChance = 0.02f;
+		protected float maxHeight = 7f;
+		protected float? preferredLightLevel;
+		protected float targetDistance = 0.12f;
 
 		NatFloat wanderRangeHorizontal = NatFloat.createStrongerInvexp(3, 40);
 		NatFloat wanderRangeVertical = NatFloat.createStrongerInvexp(3, 10);
@@ -191,6 +191,9 @@ namespace VSKingdom {
 		}
 
 		public override bool ShouldExecute() {
+			if (!commandActive) {
+				return false;
+			}
 			// If a wander failed (got stuck) initially greatly increase the chance of trying again, but eventually give up.
 			if (rand.NextDouble() > (failedWanders > 0 ? (1 - wanderChance * 4 * failedWanders) : wanderChance)) {
 				failedWanders = 0;
@@ -241,7 +244,7 @@ namespace VSKingdom {
 				pathTraverser.Stop();
 				return false;
 			}
-			return !done;
+			return commandActive && !done;
 		}
 
 		public override void FinishExecute(bool cancelled) {

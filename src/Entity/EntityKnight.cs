@@ -180,12 +180,15 @@ namespace VSKingdom {
 				if (RightHandItemSlot.Empty && LeftHandItemSlot.Empty) {
 					loyalties.enlistedStatus = EnlistedStatus.CIVILIAN;
 				} else {
+					World.Logger.Notification("What is it's current stuff?: " + aitasking?.TaskManager?.GetTask<AiTaskSoldierWanderAbout>()?.SpawnPosition);
 					aitasking?.TaskManager?.GetTask<AiTaskSoldierRespawnPost>()?.SetBlockPost(loyalties.cachedOutpost);
 					aitasking?.TaskManager?.GetTask<AiTaskSoldierReturningTo>()?.SetTraverser(traverser);
 					aitasking?.TaskManager?.GetTask<AiTaskSoldierWanderAbout>()?.SetTraverser(traverser);
 					loyalties.enlistedStatus = EnlistedStatus.ENLISTED;
 				}
-			} catch (NullReferenceException) { }
+			} catch (NullReferenceException e) {
+				World.Logger.Error(e.ToString());
+			}
 		}
 	}
 }

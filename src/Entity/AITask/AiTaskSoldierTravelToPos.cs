@@ -1,42 +1,25 @@
-﻿using Vintagestory.API.Server;
+﻿using System;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.Common;
-using System;
+using Vintagestory.API.Common.Entities;
 
 namespace VSKingdom {
 	public class AiTaskSoldierTravelToPos : AiTaskBase {
 		public AiTaskSoldierTravelToPos(EntityAgent entity) : base(entity) { }
 
-		float moveSpeed = 0.04f;
-		float targetDistance = 0.5f;
-
-		bool done;
-
-		int searchDepth = 5000;
-
 		public Vec3d MainTarget;
 
+		protected bool finished;
+		protected float moveSpeed = 0.04f;
+		protected float targetDistance = 0.5f;
+		protected int searchDepth = 5000;
 		protected SoldierWaypointsTraverser soldierPathTraverser;
 
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);
-			if (taskConfig["movespeed"] != null) {
-				moveSpeed = taskConfig["movespeed"].AsFloat(1f);
-			}
+			moveSpeed = taskConfig["movespeed"].AsFloat(1.5f);
 			soldierPathTraverser = entity.GetBehavior<EntityBehaviorTraverser>().waypointsTraverser;
-		}
-
-		private double moveDownToFloor(int x, double y, int z) {
-			int tries = 5;
-			while (tries-- > 0) {
-				Block block = world.BlockAccessor.GetBlock(new BlockPos(x, (int)y, z, 0));
-				if (block.SideSolid[BlockFacing.UP.Index]) {
-					return y + 1;
-				}
-				y--;
-			}
-			return -1;
 		}
 
 		public override bool ShouldExecute() {
@@ -45,9 +28,8 @@ namespace VSKingdom {
 
 		public override void StartExecute() {
 			base.StartExecute();
-			done = false;
-			bool ok = soldierPathTraverser.NavigateTo(MainTarget, moveSpeed, targetDistance, OnGoalReached, OnStuck, true, searchDepth);
-			var sapi = entity.Api as ICoreServerAPI;
+			finished = false;
+			soldierPathTraverser.NavigateTo(MainTarget, moveSpeed, targetDistance, OnGoalReached, OnStuck, true, searchDepth);
 		}
 
 		public override bool ContinueExecute(float dt) {
@@ -68,7 +50,7 @@ namespace VSKingdom {
 				MainTarget = null;
 				return false;
 			}
-			return !done;
+			return !finished;
 		}
 
 		public override void FinishExecute(bool cancelled) {
@@ -82,16 +64,29 @@ namespace VSKingdom {
 		}
 
 		private void OnStuck() {
-			done = true;
+			finished = true;
 			MainTarget = null;
 		}
 
 		private void OnGoalReached() {
-			done = true;
+			finished = true;
 			MainTarget = null;
 		}
 
+		private double MoveDownToFloor(int x, double y, int z) {
+			int tries = 5;
+			while (tries-- > 0) {
+				Block block = world.BlockAccessor.GetBlock(new BlockPos(x, (int)y, z, 0));
+				if (block.SideSolid[BlockFacing.UP.Index]) {
+					return y + 1;
+				}
+				y--;
+			}
+			return -1;
+		}
+
 		private void StopAnimations() {
+			entity.CurrentControls = EnumEntityActivity.Idle;
 			try {
 				if (entity.AnimManager.IsAnimationActive("walk")) {
 					entity.StopAnimation("walk");

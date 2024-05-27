@@ -2,6 +2,7 @@
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
+using Vintagestory.GameContent;
 
 namespace VSKingdom {
 	public class InvKnightDialog : GuiDialog {
@@ -62,7 +63,7 @@ namespace VSKingdom {
 			followMeButtonBounds.FixedRightOf(goWanderButtonBounds, 10.0);
 			goReturnButtonBounds.FixedRightOf(stayHereButtonBounds, 10.0);
 
-			SingleComposer = capi.Gui.CreateCompo("soldiercontents" + ent.EntityId, dialogBounds)
+			SingleComposer = capi.Gui.CreateCompo("knightcontents" + ent.EntityId, dialogBounds)
 				.AddShadedDialogBG(bgBounds)
 				.AddDialogTitleBar(GetName(ent), onClose: OnCloseDialog);
 			SingleComposer
@@ -81,10 +82,10 @@ namespace VSKingdom {
 				.AddItemSlotGrid(inv, SendInvPacket, 1, new int[1] { InventoryKnight.FoodsItemSlotId }, munitionsSlotsBounds, "otherSlotsFood")
 				.AddItemSlotGrid(inv, SendInvPacket, 1, new int[1] { InventoryKnight.HealthItmSlotId }, healthitmSlotsBounds, "otherSlotsHeal");
 			SingleComposer
-				.AddButton(LangUtility.Get("gui-profile-wander"), () => OnClick(new bool[] { true, false, false, false }), goWanderButtonBounds, CairoFont.WhiteSmallishText(), EnumButtonStyle.Normal, "ordersGoWander")
-				.AddButton(LangUtility.Get("gui-profile-follow"), () => OnClick(new bool[] { false, true, false, false }), followMeButtonBounds, CairoFont.WhiteSmallishText(), EnumButtonStyle.Normal, "ordersFollowMe")
-				.AddButton(LangUtility.Get("gui-profile-nomove"), () => OnClick(new bool[] { false, false, true, false }), stayHereButtonBounds, CairoFont.WhiteSmallishText(), EnumButtonStyle.Normal, "ordersDontMove")
-				.AddButton(LangUtility.Get("gui-profile-return"), () => OnClick(new bool[] { false, false, false, true }), goReturnButtonBounds, CairoFont.WhiteSmallishText(), EnumButtonStyle.Normal, "ordersGoReturn")
+				.AddButton(LangUtility.Get("gui-profile-wander"), () => OnClick(new bool[4] { true, false, false, false }), goWanderButtonBounds, CairoFont.WhiteSmallishText(), EnumButtonStyle.Normal, "ordersGoWander")
+				.AddButton(LangUtility.Get("gui-profile-follow"), () => OnClick(new bool[4] { false, true, false, false }), followMeButtonBounds, CairoFont.WhiteSmallishText(), EnumButtonStyle.Normal, "ordersFollowMe")
+				.AddButton(LangUtility.Get("gui-profile-nomove"), () => OnClick(new bool[4] { false, false, true, false }), stayHereButtonBounds, CairoFont.WhiteSmallishText(), EnumButtonStyle.Normal, "ordersDontMove")
+				.AddButton(LangUtility.Get("gui-profile-return"), () => OnClick(new bool[4] { false, false, false, true }), goReturnButtonBounds, CairoFont.WhiteSmallishText(), EnumButtonStyle.Normal, "ordersGoReturn")
 			.EndChildElements();
 			SingleComposer.Compose();
 		}
@@ -142,13 +143,26 @@ namespace VSKingdom {
 
 		protected bool OnClick(bool[] orders) {
 			// Update movement orders here!
-			ent.GetBehavior<EntityBehaviorLoyalties>()?.SetUnitOrders(orders);
+			try {
+				var aitasking = ent.GetBehavior<EntityBehaviorTaskAI>();
+				aitasking?.TaskManager?.GetTask<AiTaskSoldierWanderAbout>()?.SetActive(orders[0]);
+				aitasking?.TaskManager?.GetTask<AiTaskFollowEntityLeader>()?.SetActive(orders[1], capi.World.Player.Entity);
+				aitasking?.TaskManager?.GetTask<AiTaskSoldierGuardingPos>()?.SetActive(orders[2]);
+				aitasking?.TaskManager?.GetTask<AiTaskSoldierReturningTo>()?.SetActive(orders[3]);
+				/** NOT GETTING SET HERE **/
+				ent.World.Logger.Notification("Are we cool to wander? " + aitasking?.TaskManager?.GetTask<AiTaskSoldierWanderAbout>()?.commandActive);
+				ent.World.Logger.Notification("Are we cool to follow? " + aitasking?.TaskManager?.GetTask<AiTaskFollowEntityLeader>()?.commandActive);
+				ent.World.Logger.Notification("Are we cool to not go? " + aitasking?.TaskManager?.GetTask<AiTaskSoldierGuardingPos>()?.commandActive);
+				ent.World.Logger.Notification("Are we cool to return? " + aitasking?.TaskManager?.GetTask<AiTaskSoldierReturningTo>()?.commandActive);
+			} catch (NullReferenceException e) {
+				ent.World.Logger.Error(e.ToString());
+			}
+			//ent.GetBehavior<EntityBehaviorLoyalties>()?.SetUnitOrders(orders);
 			TryClose();
 			return true;
 		}
 
 		public string GetName(EntityKnight ent) {
-			// Get the name of the soldier.
 			if (ent.HasBehavior<EntityBehaviorNameTag>()) {
 				return ent.GetBehavior<EntityBehaviorNameTag>()?.DisplayName;
 			} else {

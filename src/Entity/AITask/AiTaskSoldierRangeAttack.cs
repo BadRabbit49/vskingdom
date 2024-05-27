@@ -67,7 +67,6 @@ namespace VSKingdom {
 			if (cooldownUntilMs > entity.World.ElapsedMilliseconds) {
 				return false;
 			}
-			//DebugCheck1();
 			if (!HasRanged()) {
 				return false;
 			}
@@ -119,11 +118,10 @@ namespace VSKingdom {
 			projectileFired = false;
 			entity.Controls.IsAiming = true;
 			entity.ServerControls.IsAiming = true;
-			// Run through the list of preset variables for each item for balance.
-			Random rnd = new Random();
 			// Get and initialize the item's attributes to the weapon.
 			drawingsound = ItemsProperties.wepnAimAudio.Get(entity.RightHandItemSlot?.Itemstack?.Collectible?.Code);
 			List<AssetLocation> hitAudio = ItemsProperties.wepnHitAudio.Get(entity.RightHandItemSlot?.Itemstack?.Collectible?.Code);
+			Random rnd = new Random();
 			hittingsound = hitAudio[rnd.Next(0, hitAudio.Count - 1)];
 			ammoLocation = (entity as EntityArcher).AmmoItemSlot?.Itemstack?.Collectible?.Code;
 			// Start switching the renderVariant to change to aiming.
@@ -353,10 +351,6 @@ namespace VSKingdom {
 				return true;
 			}
 			return false;
-		}
-
-		private void DebugCheck1() {
-			entity.Api.World.Logger.Notification("\nEntity is: " + entity + "\nTarget is: " + targetEntity + "\nHasRanged: " + HasRanged() + "\nSearch at: " + (lastSearchMs + searchWaitMs < entity.World.ElapsedMilliseconds).ToString() + "\nSearching: " + (lastSearchMs + searchWaitMs * 5 < entity.World.ElapsedMilliseconds).ToString() + "\nCanTarget: " + DataUtility.IsAnEnemy(entKingdom, targetEntity) + "\nlastSearchMs: " + lastSearchMs + "\nsearchWaitMs: " + searchWaitMs + "\nElapsedMs: " + entity.World.ElapsedMilliseconds);
 		}
 	}
 }

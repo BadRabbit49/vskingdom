@@ -6,17 +6,24 @@ namespace VSKingdom {
 	public class AiTaskSoldierGuardingPos : AiTaskBase {
 		public AiTaskSoldierGuardingPos(EntityAgent entity) : base(entity) { }
 
-		public bool commandActive { get; set; }
+		public bool commandActive;
 		public Vec3d PosXYZ;
 
-		protected float maxDistance = 10f;
 		protected bool stuck = false;
+		protected float maxDistance = 10f;
 
-		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) { }
+		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
+			commandActive = false;
+		}
+
+		public override void AfterInitialize() {
+			base.AfterInitialize();
+			pathTraverser = entity.GetBehavior<EntityBehaviorTraverser>()?.waypointsTraverser;
+		}
 
 		public override bool ShouldExecute() {
 			// TODO: Setup guarding execution parameters.
-			return false;
+			return commandActive;
 		}
 
 		public override void StartExecute() {
@@ -36,6 +43,10 @@ namespace VSKingdom {
 				return false;
 			}
 			return !stuck && pathTraverser.Active;
+		}
+
+		public void SetActive(bool active) {
+			commandActive = active;
 		}
 
 		private void OnStuck() {

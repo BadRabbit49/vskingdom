@@ -7,25 +7,23 @@ namespace VSKingdom {
 	public class AiTaskSoldierWanderAbout : AiTaskBase {
 		public AiTaskSoldierWanderAbout(EntityAgent entity) : base(entity) { }
 
-		public bool commandActive { get; set; } = true;
+		public bool commandActive { get; set; }
+		public long lastTimeInRangeMs;
+		public int failedWanders;
 		public Vec3d MainTarget;
+		public Vec3d SpawnPosition;
 
-		protected bool done;
+		protected bool finished;
+		protected bool StayCloseToSpawn;
+		protected double MaxDistanceToSpawn;
 		protected float moveSpeed = 0.035f;
 		protected float wanderChance = 0.02f;
 		protected float maxHeight = 7f;
 		protected float? preferredLightLevel;
 		protected float targetDistance = 0.12f;
 
-		NatFloat wanderRangeHorizontal = NatFloat.createStrongerInvexp(3, 40);
-		NatFloat wanderRangeVertical = NatFloat.createStrongerInvexp(3, 10);
-
-		public bool StayCloseToSpawn;
-		public double MaxDistanceToSpawn;
-		public Vec3d SpawnPosition;
-
-		long lastTimeInRangeMs;
-		int failedWanders;
+		protected NatFloat wanderRangeHorizontal = NatFloat.createStrongerInvexp(3, 40);
+		protected NatFloat wanderRangeVertical = NatFloat.createStrongerInvexp(3, 10);
 
 		public float WanderRangeMul {
 			get { return entity.Attributes.GetFloat("wanderRangeMul", 1); }
@@ -53,7 +51,8 @@ namespace VSKingdom {
 				StayCloseToSpawn = true;
 				MaxDistanceToSpawn = taskConfig["maxDistanceToSpawn"].AsDouble(10);
 			}
-			
+
+			commandActive = true;
 			targetDistance = taskConfig["targetDistance"].AsFloat(0.12f);
 			moveSpeed = taskConfig["movespeed"].AsFloat(0.03f);
 			wanderChance = taskConfig["wanderChance"].AsFloat(0.015f);
@@ -75,7 +74,7 @@ namespace VSKingdom {
 		// - ✔ Prefer preferredLightLevel
 		// - ✔ If land habitat: Must be above a block the entity can stand on
 		// - ✔ if failed searches is high, reduce wander range
-		public Vec3d loadNextWanderTarget() {
+		public Vec3d LoadNextWanderTarget() {
 			bool canFallDamage = entity.Properties.FallDamage;
 			bool territorial = StayCloseToSpawn;
 			int tries = 9;
@@ -110,7 +109,7 @@ namespace VSKingdom {
 					W = 1 - distToEdge;
 				}
 				Block waterorIceBlock;
-				curTarget.Y = moveDownToFloor(curTarget);
+				curTarget.Y = MoveDownToFloor(curTarget);
 				// No floor found.
 				if (curTarget.Y < 0) {
 					W = 0;
@@ -133,7 +132,7 @@ namespace VSKingdom {
 						if (stop) {
 							return;
 						}
-						double nowY = moveDownToFloor(curTarget);
+						double nowY = MoveDownToFloor(curTarget);
 						// Not more than 4 blocks down
 						if (nowY < 0 || prevY - nowY > 4) {
 							willFall = true;
@@ -179,7 +178,7 @@ namespace VSKingdom {
 			return null;
 		}
 
-		private int moveDownToFloor(BlockPos pos) {
+		private int MoveDownToFloor(BlockPos pos) {
 			int tries = 5;
 			while (tries-- > 0) {
 				if (world.BlockAccessor.IsSideSolid(pos.X, pos.Y, pos.Z, BlockFacing.UP)) {
@@ -213,13 +212,13 @@ namespace VSKingdom {
 					lastTimeInRangeMs = ellapsedMs;
 				}
 			}
-			MainTarget = loadNextWanderTarget();
+			MainTarget = LoadNextWanderTarget();
 			return MainTarget != null;
 		}
 
 		public override void StartExecute() {
 			base.StartExecute();
-			done = false;
+			finished = false;
 			bool ok = pathTraverser.WalkTowards(MainTarget, moveSpeed, targetDistance, OnGoalReached, OnStuck);
 		}
 
@@ -244,7 +243,7 @@ namespace VSKingdom {
 				pathTraverser.Stop();
 				return false;
 			}
-			return commandActive && !done;
+			return commandActive && !finished;
 		}
 
 		public override void FinishExecute(bool cancelled) {
@@ -258,13 +257,17 @@ namespace VSKingdom {
 			pathTraverser = traverser.waypointsTraverser;
 		}
 
+		public void SetActive(bool active) {
+			commandActive = active;
+		}
+
 		private void OnStuck() {
-			done = true;
+			finished = true;
 			failedWanders++;
 		}
 
 		private void OnGoalReached() {
-			done = true;
+			finished = true;
 			failedWanders = 0;
 			pathTraverser.Stop();
 		}

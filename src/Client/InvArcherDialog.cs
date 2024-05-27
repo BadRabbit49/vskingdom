@@ -2,6 +2,7 @@
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
+using Vintagestory.GameContent;
 
 namespace VSKingdom {
 	public class InvArcherDialog : GuiDialog {
@@ -63,7 +64,7 @@ namespace VSKingdom {
 			followMeButtonBounds.FixedRightOf(goWanderButtonBounds, 10.0);
 			goReturnButtonBounds.FixedRightOf(stayHereButtonBounds, 10.0);
 
-			SingleComposer = capi.Gui.CreateCompo("soldiercontents" + ent.EntityId, dialogBounds)
+			SingleComposer = capi.Gui.CreateCompo("archercontents" + ent.EntityId, dialogBounds)
 				.AddShadedDialogBG(bgBounds)
 				.AddDialogTitleBar(GetName(ent), onClose: OnCloseDialog);
 			SingleComposer
@@ -143,12 +144,16 @@ namespace VSKingdom {
 
 		protected bool OnClick(bool[] orders) {
 			// Update movement orders here!
-			ent.GetBehavior<EntityBehaviorLoyalties>()?.SetUnitOrders(orders);
-			TryClose();
-			return true;
-		}
-
-		protected bool OnClass() {
+			try {
+				var aitasking = ent.GetBehavior<EntityBehaviorTaskAI>();
+				aitasking?.TaskManager?.GetTask<AiTaskSoldierWanderAbout>()?.SetActive(orders[0]);
+				aitasking?.TaskManager?.GetTask<AiTaskFollowEntityLeader>()?.SetActive(orders[1], capi.World.Player.Entity);
+				aitasking?.TaskManager?.GetTask<AiTaskSoldierGuardingPos>()?.SetActive(orders[2]);
+				aitasking?.TaskManager?.GetTask<AiTaskSoldierReturningTo>()?.SetActive(orders[3]);
+			} catch (NullReferenceException e) {
+				ent.World.Logger.Error(e.ToString());
+			}
+			//ent.GetBehavior<EntityBehaviorLoyalties>()?.SetUnitOrders(orders);
 			TryClose();
 			return true;
 		}

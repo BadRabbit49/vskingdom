@@ -288,23 +288,27 @@ namespace VSKingdom {
 		}
 
 		private void PlayerJoinsGame(IServerPlayer player) {
-			if (player.Entity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdomUID") is not null) {
-				serverAPI.Logger.Notification(player.PlayerName + " is member of: " + DataUtility.GetKingdomName(player.Entity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdomUID") + ", reloading data."));
-				kingdomList.Find(kingdomMatch => kingdomMatch.PlayerUIDs.Contains(player.PlayerUID)).EntityUIDs.Append(player.Entity.EntityId);
-				SaveAllData();
-			} else {
+			try {
+				if (player.Entity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdomUID") is not null) {
+					serverAPI.Logger.Notification(player.PlayerName + " is member of: " + DataUtility.GetKingdomName(player.Entity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdomUID") + ", reloading data."));
+					kingdomList.Find(kingdomMatch => kingdomMatch.PlayerUIDs.Contains(player.PlayerUID)).EntityUIDs.Append(player.Entity.EntityId);
+					SaveAllData();
+				}
+			} catch (NullReferenceException) {
 				serverAPI.Logger.Notification(player.PlayerName + " does not have kingdomUID string.");
 			}
 			UpdateDicts();
 		}
 
 		private void PlayerLeaveGame(IServerPlayer player) {
-			if (player.Entity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdomUID") is not null) {
-				serverAPI.Logger.Notification(player.PlayerName + " was member of: " + DataUtility.GetKingdomName(player.Entity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdomUID") + ", unloading data."));
-				kingdomList.Find(kingdomMatch => kingdomMatch.PlayerUIDs.Contains(player.PlayerUID)).EntityUIDs.Remove(player.Entity.EntityId);
-				SaveAllData();
-			} else {
-				serverAPI.Logger.Notification(player.PlayerName + " didn't have a kingdomUID string.");
+			try {
+				if (player.Entity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdomUID") is not null) {
+					serverAPI.Logger.Notification(player.PlayerName + " was member of: " + DataUtility.GetKingdomName(player.Entity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdomUID") + ", unloading data."));
+					kingdomList.Find(kingdomMatch => kingdomMatch.PlayerUIDs.Contains(player.PlayerUID)).EntityUIDs.Remove(player.Entity.EntityId);
+					SaveAllData();
+				}
+			} catch (NullReferenceException) {
+				serverAPI.Logger.Error(player.PlayerName + " didn't have a kingdomUID string.");
 			}
 			UpdateDicts();
 		}

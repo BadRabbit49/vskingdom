@@ -236,10 +236,10 @@ namespace VSKingdom {
 		}
 
 		public void SetUnitOrders(bool[] orders) {
-			entity.GetBehavior<EntityBehaviorTaskAI>().TaskManager.GetTask<AiTaskSoldierWanderAbout>().commandActive = orders[0];
-			entity.GetBehavior<EntityBehaviorTaskAI>().TaskManager.GetTask<AiTaskFollowEntityLeader>().commandActive = orders[1];
-			entity.GetBehavior<EntityBehaviorTaskAI>().TaskManager.GetTask<AiTaskSoldierGuardingPos>().commandActive = orders[2];
-			entity.GetBehavior<EntityBehaviorTaskAI>().TaskManager.GetTask<AiTaskSoldierReturningTo>().commandActive = orders[3];
+			//entity.GetBehavior<EntityBehaviorTaskAI>().TaskManager.GetTask<AiTaskSoldierWanderAbout>().ActivateCommand(orders[0]);
+			//entity.GetBehavior<EntityBehaviorTaskAI>().TaskManager.GetTask<AiTaskFollowEntityLeader>().commandActive = orders[1];
+			//entity.GetBehavior<EntityBehaviorTaskAI>().TaskManager.GetTask<AiTaskSoldierGuardingPos>().commandActive = orders[2];
+			//entity.GetBehavior<EntityBehaviorTaskAI>().TaskManager.GetTask<AiTaskSoldierReturningTo>().commandActive = orders[3];
 		}
 		
 		private void TryRecruiting(ItemSlot itemslot, IPlayer player) {

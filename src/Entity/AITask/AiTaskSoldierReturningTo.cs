@@ -7,32 +7,28 @@ namespace VSKingdom {
 
 		public bool commandActive { get; set; }
 
-		protected float moveSpeed = 0.035f;
 		protected bool completed;
 		protected bool canReturn;
-
-		long lastCheckTotalMs { get; set; }
-		long lastCheckCooldown { get; set; } = 500;
-
-		private BlockEntityPost post;
-		private SoldierWaypointsTraverser soldierPathTraverser;
+		protected float moveSpeed = 0.035f;
+		protected long lastCheckTotalMs;
+		protected long lastCheckCooldown = 500L;
+		protected BlockEntityPost post;
 
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);
 			post = null;
+			commandActive = false;
 			completed = false;
 			canReturn = false;
 		}
 
 		public override void AfterInitialize() {
 			base.AfterInitialize();
+			pathTraverser = entity.GetBehavior<EntityBehaviorTraverser>()?.waypointsTraverser;
 		}
 
 		public override bool ShouldExecute() {
 			if (!commandActive) {
-				return false;
-			}
-			if (entity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("currentCommand") != "RETURN") {
 				CheckDistance();
 				return false;
 			}
@@ -48,7 +44,7 @@ namespace VSKingdom {
 
 		public override void StartExecute() {
 			if (post != null) {
-				completed = !soldierPathTraverser.NavigateTo(post.Pos.ToVec3d(), moveSpeed, 0.5f, ArrivedAtPost, ArrivedAtPost, true, 10000);
+				completed = !pathTraverser.NavigateTo(post.Pos.ToVec3d(), moveSpeed, 0.5f, ArrivedAtPost, ArrivedAtPost, true, 10000);
 			} else {
 				completed = true;
 			}
@@ -57,6 +53,8 @@ namespace VSKingdom {
 			} else {
 				base.StartExecute();
 			}
+			entity.Controls.Sprint = true;
+			entity.ServerControls.Sprint = true;
 		}
 
 		public override bool ContinueExecute(float dt) {
@@ -70,7 +68,7 @@ namespace VSKingdom {
 		}
 
 		public override void FinishExecute(bool cancelled) {
-			soldierPathTraverser.Stop();
+			pathTraverser.Stop();
 			base.FinishExecute(cancelled);
 			commandActive = false;
 		}
@@ -81,7 +79,11 @@ namespace VSKingdom {
 		}
 
 		public void SetTraverser(EntityBehaviorTraverser traverser) {
-			soldierPathTraverser = traverser.waypointsTraverser;
+			pathTraverser = traverser.waypointsTraverser;
+		}
+
+		public void SetActive(bool active) {
+			commandActive = active;
 		}
 
 		private void CheckDistance() {
@@ -96,7 +98,7 @@ namespace VSKingdom {
 
 		private void ArrivedAtPost() {
 			completed = true;
-			soldierPathTraverser.Stop();
+			pathTraverser.Stop();
 			CheckDistance();
 			entity.AnimManager.StopAnimation(animMeta.Code);
 			entity.WatchedAttributes.GetTreeAttribute("loyalties")?.SetString("currentCommand", "WANDER");

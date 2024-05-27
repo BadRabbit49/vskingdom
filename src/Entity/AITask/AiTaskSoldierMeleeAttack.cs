@@ -11,7 +11,7 @@ namespace VSKingdom {
 	public class AiTaskSoldierMeleeAttack : AiTaskBaseTargetable {
 		public AiTaskSoldierMeleeAttack(EntityAgent entity) : base(entity) { }
 
-		protected int durationOfMs = 1500;
+		private int durationOfMs = 1500;
 		private long lastSearchMs;
 		private float maxDist;
 		private float minDist;
@@ -20,6 +20,7 @@ namespace VSKingdom {
 		private bool cancelAttack;
 		private bool turnToTarget;
 		private bool damageDealed;
+
 		protected AnimationMetaData swordSwingMeta;
 		protected AnimationMetaData swordSmashMeta;
 		protected AnimationMetaData swordSlashMeta;
@@ -62,9 +63,8 @@ namespace VSKingdom {
 		public override void AfterInitialize() {
 			base.AfterInitialize();
 			// We are using loyalties attribute tree to get our kingdomUID.
-			if (entity.WatchedAttributes.HasAttribute("loyalties")) {
-				loyalties = entity.WatchedAttributes.GetTreeAttribute("loyalties");
-			}
+			loyalties = entity.WatchedAttributes?.GetTreeAttribute("loyalties");
+			pathTraverser = entity.GetBehavior<EntityBehaviorTraverser>()?.waypointsTraverser;
 		}
 
 		public override bool ShouldExecute() {
@@ -131,6 +131,7 @@ namespace VSKingdom {
 			animsStarted = false;
 			cancelAttack = false;
 			curTurn = entity.GetBehavior<EntityBehaviorTaskAI>().PathTraverser.curTurnRadPerSec;
+			entity.CurrentControls = EnumEntityActivity.SprintMode;
 			if (!turnToTarget) {
 				base.StartExecute();
 			}
@@ -247,6 +248,7 @@ namespace VSKingdom {
 
 		private void OnGoalReached() {
 			pathTraverser.Retarget();
+			entity.CurrentControls = EnumEntityActivity.Idle;
 		}
 
 		private bool IsTargetEntity(string testPath) {

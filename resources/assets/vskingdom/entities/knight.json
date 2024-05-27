@@ -406,20 +406,16 @@
 					{
 						"code": "FollowEntityLeader",
 						"priority": 1.0,
-						"animation": "sprint",
 						"movespeed": 0.02
 					},
 					{
 						"code": "SoldierReturningTo",
 						"priority": 1.0,
-						"animation": "sprint",
 						"movespeed": 0.02
 					},
 					{
 						"code": "SoldierWanderAbout",
 						"priority": 1.0,
-						"animation": "walk",
-						"movespeed": 0.02,
 						"wanderChance": 0.005,
 						"wanderRangeMin": 3,
 						"wanderRangeMax": 7,

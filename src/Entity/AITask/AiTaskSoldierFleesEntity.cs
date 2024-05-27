@@ -9,6 +9,8 @@ using Vintagestory.GameContent;
 
 namespace VSKingdom {
 	public class AiTaskSoldierFleesEntity : AiTaskFleeEntity {
+		public AiTaskSoldierFleesEntity(EntityAgent entity) : base(entity) { }
+		
 		long fleeStartMs;
 		float moveSpeed = 0.035f;
 		float seekingRange = 25f;
@@ -22,8 +24,6 @@ namespace VSKingdom {
 
 		public override bool AggressiveTargeting => false;
 
-		public AiTaskSoldierFleesEntity(EntityAgent entity) : base(entity) { }
-
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);
 			moveSpeed = taskConfig["movespeed"].AsFloat(0.035f);
@@ -32,6 +32,11 @@ namespace VSKingdom {
 			cancelOnHurt = taskConfig["cancelOnHurt"].AsBool(false);
 			fleeingDistance = taskConfig["fleeingDistance"].AsFloat(seekingRange + 15);
 			fleeDurationMs = taskConfig["fleeDurationMs"].AsInt(9000);
+		}
+
+		public override void AfterInitialize() {
+			base.AfterInitialize();
+			pathTraverser = entity.GetBehavior<EntityBehaviorTraverser>().waypointsTraverser;
 		}
 
 		public override bool ShouldExecute() {
@@ -60,6 +65,7 @@ namespace VSKingdom {
 			pathTraverser.WalkTowards(targetPos, moveSpeed, size + 0.2f, OnGoalReached, OnStuck);
 			fleeStartMs = entity.World.ElapsedMilliseconds;
 			stuck = false;
+			entity.CurrentControls = EnumEntityActivity.SprintMode;
 		}
 
 		public override bool ContinueExecute(float dt) {
@@ -85,6 +91,7 @@ namespace VSKingdom {
 
 		public override void FinishExecute(bool cancelled) {
 			pathTraverser.Stop();
+			entity.CurrentControls = EnumEntityActivity.Idle;
 			base.FinishExecute(cancelled);
 		}
 

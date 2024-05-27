@@ -2,7 +2,6 @@
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
-using System.Linq;
 
 namespace VSKingdom {
 	public class AiTaskSoldierTargetables : AiTaskBaseTargetable {

@@ -185,7 +185,9 @@ namespace VSKingdom {
 					aitasking?.TaskManager?.GetTask<AiTaskSoldierWanderAbout>()?.SetTraverser(traverser);
 					loyalties.enlistedStatus = EnlistedStatus.ENLISTED;
 				}
-			} catch (NullReferenceException) { }
+			} catch (NullReferenceException e) {
+				World.Logger.Error(e.ToString());
+			}
 		}
 	}
 }

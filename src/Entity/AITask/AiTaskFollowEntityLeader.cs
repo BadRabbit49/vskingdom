@@ -1,4 +1,5 @@
 using Vintagestory.API.Common;
+using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.GameContent;
@@ -17,10 +18,12 @@ namespace VSKingdom {
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);
 			allowTeleport &= entity.Api.World.Config.GetAsBool("AllowTeleport");
+			commandActive = false;
 		}
 
 		public override void AfterInitialize() {
 			base.AfterInitialize();
+			pathTraverser = entity.GetBehavior<EntityBehaviorTraverser>()?.waypointsTraverser;
 		}
 
 		public override bool ShouldExecute() {
@@ -30,7 +33,7 @@ namespace VSKingdom {
 			if (targetEntity is null || !targetEntity.Alive || targetEntity.ShouldDespawn || !targetEntity.IsInteractable) {
 				return false;
 			}
-			return SoldierUtility.CanFollowThis(entity, targetEntity);
+			return DataUtility.IsAFriend(entity, targetEntity);
 		}
 
 		public override void StartExecute() {
@@ -63,6 +66,15 @@ namespace VSKingdom {
 
 		public override void OnNoPath(Vec3d target) {
 			// Do nothing.
+		}
+
+		public void SetTraverser(EntityBehaviorTraverser traverser) {
+			pathTraverser = traverser.waypointsTraverser;
+		}
+
+		public void SetActive(bool active, Entity leader) {
+			commandActive = active;
+			targetEntity = leader;
 		}
 
 		private void UpdatedXYZ() {

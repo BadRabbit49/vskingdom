@@ -97,6 +97,7 @@ namespace VSKingdom {
 			base.StartClientSide(capi);
 			clientAPI = capi;
 			capi.Event.LevelFinalize += () => LevelFinalize(capi);
+			capi.Network.RegisterChannel("kingdomnetwork").RegisterMessageType<KingdomCommand>().SetMessageHandler<KingdomCommand>(OnKingdomCommandClient);
 		}
 
 		public override void StartServerSide(ICoreServerAPI sapi) {
@@ -108,12 +109,43 @@ namespace VSKingdom {
 			sapi.Event.PlayerJoin += PlayerJoinsGame;
 			sapi.Event.PlayerDisconnect += PlayerLeaveGame;
 			sapi.Event.ServerRunPhase(EnumServerRunPhase.Shutdown, SaveAllData);
+			sapi.Network.RegisterChannel("kingdomnetwork").RegisterMessageType<KingdomCommand>().SetMessageHandler<KingdomCommand>(OnKingdomCommandServer);
 		}
 
 		public override void Dispose() {
 			// Unload and Unpatch everything from the mod.
 			harmony?.UnpatchAll(Mod.Info.ModID);
 			base.Dispose();
+		}
+
+		private void OnKingdomCommandClient(KingdomCommand kingdomCommand) {
+			// Send messages here.
+		}
+
+		private void OnKingdomCommandServer(IServerPlayer fromPlayer, KingdomCommand kingdomCommand) {
+			switch (kingdomCommand.commands) {
+				case "set_kingdom":
+					kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomCommand.newGUIDs).EntityUIDs.Add(kingdomCommand.entityID);
+					kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomCommand.oldGUIDs).EntityUIDs.Remove(kingdomCommand.entityID);
+					if (serverAPI.World.GetEntityById(kingdomCommand.entityID) is EntityPlayer playerEnt) {
+						kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomCommand.newGUIDs).PlayerUIDs.Add(playerEnt.PlayerUID);
+						kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomCommand.oldGUIDs).PlayerUIDs.Remove(playerEnt.PlayerUID);
+					}
+					UpdateDicts();
+					return;
+				case "add_enemies":
+					if (serverAPI.World.GetEntityById(kingdomCommand.entityID) is EntityPlayer) {
+						kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomCommand.oldGUIDs).EnemieUIDs.Add((serverAPI.World.GetEntityById(kingdomCommand.entityID) as EntityPlayer).PlayerUID);
+						SaveKingdom();
+					}
+					return;
+				case "del_enemies":
+					if (serverAPI.World.GetEntityById(kingdomCommand.entityID) is EntityPlayer) {
+						kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomCommand.oldGUIDs).EnemieUIDs.Remove((serverAPI.World.GetEntityById(kingdomCommand.entityID) as EntityPlayer).PlayerUID);
+						SaveKingdom();
+					}
+					return;
+			}
 		}
 
 		public void CreateKingdom(string kingdomName, string kingdomGuid, string founderUID, IServerPlayer founder, bool autoJoin) {
@@ -145,7 +177,8 @@ namespace VSKingdom {
 		}
 
 		public void DepartKingdom(IServerPlayer caller) {
-			kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == caller.Entity?.GetBehavior<EntityBehaviorLoyalties>()?.kingdomUID).RemoveMember(caller.Entity);
+			kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == caller.Entity?.GetBehavior<EntityBehaviorLoyalties>()?.kingdomUID).PlayerUIDs.Remove(caller.PlayerUID);
+			kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == caller.Entity?.GetBehavior<EntityBehaviorLoyalties>()?.kingdomUID).EntityUIDs.Remove(caller.Entity.EntityId);
 			UpdateDicts();
 		}
 		
@@ -492,6 +525,13 @@ namespace VSKingdom {
 
 			return TextCommandResult.Error(LangUtility.Get("command-culture-help-basics"));
 		}
+	}
+	[ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
+	public class KingdomCommand {
+		public long entityID;
+		public string commands;
+		public string oldGUIDs;
+		public string newGUIDs;
 	}
 	[ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
 	public class WeaponAnims {

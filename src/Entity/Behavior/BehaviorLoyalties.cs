@@ -189,9 +189,19 @@ namespace VSKingdom {
 			if (kingdomUID is null || kingdomUID == "") {
 				return;
 			}
-			cachedKingdom.RemoveMember(entity);
+
+			KingdomCommand command = new KingdomCommand();
+			command.entityID = entity.EntityId;
+			command.commands = "switch_kingdom";
+			command.oldGUIDs = this.kingdomUID;
+			command.newGUIDs = kingdomUID;
+
+			if (entity is EntityPlayer) {
+				(entity.Api as ICoreServerAPI)?.Network.GetChannel("kingdomnetwork").SendPacket<KingdomCommand>(command, (entity as EntityPlayer).Player as IServerPlayer);
+			} else {
+				(entity.Api as ICoreServerAPI)?.Network.GetChannel("kingdomnetwork").SendPacket<KingdomCommand>(command, entity.GetBehavior<EntityBehaviorLoyalties>()?.cachedLeaders as IServerPlayer);
+			}
 			this.kingdomUID = kingdomUID;
-			cachedKingdom.AddNewMember(entity);
 		}
 		
 		public virtual void SetLeaders(string leadersUID) {

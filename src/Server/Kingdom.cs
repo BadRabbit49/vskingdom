@@ -50,43 +50,5 @@ namespace VSKingdom {
 				return list;
 			}
 		}
-
-		public void AddNewMember(Entity entity) {
-			if (!EntityUIDs.Contains(entity.EntityId)) {
-				EntityUIDs.Append(entity.EntityId);
-			}
-			bool isPlayer = entity is EntityPlayer;
-			if (isPlayer && !PlayerUIDs.Contains((entity as EntityPlayer)?.PlayerUID)) {
-				PlayerUIDs.Append((entity as EntityPlayer)?.PlayerUID);
-			}
-			byte[] kingdomData = VSKingdom.serverAPI.WorldManager.SaveGame.GetData("kingdomData");
-			List<Kingdom> kingdomList = kingdomData is null ? new List<Kingdom>() : SerializerUtil.Deserialize<List<Kingdom>>(kingdomData);
-			List<string> UIDList = new List<string>();
-			foreach (Kingdom kingdom in kingdomList) {
-				UIDList.Add(kingdom.KingdomGUID);
-			}
-			if (AtWarsUIDs is null || AtWarsUIDs.Count == 0) {
-				return;
-			}
-			Kingdom EnemyKingdom = null;
-			foreach (string EnemyKingdomUID in AtWarsUIDs) {
-				if (!UIDList.Contains(EnemyKingdomUID)) {
-					// Looks like that kingdom is gone, remove it from the list.
-					AtWarsUIDs.Remove(EnemyKingdomUID);
-					continue;
-				}
-				EnemyKingdom = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == EnemyKingdomUID);
-				if (isPlayer && !PlayerUIDs.Contains((entity as EntityPlayer)?.PlayerUID)) {
-					EnemyKingdom.EnemieUIDs.Append((entity as EntityPlayer)?.PlayerUID);
-				}
-			}
-		}
-
-		public void RemoveMember(Entity entity) {
-			EntityUIDs.Remove(entity.EntityId);
-			if (entity.HasBehavior<EntityBehaviorLoyalties>()) {
-				entity.GetBehavior<EntityBehaviorLoyalties>().kingdomUID = null;
-			}
-		}
 	}
 }

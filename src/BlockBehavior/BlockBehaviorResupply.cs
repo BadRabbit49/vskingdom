@@ -46,7 +46,7 @@ namespace VSKingdom {
 		private bool HasNearbySoldiers {
 			get {
 				for (int s = 0; s < bePost.capacity; s++) {
-					if (Api.World.GetEntityById(bePost.soldierIds[s]).Pos.DistanceTo(Blockentity.Pos.ToVec3d().Add(0.5, 0.5, 0.5)) < bePost.areasize) {
+					if (Api.World.GetEntityById(bePost.EntityUIDs[s]).Pos.DistanceTo(Blockentity.Pos.ToVec3d().Add(0.5, 0.5, 0.5)) < bePost.areasize) {
 						return true;
 					}
 				}
@@ -59,15 +59,15 @@ namespace VSKingdom {
 				return;
 			}
 			// Try to heal, revive, and resupply all soldiers in the list if in nearby range.
-			if (HasNearbySoldiers && bePost.soldierIds.Count != 0) {
-				List<long> soldierList = bePost.soldierIds;
+			if (HasNearbySoldiers && bePost.EntityUIDs.Count != 0) {
+				List<long> soldierList = bePost.EntityUIDs;
 				foreach (long soldierID in soldierList) {
-					EntityArcher soldier = Api.World.GetEntityById(soldierID) as EntityArcher;
+					var soldier = Api.World.GetEntityById(soldierID) as EntitySentry;
 					if (soldier.Pos.DistanceTo(Blockentity.Pos.ToVec3d().Add(0.5, 0.5, 0.5)) <= bePost.areasize) {
 						// Heal soldier by given amount.
 						soldier.ReceiveDamage(new DamageSource() { Source = EnumDamageSource.Internal, Type = healAmnt > 0 ? EnumDamageType.Heal : EnumDamageType.Poison }, Math.Abs(healAmnt));
 						// Refill ammo by given amount if enabled.
-						if (fillAmmo && Api.World.Config.GetAsBool("AllowResupply") && !Api.World.Config.GetAsBool("InfiniteAmmos")) {
+						if (fillAmmo && !Api.World.Config.GetAsBool("InfiniteAmmo")) {
 							if (soldier?.AmmoItemSlot?.Itemstack?.StackSize < soldier?.AmmoItemSlot?.Itemstack?.Collectible?.MaxStackSize) {
 								soldier.AmmoItemSlot.Itemstack.StackSize += ammoAmnt;
 							}

@@ -1,21 +1,15 @@
 using Vintagestory.GameContent;
-using Vintagestory.API.Datastructures;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 
 namespace VSKingdom {
-	public class AiTaskSoldierSeeksEntity : AiTaskSeekEntity {
-		public AiTaskSoldierSeeksEntity(EntityAgent entity) : base(entity) { }
+	public class AiTaskSentrySearch : AiTaskSeekEntity {
+		public AiTaskSentrySearch(EntityAgent entity) : base(entity) { }
 
-		protected long lastCheckTotalMs { get; set; }
-		protected long lastCheckCooldown { get; set; } = 500L;
-		protected long lastCallForHelp { get; set; }
-
+		protected long lastCheckTotalMs;
+		protected long lastCheckForHelp;
+		protected long lastCheckCooldown = 500L;
 		protected float minRange;
-
-		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
-			base.LoadConfig(taskConfig, aiConfig);
-		}
 
 		public override bool ShouldExecute() {
 			if (whenInEmotionState is null) {
@@ -61,11 +55,6 @@ namespace VSKingdom {
 			return base.IsTargetableEntity(ent, range, ignoreEntityCode);
 		}
 
-		public override void StartExecute() {
-			base.StartExecute();
-			world.Logger.Chat("Started Seeking Execute on: " + targetEntity.ToString());
-		}
-
 		public override bool ContinueExecute(float dt) {
 			if (targetEntity != null && EntityInReach(targetEntity)) {
 				return base.ContinueExecute(dt);
@@ -75,14 +64,14 @@ namespace VSKingdom {
 
 		public override void OnEntityHurt(DamageSource source, float damage) {
 			base.OnEntityHurt(source, damage);
-			if (source.Type != EnumDamageType.Heal && lastCallForHelp + 5000 < entity.World.ElapsedMilliseconds) {
-				lastCallForHelp = entity.World.ElapsedMilliseconds;
+			if (source.Type != EnumDamageType.Heal && lastCheckForHelp + 5000 < entity.World.ElapsedMilliseconds) {
+				lastCheckForHelp = entity.World.ElapsedMilliseconds;
 				// Alert all surrounding units! We're under attack!
-				foreach (var soldier in entity.World.GetEntitiesAround(entity.ServerPos.XYZ, 20, 4, entity => (entity is EntityArcher))) {
+				foreach (var soldier in entity.World.GetEntitiesAround(entity.ServerPos.XYZ, 20, 4, entity => (entity is EntitySentry))) {
 					var taskManager = soldier.GetBehavior<EntityBehaviorTaskAI>().TaskManager;
-					taskManager.GetTask<AiTaskSoldierSeeksEntity>()?.OnAllyAttacked(source.SourceEntity);
-					taskManager.GetTask<AiTaskSoldierMeleeAttack>()?.OnAllyAttacked(source.SourceEntity);
-					taskManager.GetTask<AiTaskSoldierRangeAttack>()?.OnAllyAttacked(source.SourceEntity);
+					taskManager.GetTask<AiTaskSentrySearch>()?.OnAllyAttacked(source.SourceEntity);
+					taskManager.GetTask<AiTaskSentryAttack>()?.OnAllyAttacked(source.SourceEntity);
+					taskManager.GetTask<AiTaskSentryRanged>()?.OnAllyAttacked(source.SourceEntity);
 				}
 			}
 		}
@@ -100,20 +89,16 @@ namespace VSKingdom {
 			}
 			ShouldExecute();
 		}
-
+		
 		private bool EntityInReach(Entity candidate) {
 			double num = candidate.ServerPos.SquareDistanceTo(entity.ServerPos.XYZ);
 			if (num < (double)(seekingRange * seekingRange * 2f)) {
-				if (HasRanged()) {
-					return num > (8d * 8d);
+				if (candidate is EntitySentry thisEnt && entity.RightHandItemSlot?.Itemstack?.Item is ItemBow) {
+					return num > (8d * 8d) && !thisEnt.AmmoItemSlot.Empty;
 				}
 				return num > (double)(minRange * minRange);
 			}
 			return false;
-		}
-
-		private bool HasRanged() {
-			return RegisteredItems.AcceptedRange.Contains(entity.RightHandItemSlot?.Itemstack?.Collectible?.Code);
 		}
 	}
 }

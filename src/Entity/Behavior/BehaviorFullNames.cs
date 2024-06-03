@@ -13,33 +13,23 @@ namespace VSKingdom {
 				entity.WatchedAttributes.MarkPathDirty("nametag");
 			}
 		}
-
-		public string DisplayName {
-			get {
-				return entity.WatchedAttributes.GetTreeAttribute("nametag")?.GetString("name");
-			}
-		}
-
+		
 		public bool ShowOnlyWhenTargeted {
-			get {
-				return entity.WatchedAttributes.GetTreeAttribute("nametag")?.GetBool("showtagonlywhentargeted") == true;
-			}
-			set {
-				entity.WatchedAttributes.GetTreeAttribute("nametag")?.SetBool("showtagonlywhentargeted", value);
-			}
+			get => entity.WatchedAttributes.GetTreeAttribute("nametag")?.GetBool("showtagonlywhentargeted") == true;
+			set => entity.WatchedAttributes.GetTreeAttribute("nametag")?.SetBool("showtagonlywhentargeted", value);
 		}
 
 		public int RenderRange {
-			get {
-				return entity.WatchedAttributes.GetTreeAttribute("nametag").GetInt("renderRange");
-			}
-			set {
-				entity.WatchedAttributes.GetTreeAttribute("nametag")?.SetInt("renderRange", value);
-			}
+			get => entity.WatchedAttributes.GetTreeAttribute("nametag").GetInt("renderRange");
+			set => entity.WatchedAttributes.GetTreeAttribute("nametag")?.SetInt("renderRange", value);
+		}
+		
+		public string DisplayName {
+			get => entity.WatchedAttributes.GetTreeAttribute("nametag")?.GetString("name");
 		}
 
 		public override string PropertyName() {
-			return "displayname";
+			return "KingdomFullNames";
 		}
 
 		public override void Initialize(EntityProperties entityType, JsonObject attributes) {

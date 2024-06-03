@@ -1,12 +1,13 @@
 {
 	"code": "knight",
-	"class": "EntityKnight",
+	"class": "EntitySentry",
 	"variantGroups": [ { "code": "gender", "states": [ "masc", "femm" ] } ],
 	"canClimb": true,
 	"hitboxSize": { "x": 0.6, "y": 1.85 },
 	"deadHitboxSize": {"x": 0.75, "y": 0.5},
 	"eyeHeight": 1.7,
 	"attributes": {
+		"kingdomClass": "melee",
 		"spawnDamageParticles": true,
 		"skinnableParts": [
 			{
@@ -353,8 +354,8 @@
 				"code": "nametag",
 				"showtagonlywhentargeted": true,
 				"selectFromRandomNameByType": {
-					"*-masc": [ "Aphid", "Eriek", "Adachi", "Farhad", "Pegalesharro", "Floyd", "Temper", "Kanin", "Fauln", "Riftok", "Blauld", "Canft", "Henlir", "Rauln", "Gautfor", "Beckett", "Gouldfor", "Mantiel", "Shink", "Helno", "Recksmeal", "Rudolf", "Marcus", "Hardwin", "Cronos", "Timoleon", "Leonidas", "Xerxes", "Brutus", "William", "Maurinus", "Hubertus" ],
-					"*-femm": [ "Annie", "Agnes", "Lestli", "Candis", "Bianca", "Hedwig", "Demud", "Imagina", "Johanna", "Judith", "Magdalena", "Philippa", "Methild", "Violante", "Walpurga", "Josephine", "Joana", "Yvonne", "Lisbeth", "Dione", "Diana", "Olivia", "Hermine", "Triss", "Yennefer", "Lucia", "Mirella", "Bernadetta", "Tacia", "Listle", "Willa" ]
+					"*-masc": [ "Aphid", "Eriek", "Adachi", "Farhad", "Barker", "Floyd", "Temper", "Kanin", "Fauln", "Riftok", "Blauld", "Canft", "Henlir", "Rauln", "Gautfor", "Beckett", "Gouldfor", "Mantiel", "Shink", "Helno", "Recksmeal", "Marky", "Marcus", "Hardwin", "Cronos", "Timoleon", "Leonidas", "Yikes", "Brutus", "William", "Maurinus", "Hubertus" ],
+					"*-femm": [ "Annie", "Agnes", "Lestli", "Candis", "Bianca", "Hedwig", "Demud", "Imagina", "Johanna", "Judith", "Magdalena", "Philippa", "Methild", "Violante", "Walpurga", "Josephine", "Joana", "Yvonne", "Lisbeth", "Tauts", "Diana", "Olivia", "Hermine", "Triss", "Harley", "Lucia", "Mirella", "Bernadetta", "Tacia", "Listle", "Willa" ]
 				}
 			},
 			{ "code": "controlledphysics", "stepHeight": 1.2 },
@@ -362,14 +363,13 @@
 			{ "code": "extraskinnable" },
 			{ "code": "SoldierDecayBody", "hoursToDecay": 96, "skeleton": "body-humanoid2" },
 			{ "code": "KingdomLoyalties" },
-			{ "code": "SoldierTraverser" },
 			{
 				"code": "taskai",
 				"aitasks": [
 					{
-						"code": "SoldierMeleeAttack",
+						"code": "SentryAttack",
 						"entityCodes": [ "player", "archer-*", "knight-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "looter", "bandit-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
-						"priority": 2,
+						"priority": 2.0,
 						"seekingRange": 15,
 						"mincooldown": 500,
 						"maxcooldown": 1500,
@@ -378,7 +378,7 @@
 						"damageTier": 3
 					},
 					{
-						"code": "SoldierSeeksEntity",
+						"code": "SentrySearch",
 						"entityCodes": [ "player", "archer-*", "knight-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "looter", "bandit-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
 						"priority": 1.5,
 						"mincooldown": 1000,
@@ -389,7 +389,7 @@
 						"animationSpeed": 1.75
 					},
 					{
-						"code": "SoldierHealingSelf",
+						"code": "SentryHealth",
 						"priority": 1.2,
 						"animation": "sprint",
 						"mincooldown": 1000,
@@ -397,30 +397,24 @@
 						"seekingRange": 20
 					},
 					{
-						"code": "getoutofwater",
+						"code": "SentryWaters",
 						"priority": 1.2,
-						"animation": "walk",
-						"movespeed": 0.030,
-						"animationSpeed": 1.55
+						"animation": "walk"
 					},
 					{
-						"code": "FollowEntityLeader",
+						"code": "SentryFollow",
 						"priority": 1.0,
-						"movespeed": 0.02
+						"animation": "walk"
 					},
 					{
-						"code": "SoldierReturningTo",
+						"code": "SentryReturn",
 						"priority": 1.0,
-						"movespeed": 0.02
+						"animation": "sprint"
 					},
 					{
-						"code": "SoldierWanderAbout",
+						"code": "SentryWander",
 						"priority": 1.0,
-						"wanderChance": 0.005,
-						"wanderRangeMin": 3,
-						"wanderRangeMax": 7,
-						"teleportWhenOutOfRange": false,
-						"teleportInGameHours": 1
+						"animation": "walk"
 					},
 					{
 						"code": "idle",
@@ -433,7 +427,8 @@
 					},
 					{
 						"code": "lookaround",
-						"priority": 0.5
+						"priority": 0.5,
+						"animation": "idle"
 					}
 				]
 			}

@@ -4,35 +4,36 @@ using Vintagestory.API.MathTools;
 using Vintagestory.API.Datastructures;
 
 namespace VSKingdom {
-	public class AiTaskSoldierWanderAbout : AiTaskBase {
-		public AiTaskSoldierWanderAbout(EntityAgent entity) : base(entity) { }
-
-		public bool commandActive { get; set; }
-		public long lastTimeInRangeMs;
-		public int failedWanders;
-		public Vec3d MainTarget;
-		public Vec3d SpawnPosition;
-
+	public class AiTaskSentryWander : AiTaskBase {
+		public AiTaskSentryWander(EntityAgent entity) : base(entity) { }
+		
 		protected bool finished;
 		protected bool StayCloseToSpawn;
+		protected long failedWanders;
+		protected long lastTimeInRangeMs;
 		protected double MaxDistanceToSpawn;
 		protected float moveSpeed = 0.035f;
-		protected float wanderChance = 0.02f;
+		protected float wanderChance = 0.005f;
 		protected float maxHeight = 7f;
-		protected float? preferredLightLevel;
 		protected float targetDistance = 0.12f;
-
+		protected Vec3d MainTarget;
+		protected Vec3d SpawnPosition;
 		protected NatFloat wanderRangeHorizontal = NatFloat.createStrongerInvexp(3, 40);
 		protected NatFloat wanderRangeVertical = NatFloat.createStrongerInvexp(3, 10);
 
+		private ITreeAttribute loyalties;
+		private bool wandering { get => loyalties.GetBool("command_wander"); }
+		private bool following { get => loyalties.GetBool("command_follow"); }
+		private bool returning { get => loyalties.GetBool("command_return"); }
+
 		public float WanderRangeMul {
-			get { return entity.Attributes.GetFloat("wanderRangeMul", 1); }
-			set { entity.Attributes.SetFloat("wanderRangeMul", value); }
+			get => entity.Attributes.GetFloat("wanderRangeMul", 1);
+			set => entity.Attributes.SetFloat("wanderRangeMul", value);
 		}
 
 		public int FailedConsecutivePathfinds {
-			get { return entity.Attributes.GetInt("failedConsecutivePathfinds", 0); }
-			set { entity.Attributes.SetInt("failedConsecutivePathfinds", value); }
+			get => entity.Attributes.GetInt("failedConsecutivePathfinds", 0);
+			set => entity.Attributes.SetInt("failedConsecutivePathfinds", value);
 		}
 
 		public override void OnEntitySpawn() {
@@ -46,34 +47,96 @@ namespace VSKingdom {
 			base.LoadConfig(taskConfig, aiConfig);
 			SpawnPosition = new Vec3d(entity.Attributes.GetDouble("spawnX"), entity.Attributes.GetDouble("spawnY"), entity.Attributes.GetDouble("spawnZ"));
 			float wanderRangeMin = 3, wanderRangeMax = 30;
-
 			if (taskConfig["maxDistanceToSpawn"].Exists) {
 				StayCloseToSpawn = true;
 				MaxDistanceToSpawn = taskConfig["maxDistanceToSpawn"].AsDouble(10);
 			}
-
-			commandActive = true;
 			targetDistance = taskConfig["targetDistance"].AsFloat(0.12f);
-			moveSpeed = taskConfig["movespeed"].AsFloat(0.03f);
+			moveSpeed = taskConfig["movespeed"].AsFloat(0.035f);
 			wanderChance = taskConfig["wanderChance"].AsFloat(0.015f);
 			wanderRangeMin = taskConfig["wanderRangeMin"].AsFloat(3);
 			wanderRangeMax = taskConfig["wanderRangeMax"].AsFloat(30);
 			wanderRangeHorizontal = NatFloat.createInvexp(wanderRangeMin, wanderRangeMax);
 			maxHeight = taskConfig["maxHeight"].AsFloat(7f);
-			preferredLightLevel = taskConfig["preferredLightLevel"].AsFloat(-99);
-			if (preferredLightLevel < 0) {
-				preferredLightLevel = null;
+		}
+
+		public override void AfterInitialize() {
+			base.AfterInitialize();
+			loyalties = entity.WatchedAttributes.GetTreeAttribute("loyalties");
+		}
+
+		public override bool ShouldExecute() {
+			if (!wandering || following || returning) {
+				finished = true;
+				return false;
+			}
+            // If a wander failed (got stuck) initially greatly increase the chance of trying again, but eventually give up.
+            if (rand.NextDouble() > (failedWanders > 0 ? (1 - wanderChance * 4 * failedWanders) : wanderChance)) {
+				failedWanders = 0;
+				return false;
+			}
+			double dist = entity.ServerPos.XYZ.SquareDistanceTo(SpawnPosition);
+			if (StayCloseToSpawn) {
+				long ellapsedMs = entity.World.ElapsedMilliseconds;
+				if (dist > MaxDistanceToSpawn * MaxDistanceToSpawn) {
+					// If after 2 minutes still not at spawn and no player nearby, teleport.
+					if (ellapsedMs - lastTimeInRangeMs > 1000 * 60 * 2 && entity.World.GetNearestEntity(entity.ServerPos.XYZ, 15, 15, (e) => e is EntityPlayer) is null) {
+						entity.TeleportTo(SpawnPosition);
+					}
+					MainTarget = SpawnPosition.Clone();
+					return true;
+				} else {
+					lastTimeInRangeMs = ellapsedMs;
+				}
+			}
+			MainTarget = LoadNextWanderTarget();
+			return MainTarget != null;
+		}
+
+		public override void StartExecute() {
+			base.StartExecute();
+			finished = false;
+			ITreeAttribute tree = entity.WatchedAttributes["loyalties"] as ITreeAttribute;
+			bool ok = pathTraverser.WalkTowards(MainTarget, moveSpeed, targetDistance, OnGoalReached, OnStuck);
+		}
+
+		public override bool ContinueExecute(float dt) {
+			base.ContinueExecute(dt);
+			// If we are a climber dude and encountered a wall, let's not try to get behind the wall.
+			// We do that by removing the coord component that would make the entity want to walk behind the wall.
+			if (entity.Controls.IsClimbing && entity.Properties.CanClimbAnywhere && entity.ClimbingIntoFace != null) {
+				BlockFacing facing = entity.ClimbingIntoFace;
+				if (Math.Sign(facing.Normali.X) == Math.Sign(pathTraverser.CurrentTarget.X - entity.ServerPos.X)) {
+					pathTraverser.CurrentTarget.X = entity.ServerPos.X;
+				}
+				if (Math.Sign(facing.Normali.Y) == Math.Sign(pathTraverser.CurrentTarget.Y - entity.ServerPos.Y)) {
+					pathTraverser.CurrentTarget.Y = entity.ServerPos.Y;
+				}
+				if (Math.Sign(facing.Normali.Z) == Math.Sign(pathTraverser.CurrentTarget.Z - entity.ServerPos.Z)) {
+					pathTraverser.CurrentTarget.Z = entity.ServerPos.Z;
+				}
+			}
+			// If the entity is close enough to the primary target then leave it there.
+			if (MainTarget.HorizontalSquareDistanceTo(entity.ServerPos.X, entity.ServerPos.Z) < 0.5) {
+				pathTraverser.Stop();
+				return false;
+			}
+			return wandering && !finished;
+		}
+
+		public override void FinishExecute(bool cancelled) {
+			base.FinishExecute(cancelled);
+			if (cancelled) {
+				pathTraverser.Stop();
 			}
 		}
 
 		// Requirements:
-		// - ✔ Try to not move a lot vertically
-		// - ~~If cave habitat: Prefer caves~~
-		// - ✔ If water habitat: Don't walk onto land
-		// - ✔ Try not to fall from very large heights. Try not to fall from any large heights if entity has FallDamage
-		// - ✔ Prefer preferredLightLevel
-		// - ✔ If land habitat: Must be above a block the entity can stand on
-		// - ✔ if failed searches is high, reduce wander range
+		// - ✔ Try to not move a lot vertically.
+		// - ✔ If water habitat: Don't walk onto land.
+		// - ✔ Try not to fall from very large heights. Try not to fall from any large heights if entity has FallDamage.
+		// - ✔ If land habitat: Must be above a block the entity can stand on.
+		// - ✔ if failed searches is high, reduce wander range.
 		public Vec3d LoadNextWanderTarget() {
 			bool canFallDamage = entity.Properties.FallDamage;
 			bool territorial = StayCloseToSpawn;
@@ -157,11 +220,6 @@ namespace VSKingdom {
 						}
 					}
 				}
-				if (preferredLightLevel != null && W != 0) {
-					tmpPos.Set(curTarget);
-					int lightdiff = Math.Abs((int)preferredLightLevel - entity.World.BlockAccessor.GetLightLevel(tmpPos, EnumLightLevelType.MaxLight));
-					W /= Math.Max(1, lightdiff);
-				}
 				if (bestTarget is null || W > bestTarget.W) {
 					bestTarget = new Vec4d(curTarget.X, curTarget.Y, curTarget.Z, W);
 					// We have a good enough target, no need for further tries.
@@ -187,78 +245,6 @@ namespace VSKingdom {
 				pos.Y--;
 			}
 			return -1;
-		}
-
-		public override bool ShouldExecute() {
-			if (!commandActive) {
-				return false;
-			}
-			// If a wander failed (got stuck) initially greatly increase the chance of trying again, but eventually give up.
-			if (rand.NextDouble() > (failedWanders > 0 ? (1 - wanderChance * 4 * failedWanders) : wanderChance)) {
-				failedWanders = 0;
-				return false;
-			}
-			double dist = entity.ServerPos.XYZ.SquareDistanceTo(SpawnPosition);
-			if (StayCloseToSpawn) {
-				long ellapsedMs = entity.World.ElapsedMilliseconds;
-				if (dist > MaxDistanceToSpawn * MaxDistanceToSpawn) {
-					// If after 2 minutes still not at spawn and no player nearby, teleport.
-					if (ellapsedMs - lastTimeInRangeMs > 1000 * 60 * 2 && entity.World.GetNearestEntity(entity.ServerPos.XYZ, 15, 15, (e) => e is EntityPlayer) is null) {
-						entity.TeleportTo(SpawnPosition);
-					}
-					MainTarget = SpawnPosition.Clone();
-					return true;
-				} else {
-					lastTimeInRangeMs = ellapsedMs;
-				}
-			}
-			MainTarget = LoadNextWanderTarget();
-			return MainTarget != null;
-		}
-
-		public override void StartExecute() {
-			base.StartExecute();
-			finished = false;
-			bool ok = pathTraverser.WalkTowards(MainTarget, moveSpeed, targetDistance, OnGoalReached, OnStuck);
-		}
-
-		public override bool ContinueExecute(float dt) {
-			base.ContinueExecute(dt);
-			// If we are a climber dude and encountered a wall, let's not try to get behind the wall.
-			// We do that by removing the coord component that would make the entity want to walk behind the wall.
-			if (entity.Controls.IsClimbing && entity.Properties.CanClimbAnywhere && entity.ClimbingIntoFace != null) {
-				BlockFacing facing = entity.ClimbingIntoFace;
-				if (Math.Sign(facing.Normali.X) == Math.Sign(pathTraverser.CurrentTarget.X - entity.ServerPos.X)) {
-					pathTraverser.CurrentTarget.X = entity.ServerPos.X;
-				}
-				if (Math.Sign(facing.Normali.Y) == Math.Sign(pathTraverser.CurrentTarget.Y - entity.ServerPos.Y)) {
-					pathTraverser.CurrentTarget.Y = entity.ServerPos.Y;
-				}
-				if (Math.Sign(facing.Normali.Z) == Math.Sign(pathTraverser.CurrentTarget.Z - entity.ServerPos.Z)) {
-					pathTraverser.CurrentTarget.Z = entity.ServerPos.Z;
-				}
-			}
-			// If the entity is close enough to the primary target then leave it there.
-			if (MainTarget.HorizontalSquareDistanceTo(entity.ServerPos.X, entity.ServerPos.Z) < 0.5) {
-				pathTraverser.Stop();
-				return false;
-			}
-			return commandActive && !finished;
-		}
-
-		public override void FinishExecute(bool cancelled) {
-			base.FinishExecute(cancelled);
-			if (cancelled) {
-				pathTraverser.Stop();
-			}
-		}
-
-		public void SetTraverser(EntityBehaviorTraverser traverser) {
-			pathTraverser = traverser.waypointsTraverser;
-		}
-
-		public void SetActive(bool active) {
-			commandActive = active;
 		}
 
 		private void OnStuck() {

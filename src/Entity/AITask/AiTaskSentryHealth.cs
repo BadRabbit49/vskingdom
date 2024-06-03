@@ -4,15 +4,14 @@ using Vintagestory.API.Common;
 using System;
 
 namespace VSKingdom {
-	public class AiTaskSoldierHealingSelf : AiTaskBase {
+	public class AiTaskSentryHealth : AiTaskBase {
+		public AiTaskSentryHealth(EntityAgent entity) : base(entity) { }
+
 		protected AnimationMetaData baseAnimMeta { get; set; }
-
-		public float healingFactor;
-
+		
 		protected bool animStarted;
-
-		public AiTaskSoldierHealingSelf(EntityAgent entity) : base(entity) { }
-
+		protected float healingFactor;
+		
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			baseAnimMeta = new AnimationMetaData() {
 				Code = "BandageSelf".ToLowerInvariant(),
@@ -26,7 +25,7 @@ namespace VSKingdom {
 			if (entity.GetBehavior<EntityBehaviorHealth>().Health < entity.GetBehavior<EntityBehaviorHealth>().MaxHealth) {
 				float curHealth = entity.GetBehavior<EntityBehaviorHealth>().Health;
 				float maxHealth = entity.GetBehavior<EntityBehaviorHealth>().MaxHealth;
-				if (entity is EntityArcher thisEnt && !thisEnt.HealItemSlot.Empty && thisEnt.HealItemSlot.Itemstack.Collectible.Attributes["health"].Exists) {
+				if (entity is EntitySentry thisEnt && !thisEnt.HealItemSlot.Empty && thisEnt.HealItemSlot.Itemstack.Collectible.Attributes["health"].Exists) {
 					if ((curHealth / maxHealth) < 0.75) {
 						return true;
 					}
@@ -38,7 +37,7 @@ namespace VSKingdom {
 
 		public override void StartExecute() {
 			// TODO: Make executable command to go find cover before healing! Possibly take off armor or assess healing factor.
-			healingFactor = (entity as EntityArcher).HealItemSlot.Itemstack.Collectible.Attributes["health"].AsFloat();
+			healingFactor = entity.GearInventory[19].Itemstack.Collectible.Attributes["health"].AsFloat();
 			animMeta = baseAnimMeta;
 			animStarted = false;
 		}
@@ -54,9 +53,8 @@ namespace VSKingdom {
 			}
 			if (animStarted && !entity.AnimManager.IsAnimationActive(animMeta.ToString())) {
 				return false;
-			} else {
-				return true;
 			}
+			return true;
 		}
 
 		public override void FinishExecute(bool cancelled) {
@@ -65,9 +63,9 @@ namespace VSKingdom {
 				// Apply health as "damage" to the entity.
 				entity.ReceiveDamage(new DamageSource() { Source = EnumDamageSource.Internal, Type = healingFactor > 0 ? EnumDamageType.Heal : EnumDamageType.Poison }, Math.Abs(healingFactor));
 				// If infiniteHealing items are disabled, remove it from their inventory slot.
-				if (!entity.Api.World.Config.GetAsBool("InfiniteHeals")) {
-					(entity as EntityArcher).HealItemSlot.TakeOut(1);
-					(entity as EntityArcher).HealItemSlot.MarkDirty();
+				if (!entity.Api.World.Config.GetAsBool("InfiniteHeal")) {
+					entity.GearInventory[19].TakeOut(1);
+					entity.GearInventory[19].MarkDirty();
 				}
 			}
 		}

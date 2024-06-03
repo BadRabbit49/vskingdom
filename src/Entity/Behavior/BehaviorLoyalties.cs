@@ -16,10 +16,7 @@ namespace VSKingdom {
 
 		public ITreeAttribute loyalties {
 			get {
-				if (entity.WatchedAttributes.GetTreeAttribute("loyalties") is null) {
-					entity.WatchedAttributes.SetAttribute("loyalties", new TreeAttribute());
-				}
-				return entity.WatchedAttributes.GetTreeAttribute("loyalties");
+				return entity.WatchedAttributes.GetOrAddTreeAttribute("loyalties");
 			}
 			set {
 				entity.WatchedAttributes.SetAttribute("loyalties", value);
@@ -32,9 +29,8 @@ namespace VSKingdom {
 				EnlistedStatus level;
 				if (Enum.TryParse<EnlistedStatus>(loyalties.GetString("enlistedStatus"), out level)) {
 					return level;
-				} else {
-					return EnlistedStatus.CIVILIAN;
 				}
+				return EnlistedStatus.CIVILIAN;
 			}
 			set {
 				loyalties.SetString("enlistedStatus", value.ToString());
@@ -42,45 +38,73 @@ namespace VSKingdom {
 			}
 		}
 
-		public string kingdomUID {
-			get => loyalties.GetString("kingdomUID");
-			set {
-				loyalties.SetString("kingdomUID", value);
-				entity.WatchedAttributes.MarkPathDirty("loyalties");
-			}
+		public string kingdomGUID {
+			get => loyalties.GetString("kingdom_guid");
+			set => loyalties.SetString("kingdom_guid", value);
 		}
 
-		public string cultureUID {
-			get => loyalties.GetString("cultureUID");
-			set {
-				loyalties.SetString("cultureUID", value);
-				entity.WatchedAttributes.MarkPathDirty("loyalties");
-			}
+		public string cultureGUID {
+			get => loyalties.GetString("culture_guid");
+			set => loyalties.SetString("culture_guid", value);
 		}
 
-		public string leadersUID {
-			get => loyalties.GetString("leadersUID");
-			set {
-				loyalties.SetString("leadersUID", value);
-				entity.WatchedAttributes.MarkPathDirty("loyalties");
-			}
+		public string leadersGUID {
+			get => loyalties.GetString("leaders_guid");
+			set => loyalties.SetString("leaders_guid", value);
 		}
 
-		public BlockPos outpostPOS {
-			get => loyalties.GetBlockPos("outpostPOS");
-			set {
-				loyalties.SetBlockPos("outpostPOS", value);
-				entity.WatchedAttributes.MarkPathDirty("loyalties");
-			}
+		public double outpostSIZE {
+			get => loyalties.GetDouble("outpost_size");
+			set => loyalties.SetDouble("outpost_size", value);
 		}
 
-		public Kingdom cachedKingdom { get => DataUtility.GetKingdom(kingdomUID, null); }
+		public BlockPos outpostXYZD {
+			get => loyalties.GetBlockPos("outpost_xyzd");
+			set => loyalties.SetBlockPos("outpost_xyzd", value);
+		}
 
-		public Culture cachedCulture { get => DataUtility.GetCulture(cultureUID, null); }
+		public bool commandWANDER {
+			get => loyalties.GetBool("command_wander");
+			set => loyalties.SetBool("command_wander", value);
+		}
 
-		public IPlayer cachedLeaders { get => entity.World.PlayerByUid(leadersUID); }
+		public bool commandFOLLOW {
+			get => loyalties.GetBool("command_follow");
+			set => loyalties.SetBool("command_follow", value);
+		}
 
-		public BlockEntityPost cachedOutpost { get => DataUtility.GetOutpost(outpostPOS); }
+		public bool commandATTACK {
+			get => loyalties.GetBool("command_attack");
+			set => loyalties.SetBool("command_attack", value);
+		}
+
+		public bool commandPURSUE {
+			get => loyalties.GetBool("command_pursue");
+			set => loyalties.SetBool("command_pursue", value);
+		}
+
+		public bool commandSHIFTS {
+			get => loyalties.GetBool("command_shifts");
+			set => loyalties.SetBool("command_shifts", value);
+		}
+
+		public bool commandNIGHTS {
+			get => loyalties.GetBool("command_nights");
+			set => loyalties.SetBool("command_nights", value);
+		}
+
+		public bool commandRETURN {
+			get => loyalties.GetBool("command_return");
+			set => loyalties.SetBool("command_return", value);
+		}
+		
+		public Kingdom cachedKingdom { get => DataUtility.GetKingdom(kingdomGUID, null); }
+
+		public Culture cachedCulture { get => DataUtility.GetCulture(cultureGUID, null); }
+
+		public IPlayer cachedLeaders { get => entity.World.PlayerByUid(leadersGUID); }
+
+		public BlockEntityPost cachedOutpost { get => DataUtility.GetOutpost(outpostXYZD); }
 
 		public override string PropertyName() {
 			return "KingdomLoyalties";
@@ -89,18 +113,32 @@ namespace VSKingdom {
 		public override void OnEntitySpawn() {
 			base.OnEntitySpawn();
 			try {
-				if (kingdomUID is null) {
-					kingdomUID = "00000000";
-					leadersUID = null;
-					outpostPOS = entity.ServerPos.AsBlockPos;
-					cachedKingdom.EntityUIDs.Add(entity.EntityId);
+				if (kingdomGUID is null) {
+					kingdomGUID = "00000000";
+					cultureGUID = "00000000";
+					outpostXYZD = entity.ServerPos.AsBlockPos;
 				}
-			} catch (NullReferenceException) { }
+				if (entity is not EntityPlayer) {
+					commandWANDER = true;
+					commandFOLLOW = false;
+					commandATTACK = true;
+					commandPURSUE = true;
+					commandSHIFTS = false;
+					commandNIGHTS = false;
+					commandRETURN = false;
+					return;
+				}
+				loyalties.RemoveAttribute("leaders_name");
+				loyalties.RemoveAttribute("leaders_guid");
+				cachedKingdom.EntityUIDs.Add(entity.EntityId);
+				cachedOutpost.EntityUIDs.Add(entity.EntityId);
+			} catch { }
 		}
-		
+
 		public override void OnEntityDespawn(EntityDespawnData despawn) {
 			try {
 				cachedKingdom.EntityUIDs.Remove(entity.EntityId);
+				cachedOutpost.EntityUIDs.Remove(entity.EntityId);
 			} catch { }
 			base.OnEntityDespawn(despawn);
 		}
@@ -113,8 +151,9 @@ namespace VSKingdom {
 			}
 			if (byEntity is EntityPlayer player && mode == EnumInteractMode.Interact) {
 				// Remind them to join their leaders kingdom if they aren't already in it.
-				if (leadersUID == player.PlayerUID && kingdomUID != player.GetBehavior<EntityBehaviorLoyalties>()?.kingdomUID) {
-					kingdomUID = player.GetBehavior<EntityBehaviorLoyalties>()?.kingdomUID;
+				if (leadersGUID == player.PlayerUID && kingdomGUID != player.GetBehavior<EntityBehaviorLoyalties>()?.kingdomGUID) {
+					kingdomGUID = player.GetBehavior<EntityBehaviorLoyalties>()?.kingdomGUID;
+					entity.WatchedAttributes.MarkPathDirty("loyalties");
 				}
 				// While a STRANGER has something in their ACTIVE SLOT try commands.
 				if (enlistedStatus == EnlistedStatus.CIVILIAN && entity.Alive && cachedLeaders is null && itemslot.Itemstack != null && !player.Controls.Sneak) {
@@ -127,18 +166,13 @@ namespace VSKingdom {
 					return;
 				}
 				// While the OWNER or a GROUPMEMBER has something in their ACTIVE SLOT try commands.
-				if (!entity.Alive && itemslot.Itemstack != null && (leadersUID == player.PlayerUID || player.GetBehavior<EntityBehaviorLoyalties>()?.kingdomUID == kingdomUID)) {
+				if (!entity.Alive && itemslot.Itemstack != null && (leadersGUID == player.PlayerUID || player.GetBehavior<EntityBehaviorLoyalties>()?.kingdomGUID == kingdomGUID)) {
 					TryOrderRally(itemslot, player.Player);
 					return;
 				}
 				// While the OWNER is SNEAKING with an EMPTY SLOT open inventory dialogbox.
-				if (leadersUID == player.PlayerUID && player.Controls.Sneak && itemslot.Empty) {
-					if (entity is EntityArcher) {
-						(entity as EntityArcher).ToggleInventoryDialog(player.Player);
-					}
-					if (entity is EntityKnight) {
-						(entity as EntityKnight).ToggleInventoryDialog(player.Player);
-					}
+				if (leadersGUID == player.PlayerUID && player.Controls.Sneak && itemslot.Empty) {
+					(entity as EntitySentry).ToggleInventoryDialog(player.Player);
 				}
 			} else {
 				base.OnInteract(byEntity, itemslot, hitPosition, mode, ref handled);
@@ -147,17 +181,16 @@ namespace VSKingdom {
 
 		public override void GetInfoText(StringBuilder infotext) {
 			// Place Kingdom (if any), Leader (if any) and Guardpost (if any), here.
-			if (kingdomUID is not null && kingdomUID != "") {
-				infotext.AppendLine(string.Concat(LangUtility.Get("gui-kingdom-name"), DataUtility.GetKingdomName(kingdomUID)));
+			if (kingdomGUID is not null) {
+				//infotext.AppendLine(string.Concat(LangUtility.Get("gui-kingdom-name"), DataUtility.GetKingdomName(kingdomGUID)));
+				infotext.AppendLine(string.Concat(LangUtility.Get("gui-kingdom-guid"), kingdomGUID));
 			}
-			if (leadersUID is not null && leadersUID != "") {
-				infotext.AppendLine(string.Concat(LangUtility.Get("gui-leaders-name"), DataUtility.GetLeadersName(leadersUID)));
+			if (leadersGUID is not null) {
+				//infotext.AppendLine(string.Concat(LangUtility.Get("gui-leaders-name"), DataUtility.GetAPlayer(leadersGUID).PlayerName));
+				infotext.AppendLine(string.Concat(LangUtility.Get("gui-leaders-guid"), leadersGUID));
 			}
-			if (leadersUID is null && kingdomUID is not null && kingdomUID != "") {
-				infotext.AppendLine(string.Concat(LangUtility.Get("gui-leaders-name"), DataUtility.GetLeaders(null, kingdomUID).PlayerName));
-			}
-			if (outpostPOS is not null) {
-				infotext.AppendLine(string.Concat(LangUtility.Get("gui-outpost-name"), outpostPOS.ToString()));
+			if (outpostXYZD is not null) {
+				infotext.AppendLine(string.Concat(LangUtility.Get("gui-outpost-xyzd"), outpostXYZD.ToString()));
 			}
 			base.GetInfoText(infotext);
 		}
@@ -180,7 +213,7 @@ namespace VSKingdom {
 
 		public virtual void OnRequestedDialogClosed() {
 			var capi = (ICoreClientAPI)entity.Api;
-			capi.Network.SendEntityPacket(entity.EntityId, 1508);
+			capi.Network.SendEntityPacket(entity.EntityId, 1510);
 			RequestedDialog?.Dispose();
 			RequestedDialog = null;
 		}
@@ -189,59 +222,48 @@ namespace VSKingdom {
 			if (kingdomUID is null || kingdomUID == "") {
 				return;
 			}
-
 			KingdomCommand command = new KingdomCommand();
 			command.entityID = entity.EntityId;
 			command.commands = "switch_kingdom";
-			command.oldGUIDs = this.kingdomUID;
+			command.oldGUIDs = this.kingdomGUID;
 			command.newGUIDs = kingdomUID;
-
 			if (entity is EntityPlayer) {
 				(entity.Api as ICoreServerAPI)?.Network.GetChannel("kingdomnetwork").SendPacket<KingdomCommand>(command, (entity as EntityPlayer).Player as IServerPlayer);
 			} else {
 				(entity.Api as ICoreServerAPI)?.Network.GetChannel("kingdomnetwork").SendPacket<KingdomCommand>(command, entity.GetBehavior<EntityBehaviorLoyalties>()?.cachedLeaders as IServerPlayer);
 			}
-			this.kingdomUID = kingdomUID;
+			// Why did you make me do this?!
+			VSKingdom.serverAPI.World.GetEntityById(entity.EntityId).WatchedAttributes.GetTreeAttribute("loyalties").SetString("kingdom_guid", kingdomUID);
+			VSKingdom.serverAPI.World.GetEntityById(entity.EntityId).WatchedAttributes.MarkPathDirty("loyalties");
 		}
 		
-		public virtual void SetLeaders(string leadersUID) {
-			if (leadersUID is null) {
-				return;
+		public virtual void SetLeaders(string playerUID) {
+			if (playerUID is not null && entity.World.PlayerByUid(playerUID) is not null) {
+				IServerPlayer player = entity.World.PlayerByUid(playerUID) as IServerPlayer;
+				this.leadersGUID = playerUID;
 			}
-			this.leadersUID = leadersUID;
 			if (cachedLeaders.Entity.HasBehavior<EntityBehaviorLoyalties>()) {
-				this.kingdomUID = cachedLeaders.Entity.GetBehavior<EntityBehaviorLoyalties>()?.kingdomUID;
+				SetKingdom(cachedLeaders.Entity.GetBehavior<EntityBehaviorLoyalties>()?.kingdomGUID);
 			}
 		}
 
-		public virtual void SetOutpost(BlockPos outpostPOS) {
-			if (outpostPOS is null) {
+		public virtual void SetOutpost(BlockPos blockPos) {
+			if (blockPos is null) {
 				return;
 			}
-			if (entity.World.BlockAccessor.GetBlockEntity(outpostPOS) is BlockEntityPost block) {
-				if (block is null) {
-					return;
-				}
-				if (block.IsCapacity(entity.EntityId)) {
-					this.outpostPOS = outpostPOS;
-					entity.GetBehavior<EntityBehaviorTaskAI>()?.TaskManager?.GetTask<AiTaskSoldierReturningTo>()?.UpdatePostEnt(block);
+			if (blockPos.X == 0 && blockPos.Y == 0 && blockPos.Z == 0) {
+				VSKingdom.serverAPI.World.GetEntityById(entity.EntityId).WatchedAttributes.GetTreeAttribute("loyalties").SetDouble("outpost_size", 5.0);
+				VSKingdom.serverAPI.World.GetEntityById(entity.EntityId).WatchedAttributes.MarkPathDirty("loyalties");
+				return;
+			}
+			if (entity.World.BlockAccessor.GetBlockEntity(blockPos) is BlockEntityPost outpost) {
+				if (outpost is not null && outpost.IsCapacity(entity.EntityId)) {
+					this.outpostSIZE = outpost.areasize;
+					this.outpostXYZD = blockPos;
 				}
 			}
 		}
 
-		public virtual void ClearBlockPOS() {
-			// Can keep the outpostPOS so soldiers can still return home even if it is destroyed.
-			outpostPOS = null;
-			entity.GetBehavior<EntityBehaviorTaskAI>()?.TaskManager?.GetTask<AiTaskSoldierReturningTo>()?.UpdatePostEnt(null);
-		}
-
-		public void SetUnitOrders(bool[] orders) {
-			//entity.GetBehavior<EntityBehaviorTaskAI>().TaskManager.GetTask<AiTaskSoldierWanderAbout>().ActivateCommand(orders[0]);
-			//entity.GetBehavior<EntityBehaviorTaskAI>().TaskManager.GetTask<AiTaskFollowEntityLeader>().commandActive = orders[1];
-			//entity.GetBehavior<EntityBehaviorTaskAI>().TaskManager.GetTask<AiTaskSoldierGuardingPos>().commandActive = orders[2];
-			//entity.GetBehavior<EntityBehaviorTaskAI>().TaskManager.GetTask<AiTaskSoldierReturningTo>().commandActive = orders[3];
-		}
-		
 		private void TryRecruiting(ItemSlot itemslot, IPlayer player) {
 			// If the entity isn't already owned, giving it some kind of currency will hire it on to join.
 			if (itemslot.Itemstack.ItemAttributes["currency"].Exists) {
@@ -250,22 +272,19 @@ namespace VSKingdom {
 				// Set the owner to this player, and set the enlistment to ENLISTED.
 				enlistedStatus = EnlistedStatus.ENLISTED;
 				// If the owner also is in a group then go ahead and join that too.
-				kingdomUID = player.Entity.GetBehavior<EntityBehaviorLoyalties>()?.kingdomUID;
+				string newKingdomGUID = player.Entity.GetBehavior<EntityBehaviorLoyalties>()?.kingdomGUID ?? loyalties.GetString("kingdom_guid");
+				VSKingdom.serverAPI.World.GetEntityById(entity.EntityId).WatchedAttributes.GetTreeAttribute("loyalties").SetString("kingdom_guid", newKingdomGUID);
+				VSKingdom.serverAPI.World.GetEntityById(entity.EntityId).WatchedAttributes.MarkPathDirty("loyalties");
 			}
 		}
 
 		private void TryReviveWith(ItemSlot itemslot) {
-			try {
-				if (itemslot.Itemstack.Collectible.Attributes["health"].Exists && entity.GetBehavior<EntityBehaviorHarvestable>()?.IsHarvested != true) {
-					entity.Revive();
-					if (entity.HasBehavior<EntityBehaviorHealth>()) {
-						entity.GetBehavior<EntityBehaviorHealth>().Health = itemslot.Itemstack.Collectible.Attributes["health"].AsFloat();
-					}
-					itemslot.TakeOut(1);
-					itemslot.MarkDirty();
-				}
-			} catch {
-				entity.Api.World.Logger.Error("Caught error here! Item path was: " + itemslot?.Itemstack?.Collectible?.Code?.ToString());
+			if (itemslot.Itemstack.Item is ItemPoultice) {
+				float healAmount = itemslot.Itemstack.ItemAttributes["health"].AsFloat();
+				entity.Revive();
+				VSKingdom.serverAPI.World.GetEntityById(entity.EntityId).WatchedAttributes.GetTreeAttribute("health").SetFloat("currenthealth", healAmount);
+				itemslot.TakeOut(1);
+				itemslot.MarkDirty();
 			}
 		}
 
@@ -273,9 +292,9 @@ namespace VSKingdom {
 			if (itemslot.Itemstack.Item is ItemBanner) {
 				EntityPlayer playerEnt = player.Entity;
 				// Activate orders for all surrounding soldiers of this player's faction to follow them!
-				foreach (Entity soldier in entity.World.GetEntitiesAround(entity.ServerPos.XYZ, 15, 4, entity => (SoldierUtility.CanFollowThis(entity, playerEnt)))) {
+				foreach (Entity soldier in entity.World.GetEntitiesAround(entity.ServerPos.XYZ, 15, 4, entity => (DataUtility.IsAFriend(entity, playerEnt)))) {
 					var taskManager = soldier.GetBehavior<EntityBehaviorTaskAI>().TaskManager;
-					taskManager.ExecuteTask<AiTaskFollowEntityLeader>();
+					taskManager.ExecuteTask<AiTaskSentryFollow>();
 				}
 			}
 		}

@@ -4,15 +4,15 @@ using Vintagestory.GameContent;
 
 namespace VSKingdom {
 	public class BlockEntityBody : BlockEntityContainer {
-		public InventoryArcher gearInv { get; set; }
+		public virtual InventorySentry gearInv { get; set; }
+		public override string InventoryClassName => "gear-" + Pos.X + "/" + Pos.Y + "/" + Pos.Z;
 		public override InventoryBase Inventory => gearInv;
-		public override string InventoryClassName => "gear-" + +Pos.X + "/" + Pos.Y + "/" + Pos.Z;
 		
 		public override void Initialize(ICoreAPI api) {
 			base.Initialize(api);
 			// Initialize gear slots if not done yet.
 			if (gearInv is null) {
-				gearInv = new InventoryArcher(InventoryClassName, api);
+				gearInv = new InventorySentry(InventoryClassName, api);
 			} else {
 				Inventory.LateInitialize(InventoryClassName, api);
 			}

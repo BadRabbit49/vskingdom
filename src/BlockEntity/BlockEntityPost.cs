@@ -20,10 +20,10 @@ namespace VSKingdom {
 		public int capacity { get; set; }
 		public int maxpawns { get; set; }
 		public int respawns { get; set; }
-		public int areasize { get; set; }
-		public float burnTime { get; set; }
-		public float maxBTime { get; set; }
-		public float burnFuel { get; set; }
+		public double areasize { get; set; }
+		public double burnTime { get; set; }
+		public double maxBTime { get; set; }
+		public double burnFuel { get; set; }
 		public string Type => "downtime";
 		public virtual string DialogTitle { get { return Lang.Get("Brazier"); } }
 		public enum EnumBlockContainerPacketId { OpenInventory = 5000 }
@@ -34,7 +34,7 @@ namespace VSKingdom {
 		public override string InventoryClassName { get { return "Fuels"; } }
 		public ItemSlot fuelSlot { get { return inventory[0]; } }
 		public FirepitContentsRenderer renderer;
-		public List<long> soldierIds { get; set; }
+		public List<long> EntityUIDs { get; set; }
 		
 		public BlockEntityPost() {
 			inventory = new InventorySmelting(null, null);
@@ -96,8 +96,8 @@ namespace VSKingdom {
 
 		public override void OnBlockRemoved() {
 			base.OnBlockRemoved();
-			for (int n = 0; n < soldierIds.Count; n++) {
-				Api.World.GetEntityById(soldierIds[n]).GetBehavior<EntityBehaviorLoyalties>().ClearBlockPOS();
+			for (int n = 0; n < EntityUIDs.Count; n++) {
+				Api.World.GetEntityById(EntityUIDs[n]).GetBehavior<EntityBehaviorLoyalties>()?.SetOutpost(new BlockPos(0, 0, 0, 0));
 			}
 			if (Api is ICoreServerAPI sapi) {
 				sapi.ModLoader.GetModSystem<POIRegistry>().RemovePOI(this);
@@ -117,15 +117,14 @@ namespace VSKingdom {
 					return clientDialog;
 				});
 			}
-
 			return true;
 		}
 
 		public override void GetBlockInfo(IPlayer forPlayer, StringBuilder dsc) {
 			base.GetBlockInfo(forPlayer, dsc);
 			string str = "Respawns: " + respawns + "/" + maxpawns + "\nAreaSize: " + areasize;
-			if (soldierIds != null) {
-				str = "\nCapacity: " + soldierIds.Count + "/" + capacity + str;
+			if (EntityUIDs != null) {
+				str = "\nCapacity: " + EntityUIDs.Count + "/" + capacity + str;
 			}
 			if (maxBTime != 0) {
 				str = str + "\nFuelLeft: " + maxBTime + "/" + burnTime;
@@ -138,12 +137,12 @@ namespace VSKingdom {
 			base.FromTreeAttributes(tree, worldAccessForResolve);
 			for (int n = 0; n < capacity; n++) {
 				string strL = "NUM" + n;
-				soldierIds.Insert(n, tree.GetLong(strL));
+				EntityUIDs.Insert(n, tree.GetLong(strL));
 			}
 			Inventory.FromTreeAttributes(tree.GetTreeAttribute("inventory"));
-			burnTime = tree.GetFloat("burnTime");
-			maxBTime = tree.GetFloat("maxBTime");
-			burnFuel = tree.GetFloat("burnFuel", 0);
+			burnTime = tree.GetDouble("burnTime");
+			maxBTime = tree.GetDouble("maxBTime");
+			burnFuel = tree.GetDouble("burnFuel");
 			if (Api?.Side == EnumAppSide.Client) {
 				UpdateRenderer();
 			}
@@ -159,15 +158,15 @@ namespace VSKingdom {
 			base.ToTreeAttributes(tree);
 			for (int n = 0; n < capacity; n++) {
 				string strL = "NUM" + n;
-				tree.SetLong(strL, soldierIds.ElementAt(n));
+				tree.SetLong(strL, EntityUIDs.ElementAt(n));
 			}
 			// Retrieve inventory values.
 			ITreeAttribute invtree = new TreeAttribute();
 			Inventory.ToTreeAttributes(invtree);
 			tree["inventory"] = invtree;
-			tree.SetFloat("burnTime", burnTime);
-			tree.SetFloat("maxBTime", maxBTime);
-			tree.SetFloat("burnFuel", burnFuel);
+			tree.SetDouble("burnTime", burnTime);
+			tree.SetDouble("maxBTime", maxBTime);
+			tree.SetDouble("burnFuel", burnFuel);
 		}
 
 		public override void OnReceivedClientPacket(IPlayer player, int packetid, byte[] data) {
@@ -222,8 +221,8 @@ namespace VSKingdom {
 
 		public bool IsCapacity(long entityId) {
 			// Check if there is capacity left for another soldier.
-			if (soldierIds.Count < capacity) {
-				soldierIds.Add(entityId);
+			if (EntityUIDs.Count < capacity) {
+				EntityUIDs.Add(entityId);
 				return true;
 			} else {
 				return false;
@@ -242,8 +241,8 @@ namespace VSKingdom {
 				var brazierGone = Api.World.GetBlock(Block.CodeWithVariant("level", "dead"));
 				Api.World.BlockAccessor.ExchangeBlock(brazierGone.Id, Pos);
 				Block = brazierGone;
-				for (int n = 0; n < soldierIds.Count; n++) {
-					Api.World.GetEntityById(soldierIds[n]).GetBehavior<EntityBehaviorLoyalties>().ClearBlockPOS();
+				for (int n = 0; n < EntityUIDs.Count; n++) {
+					Api.World.GetEntityById(EntityUIDs[n]).GetBehavior<EntityBehaviorLoyalties>()?.SetOutpost(new BlockPos(0, 0, 0, 0));
 				}
 			}
 		}

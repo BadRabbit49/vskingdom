@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
 using System;
-using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Common;
-using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 using Vintagestory.API.Util;
@@ -10,79 +8,6 @@ using Vintagestory.GameContent;
 using static Vintagestory.API.Common.EntityAgent;
 
 namespace VSKingdom {
-	internal static class SoldierUtility {
-		public static bool UsingRangeWep(EntityAgent entity) {
-			if (entity is EntityArcher && !entity.RightHandItemSlot.Empty) {
-				// Look for if the entity has an accepted ranged weapon from definitions.
-				return RegisteredItems.AcceptedRange.Contains(entity.RightHandItemSlot.Itemstack?.Collectible?.Code);
-			}
-			return false;
-		}
-
-		public static bool UsingMeleeWep(EntityAgent entity) {
-			if (entity is EntityArcher && !entity.RightHandItemSlot.Empty) {
-				// Look for if the entity is using the Authoritative behavior.
-				return entity.RightHandItemSlot.Itemstack.Collectible.HasBehavior<CollectibleBehaviorAnimationAuthoritative>();
-			}
-			return false;
-		}
-
-		public static bool HasRangedAmmo(EntityAgent entity) {
-			if (entity is EntityArcher thisEnt && !thisEnt.AmmoItemSlot.Empty) {
-				// First check to see if we even have anything to shoot.
-				return RegisteredItems.AcceptedAmmos.Contains(thisEnt.AmmoItemSlot?.Itemstack?.Collectible?.Code);
-			}
-			return false;
-		}
-
-		public static bool CanFollowThis(Entity entity, Entity target) {
-			// Target must be either a EntityArcher or EntityPlayer.
-			if (target is EntityArcher || target is EntityPlayer) {
-				EntityBehaviorLoyalties behaviorLoyalties = entity.GetBehavior<EntityBehaviorLoyalties>();
-				// Get the target's allegiances to a group or owner. If they have none just don't. 
-				if (target is EntityArcher || target is EntityKnight) {
-					EntityBehaviorLoyalties targetLoyalties = entity.GetBehavior<EntityBehaviorLoyalties>();
-					if (targetLoyalties.leadersUID == behaviorLoyalties.leadersUID || targetLoyalties.kingdomUID == behaviorLoyalties.kingdomUID) {
-						return true;
-					}
-				}
-			}
-			return false;
-		}
-
-		public static bool ShouldFleeNow(Entity entity, Entity target) {
-			if (target.Alive && target.HasBehavior<EntityBehaviorHealth>()) {
-				// Only decide to run if PvP is enabled and the entity is a player, or if the entity is another soldier and not part of the same group.
-				if (entity.HasBehavior<EntityBehaviorLoyalties>() && (target.HasBehavior<EntityBehaviorLoyalties>() || target is EntityPlayer)) {
-					// Get faction group and or owner UIDs for comparison. Check if we can dismiss on the same side?
-					if (DataUtility.IsAnEnemy(entity, target)) {
-						return false;
-					}
-					if (target is EntityPlayer && entity.Api.World.Config.GetAsBool("PvpOff")) {
-						return false;
-					}
-				}
-				// Get health pools, armor, and weapons, then compare liklihood of victory.
-				ITreeAttribute entityHealthTree = entity.WatchedAttributes.GetTreeAttribute("health");
-				ITreeAttribute targetHealthTree = entity.WatchedAttributes.GetTreeAttribute("health");
-				float entityCurHealth = entityHealthTree.GetFloat("currenthealth");
-				float entityMaxHealth = entityHealthTree.GetFloat("maxhealth");
-				float targetCurHealth = targetHealthTree.GetFloat("currenthealth");
-				float targetMaxHealth = targetHealthTree.GetFloat("maxhealth");
-				Vec3d targetPosOffset = new Vec3d().Set(entity.World.Rand.NextDouble() * 2.0 - 1.0, 0.0, entity.World.Rand.NextDouble() * 2.0 - 1.0);
-				double targetX = target.ServerPos.X + targetPosOffset.X;
-				double targetY = target.ServerPos.Y;
-				double targetZ = target.ServerPos.Z + targetPosOffset.Z;
-				// Now if we have some breathing room to reevaluate the situation, see if we should continue this fight or not.
-				if (entity.ServerPos.SquareDistanceTo(targetX, targetY, targetZ) > 3) {
-					// Determine if enemy has more health and is stronger.
-					return (entityCurHealth / entityMaxHealth) < 0.25 && (targetCurHealth / targetMaxHealth) > 0.25;
-				}
-			}
-			return false;
-		}
-	}
-
 	internal static class HealthUtility {
 		public static float handleDamaged(ICoreAPI api, EntityHumanoid ent, float dmg, DamageSource src) {
 			EnumDamageType type = src.Type;

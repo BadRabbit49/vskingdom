@@ -1,11 +1,9 @@
-﻿using System.Collections.Generic;
-using ProtoBuf;
+﻿using ProtoBuf;
 using System;
 using System.Linq;
-using Vintagestory.API.Common;
+using System.Collections.Generic;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Util;
-using Vintagestory.API.Server;
 
 namespace VSKingdom {
 	[ProtoContract]
@@ -13,21 +11,21 @@ namespace VSKingdom {
 		[ProtoMember(1)]
 		public string KingdomGUID { get; set; }
 		[ProtoMember(2)]
-		public string KingdomName { get; set; }
+		public string KingdomNAME { get; set; }
 		[ProtoMember(3)]
-		public string KingdomLong { get; set; }
+		public string KingdomLONG { get; set; }
 		[ProtoMember(4)]
-		public string KingdomDesc { get; set; }
+		public string KingdomDESC { get; set; }
 		[ProtoMember(5)]
-		public string KingdomType { get; set; }
+		public string KingdomTYPE { get; set; }
 		[ProtoMember(6)]
 		public string LeadersGUID { get; set; }
 		[ProtoMember(7)]
-		public string LeadersName { get; set; }
+		public string LeadersNAME { get; set; }
 		[ProtoMember(8)]
-		public string LeadersLong { get; set; }
+		public string LeadersLONG { get; set; }
 		[ProtoMember(9)]
-		public string LeadersDesc { get; set; }
+		public string LeadersDESC { get; set; }
 		[ProtoMember(10)]
 		public string FoundingIRL { get; set; }
 		[ProtoMember(11)]

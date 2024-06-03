@@ -2,24 +2,24 @@
 using Vintagestory.GameContent;
 
 namespace VSKingdom {
-	public abstract class ItemSlotsKnight : ItemSlot {
-		public ItemSlotsKnight(InventoryKnight inventory) : base(inventory) { }
+	public abstract class ItemSlotsSentry : ItemSlot {
+		public ItemSlotsSentry(InventorySentry inventory) : base(inventory) { }
 	}
 
-	public class ItemSlotKnightWear : ItemSlotsKnight {
-		protected static readonly string[] iconSlot = new string[] { "gloves", "cape", "shirt", "trousers", "boots", "hat", "necklace", "medal", "mask", "belt", "bracers", "pullover", "armor-helmet", "armor-body", "armor-legs" };
-		
-		protected EnumCharacterDressType dressType;
-
-		public bool IsArmorSlot { get; protected set; }
-
-		public override EnumItemStorageFlags StorageType => EnumItemStorageFlags.Outfit;
-
-		public ItemSlotKnightWear(InventoryKnight inventory, int slotId) : base(inventory) {
+	public class ItemSlotKnightWear : ItemSlotsSentry {
+		public ItemSlotKnightWear(InventorySentry inventory, int slotId) : base(inventory) {
 			dressType = (EnumCharacterDressType)slotId;
 			IsArmorSlot = IsArmor((EnumCharacterDressType)slotId);
 			BackgroundIcon = iconSlot[slotId];
 		}
+
+		public static readonly string[] iconSlot = new string[] { "gloves", "cape", "shirt", "trousers", "boots", "hat", "necklace", "medal", "mask", "belt", "bracers", "pullover", "armor-helmet", "armor-body", "armor-legs" };
+
+		public bool IsArmorSlot { get; private set; }
+		
+		public EnumCharacterDressType dressType { get; private set; }
+
+		public override EnumItemStorageFlags StorageType => EnumItemStorageFlags.Outfit;
 
 		public override bool CanTakeFrom(ItemSlot sourceSlot, EnumMergePriority priority = EnumMergePriority.AutoMerge) {
 			return IsAcceptable(sourceSlot) && base.CanTakeFrom(sourceSlot, priority);
@@ -44,8 +44,8 @@ namespace VSKingdom {
 		}
 	}
 
-	public class ItemSlotKnightHand : ItemSlotsKnight {
-		public ItemSlotKnightHand(InventoryKnight inventory) : base(inventory) {
+	public class ItemSlotKnightHand : ItemSlotsSentry {
+		public ItemSlotKnightHand(InventorySentry inventory) : base(inventory) {
 			BackgroundIcon = "weaponry";
 		}
 
@@ -58,20 +58,20 @@ namespace VSKingdom {
 		}
 
 		private bool IsAcceptable(ItemSlot sourceSlot) {
-			// Check if the item can be placed on a toolrack, or held like a lantern or torch.
+			// Check if the item can be placed on a toolrack, used as a bow or any kind of appropriate weapon.
 			return sourceSlot?.Itemstack?.Collectible?.Attributes?["toolrackTransform"]?.Exists ?? false;
 		}
 	}
 
-	public class ItemSlotKnightLeft : ItemSlotsKnight {
-		public ItemSlotKnightLeft(InventoryKnight inventory) : base(inventory) {
+	public class ItemSlotKnightLeft : ItemSlotsSentry {
+		public ItemSlotKnightLeft(InventorySentry inventory) : base(inventory) {
 			BackgroundIcon = "shieldry";
 		}
 
 		public override bool CanTakeFrom(ItemSlot sourceSlot, EnumMergePriority priority = EnumMergePriority.AutoMerge) {
 			return IsAcceptable(sourceSlot) && base.CanTakeFrom(sourceSlot, priority);
 		}
-
+		
 		public override bool CanHold(ItemSlot sourceSlot) {
 			return IsAcceptable(sourceSlot) && base.CanHold(sourceSlot);
 		}
@@ -82,12 +82,12 @@ namespace VSKingdom {
 		}
 	}
 
-	public class ItemSlotKnightBack : ItemSlotsKnight {
-		public override EnumItemStorageFlags StorageType => EnumItemStorageFlags.Backpack;
-
-		public ItemSlotKnightBack(InventoryKnight inventory) : base(inventory) {
+	public class ItemSlotKnightBack : ItemSlotsSentry {
+		public ItemSlotKnightBack(InventorySentry inventory) : base(inventory) {
 			BackgroundIcon = "backpack";
 		}
+
+		public override EnumItemStorageFlags StorageType => EnumItemStorageFlags.Backpack;
 
 		public override bool CanTakeFrom(ItemSlot sourceSlot, EnumMergePriority priority = EnumMergePriority.AutoMerge) {
 			return IsAcceptable(sourceSlot) && base.CanTakeFrom(sourceSlot, priority);
@@ -98,14 +98,14 @@ namespace VSKingdom {
 		}
 
 		private bool IsAcceptable(ItemSlot sourceSlot) {
-			// Only allow empty backpacks for now to avoid issues.
+			// If correct class, only allow empty backpacks for now to avoid issues.
 			return CollectibleObject.IsEmptyBackPack(sourceSlot.Itemstack);
 		}
 	}
 
-	public class ItemSlotKnightFood : ItemSlotsKnight {
-		public ItemSlotKnightFood(InventoryKnight inventory) : base(inventory) {
-			BackgroundIcon = "baguette";
+	public class ItemSlotKnightAmmo : ItemSlotsSentry {
+		public ItemSlotKnightAmmo(InventorySentry inventory) : base(inventory) {
+			BackgroundIcon = "munition";
 		}
 
 		public override bool CanTakeFrom(ItemSlot sourceSlot, EnumMergePriority priority = EnumMergePriority.AutoMerge) {
@@ -117,13 +117,13 @@ namespace VSKingdom {
 		}
 
 		private bool IsAcceptable(ItemSlot sourceSlot) {
-			// Make sure the item is a healing item.
-			return sourceSlot?.Itemstack?.Item?.Code?.Path?.Contains("bread") ?? false;
+			var thisItem = sourceSlot?.Itemstack?.Item;
+			return thisItem is ItemArrow || thisItem is ItemStone || (thisItem?.Code?.Path?.Contains("bread") ?? sourceSlot?.Itemstack?.Collectible?.Attributes["projectile"]?.Exists ?? false);
 		}
 	}
 
-	public class ItemSlotKnightHeal : ItemSlotsKnight {
-		public ItemSlotKnightHeal(InventoryKnight inventory) : base(inventory) {
+	public class ItemSlotKnightHeal : ItemSlotsSentry {
+		public ItemSlotKnightHeal(InventorySentry inventory) : base(inventory) {
 			BackgroundIcon = "bandages";
 		}
 

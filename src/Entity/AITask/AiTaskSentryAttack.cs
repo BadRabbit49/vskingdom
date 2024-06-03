@@ -8,26 +8,27 @@ using Vintagestory.API.MathTools;
 using Vintagestory.API.Config;
 
 namespace VSKingdom {
-	public class AiTaskSoldierMeleeAttack : AiTaskBaseTargetable {
-		public AiTaskSoldierMeleeAttack(EntityAgent entity) : base(entity) { }
+	public class AiTaskSentryAttack : AiTaskBaseTargetable {
+		public AiTaskSentryAttack(EntityAgent entity) : base(entity) { }
 
-		private int durationOfMs = 1500;
-		private long lastSearchMs;
-		private float maxDist;
-		private float minDist;
-		private float curTurn;
-		private bool animsStarted;
-		private bool cancelAttack;
-		private bool turnToTarget;
-		private bool damageDealed;
+		protected int durationOfMs = 1500;
+		protected long lastSearchMs;
+		protected float maxDist;
+		protected float minDist;
+		protected float curTurn;
+		protected bool animsStarted;
+		protected bool cancelAttack;
+		protected bool turnToTarget;
+		protected bool damageDealed;
 
 		protected AnimationMetaData swordSwingMeta;
 		protected AnimationMetaData swordSmashMeta;
 		protected AnimationMetaData swordSlashMeta;
 		protected AnimationMetaData swordStabsMeta;
 		protected AnimationMetaData spearStabsMeta;
-		protected ITreeAttribute loyalties = null;
-		protected string entKingdom => loyalties?.GetString("kingdomUID");
+
+		private ITreeAttribute loyalties;
+		private string entKingdom { get => loyalties?.GetString("kingdom_guid"); }
 		
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);
@@ -62,9 +63,8 @@ namespace VSKingdom {
 
 		public override void AfterInitialize() {
 			base.AfterInitialize();
-			// We are using loyalties attribute tree to get our kingdomUID.
+			// We are using loyalties attribute tree to get our kingdomGUID.
 			loyalties = entity.WatchedAttributes?.GetTreeAttribute("loyalties");
-			pathTraverser = entity.GetBehavior<EntityBehaviorTraverser>()?.waypointsTraverser;
 		}
 
 		public override bool ShouldExecute() {
@@ -97,7 +97,6 @@ namespace VSKingdom {
 				targetEntity = projectile.FiredBy;
 			}
 			if (ent is EntityHumanoid) {
-				entity.World.Logger.Notification(entKingdom + " at war with " + ent + "'s kingdom " + ent.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdomUID") + "?\n" + DataUtility.IsAnEnemy(entKingdom, ent));
 				return DataUtility.IsAnEnemy(entKingdom, ent);
 			}
 			if (ignoreEntityCode) {

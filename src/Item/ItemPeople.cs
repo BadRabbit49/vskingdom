@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Text;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.Util;
-using Vintagestory.GameContent;
 
 namespace VSKingdom;
 public class ItemPeople : Item {
@@ -18,17 +16,14 @@ public class ItemPeople : Item {
 		if (blockSel is null) {
 			return;
 		}
-
 		IPlayer player = byEntity.World.PlayerByUid((byEntity as EntityPlayer).PlayerUID);
 		if (!byEntity.World.Claims.TryAccess(player, blockSel.Position, EnumBlockAccessFlags.BuildOrBreak)) {
 			return;
 		}
-
 		if (!(byEntity is EntityPlayer) || player.WorldData.CurrentGameMode != EnumGameMode.Creative) {
 			slot.TakeOut(1);
 			slot.MarkDirty();
 		}
-
 		AssetLocation assetLocation = new AssetLocation(Code.Domain, CodeEndWithoutParts(1));
 		EntityProperties entityType = byEntity.World.GetEntityType(assetLocation);
 		if (entityType is null) {
@@ -43,7 +38,6 @@ public class ItemPeople : Item {
 		if (entity is null) {
 			return;
 		}
-		
 		entity.ServerPos.X = (float)(blockSel.Position.X + ((!blockSel.DidOffset) ? blockSel.Face.Normali.X : 0)) + 0.5f;
 		entity.ServerPos.Y = blockSel.Position.Y + ((!blockSel.DidOffset) ? blockSel.Face.Normali.Y : 0);
 		entity.ServerPos.Z = (float)(blockSel.Position.Z + ((!blockSel.DidOffset) ? blockSel.Face.Normali.Z : 0)) + 0.5f;
@@ -52,7 +46,6 @@ public class ItemPeople : Item {
 		entity.PositionBeforeFalling.Set(entity.ServerPos.X, entity.ServerPos.Y, entity.ServerPos.Z);
 		entity.Attributes.SetString("origin", "playerplaced");
 		JsonObject attributes = Attributes;
-
 		if (attributes != null && attributes.IsTrue("setGuardedEntityAttribute")) {
 			entity.WatchedAttributes.SetLong("guardedEntityId", byEntity.EntityId);
 			if (byEntity is EntityPlayer entityPlayer) {
@@ -64,20 +57,17 @@ public class ItemPeople : Item {
 		byEntity.World.SpawnEntity(entity);
 
 		try {
-			// Set the default quickly to join commoners faction.
-			entity.GetBehavior<EntityBehaviorLoyalties>().kingdomUID = "00000000";
-			entity.GetBehavior<EntityBehaviorLoyalties>().leadersUID = "000000000000000000000000";
 			// If the byEntity is a player then make them the assigned leader.
 			if (byEntity is EntityPlayer playerEnt) {
-				entity.GetBehavior<EntityBehaviorLoyalties>().leadersUID = playerEnt.PlayerUID ?? null;
-				entity.GetBehavior<EntityBehaviorLoyalties>().kingdomUID = byEntity.GetBehavior<EntityBehaviorLoyalties>()?.kingdomUID;
+				entity.GetBehavior<EntityBehaviorLoyalties>().leadersGUID = playerEnt.PlayerUID ?? "";
+				entity.GetBehavior<EntityBehaviorLoyalties>().cultureGUID = byEntity.GetBehavior<EntityBehaviorLoyalties>()?.cultureGUID ?? "";
+				entity.GetBehavior<EntityBehaviorLoyalties>().kingdomGUID = byEntity.GetBehavior<EntityBehaviorLoyalties>()?.kingdomGUID ?? "";
 			}
-			// If placed on a brazier soldier post then set that to be their post.
-			if (api.World.BlockAccessor.GetBlockEntity(blockSel.Position) is BlockEntityPost post) {
-				post.IgnitePost();
-				post.IsCapacity(entity.EntityId);
-				entity.GetBehavior<EntityBehaviorLoyalties>().outpostPOS = blockSel.Position;
-				entity.GetBehavior<EntityBehaviorTaskAI>()?.TaskManager?.GetTask<AiTaskSoldierReturningTo>()?.UpdatePostEnt(post);
+			// If placed on a brazier soldier post then set that to be their outpost.
+			if (api.World.BlockAccessor.GetBlockEntity(blockSel.Position) is BlockEntityPost outpost) {
+				outpost.IgnitePost();
+				outpost.IsCapacity(entity.EntityId);
+				entity.GetBehavior<EntityBehaviorLoyalties>().SetOutpost(blockSel.Position);
 			}
 		} catch (NullReferenceException) { }
 		handHandling = EnumHandHandling.PreventDefaultAction;
@@ -95,12 +85,7 @@ public class ItemPeople : Item {
 	}
 
 	public override WorldInteraction[] GetHeldInteractionHelp(ItemSlot inSlot) {
-		return new WorldInteraction[1] {
-			new WorldInteraction {
-				ActionLangCode = "heldhelp-place",
-				MouseButton = EnumMouseButton.Right
-			}
-		}.Append(base.GetHeldInteractionHelp(inSlot));
+		return new WorldInteraction[1] { new WorldInteraction { ActionLangCode = "heldhelp-place", MouseButton = EnumMouseButton.Right } }.Append(base.GetHeldInteractionHelp(inSlot));
 	}
 
 	public override void GetHeldItemInfo(ItemSlot inSlot, StringBuilder dsc, IWorldAccessor world, bool withDebugInfo) {

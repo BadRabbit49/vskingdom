@@ -8,24 +8,24 @@ using System;
 using System.Collections.Generic;
 
 namespace VSKingdom {
-	public class AiTaskSoldierRangeAttack : AiTaskBaseTargetable {
-		public AiTaskSoldierRangeAttack(EntityAgent entity) : base(entity) { }
+	public class AiTaskSentryRanged : AiTaskBaseTargetable {
+		public AiTaskSentryRanged(EntityAgent entity) : base(entity) { }
 
-		private int durationOfMs = 1500;
-		private int releasesAtMs = 1000;
-		private int searchWaitMs = 7000;
-		private long lastSearchMs;
-		private float maxDist;
-		private float minDist;
-		private float accum = 0;
-		private float minTurnAnglePerSec;
-		private float maxTurnAnglePerSec;
-		private float curTurnAnglePerSec;
-		private bool animsStarted = false;
-		private bool cancelAttack = false;
-		private bool didRenderSwitch = false;
-		private bool projectileFired = false;
-
+		protected bool animsStarted = false;
+		protected bool cancelAttack = false;
+		protected bool didRenderSwitch = false;
+		protected bool projectileFired = false;
+		protected int durationOfMs = 1500;
+		protected int releasesAtMs = 1000;
+		protected int searchWaitMs = 7000;
+		protected long lastSearchMs;
+		protected float maxDist;
+		protected float minDist;
+		protected float accum = 0;
+		protected float minTurnAnglePerSec;
+		protected float maxTurnAnglePerSec;
+		protected float curTurnAnglePerSec;
+		
 		protected AnimationMetaData drawBowsMeta;
 		protected AnimationMetaData fireBowsMeta;
 		protected AnimationMetaData loadBowsMeta;
@@ -33,8 +33,9 @@ namespace VSKingdom {
 		protected AssetLocation drawingsound = null;
 		protected AssetLocation hittingsound = null;
 		protected AssetLocation ammoLocation = null;
-		protected ITreeAttribute loyalties { get; set; }
-		protected string entKingdom => loyalties?.GetString("kingdomUID");
+
+		private ITreeAttribute loyalties;
+		private string entKingdom => loyalties?.GetString("kingdom_guid");
 		
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);
@@ -57,10 +58,7 @@ namespace VSKingdom {
 		public override void AfterInitialize() {
 			base.AfterInitialize();
 			// We are using loyalties attribute tree to get our kingdomUID.
-			if (entity.WatchedAttributes.HasAttribute("loyalties")) {
-				loyalties = entity.WatchedAttributes.GetTreeAttribute("loyalties");
-			}
-			entity.World.Logger.Notification("Initializing entity: " + entity.ToString() + " as " + (entity as EntityArcher).ToString());
+			loyalties = entity.WatchedAttributes.GetTreeAttribute("loyalties");
 		}
 
 		public override bool ShouldExecute() {
@@ -123,14 +121,12 @@ namespace VSKingdom {
 			List<AssetLocation> hitAudio = ItemsProperties.wepnHitAudio.Get(entity.RightHandItemSlot?.Itemstack?.Collectible?.Code);
 			Random rnd = new Random();
 			hittingsound = hitAudio[rnd.Next(0, hitAudio.Count - 1)];
-			ammoLocation = (entity as EntityArcher).AmmoItemSlot?.Itemstack?.Collectible?.Code;
+			ammoLocation = entity.GearInventory[18]?.Itemstack?.Collectible?.Code;
 			// Start switching the renderVariant to change to aiming.
 			entity.RightHandItemSlot?.Itemstack?.Attributes?.SetInt("renderVariant", 1);
 			entity.RightHandItemSlot?.MarkDirty();
 			// Get whatever the asset entity type is based on the item's code path.
 			projectileType = entity.World.GetEntityType(ammoLocation);
-			entity.Api.World.Logger.Notification("The projectileType is: " + projectileType);
-			entity.Api.World.Logger.Notification("The code for the shot: " + ammoLocation.ToString());
 			if (entity.Properties.Server?.Attributes != null) {
 				ITreeAttribute pathfinder = entity.Properties.Server.Attributes.GetTreeAttribute("pathfinder");
 				if (pathfinder != null) {
@@ -191,7 +187,7 @@ namespace VSKingdom {
 			}
 			// Do after aiming time is finished.
 			if (accum > releasesAtMs / 1000f && !projectileFired && !EntityInTheWay()) {
-				FireUsingDefault();
+				FireProjectile();
 				// Don't play anything when the hittingSound is incorrectly set.
 				if (hittingsound != null) {
 					entity.World.PlaySoundAt(hittingsound, entity, null, false);
@@ -208,9 +204,9 @@ namespace VSKingdom {
 			entity.RightHandItemSlot?.MarkDirty();
 			entity.AnimManager.StopAnimation(drawBowsMeta.Code);
 			if (projectileFired) {
-				if (!entity.Api.World.Config.GetAsBool("InfiniteAmmos")) {
-					(entity as EntityArcher).AmmoItemSlot.TakeOut(1);
-					(entity as EntityArcher).AmmoItemSlot.MarkDirty();
+				if (!entity.Api.World.Config.GetAsBool("InfiniteAmmo")) {
+					entity.GearInventory[18]?.TakeOut(1);
+					entity.GearInventory[18]?.MarkDirty();
 				}
 			}
 		}
@@ -219,9 +215,7 @@ namespace VSKingdom {
 			base.OnEntityHurt(source, damage);
 			cancelAttack = true;
 			// Do a little reminder so we can make things easier.
-			if (entity.WatchedAttributes.HasAttribute("loyalties")) {
-				loyalties = entity.WatchedAttributes.GetTreeAttribute("loyalties");
-			}
+			loyalties = entity.WatchedAttributes.GetTreeAttribute("loyalties");
 			FinishExecute(true);
 		}
 
@@ -241,16 +235,16 @@ namespace VSKingdom {
 			ShouldExecute();
 		}
 
-		private void FireUsingDefault() {
+		private void FireProjectile() {
 			EntityProjectile projectile = (EntityProjectile)entity.World.ClassRegistry.CreateEntity(projectileType);
 			projectile.FiredBy = entity;
 			projectile.Damage = GetDamage();
 			projectile.ProjectileStack = new ItemStack(entity.World.GetItem(ammoLocation));
 			// We don't want unfair duplicates of ammo if infinite ammo is on.
-			if (entity.Api.World.Config.GetAsBool("InfiniteAmmos")) {
+			if (entity.Api.World.Config.GetAsBool("InfiniteAmmo")) {
 				projectile.DropOnImpactChance = 0;
-			} else if ((entity as EntityArcher).AmmoItemSlot.Itemstack.ItemAttributes != null) {
-				projectile.DropOnImpactChance = 1f - (entity as EntityArcher).AmmoItemSlot.Itemstack.ItemAttributes["breakChanceOnImpact"].AsFloat(0.5f);
+			} else if (entity.GearInventory[18].Itemstack.ItemAttributes != null) {
+				projectile.DropOnImpactChance = 1f - (entity.GearInventory[18].Itemstack.ItemAttributes["breakChanceOnImpact"].AsFloat(0.5f));
 			}
 			projectile.World = entity.World;
 			Vec3d pos = entity.ServerPos.AheadCopy(0.5).XYZ.AddCopy(0, entity.LocalEyePos.Y, 0);
@@ -279,11 +273,11 @@ namespace VSKingdom {
 			if (HasRanged()) {
 				float dmg1 = 0f;
 				float dmg2 = 0f;
-				if ((entity as EntityArcher).RightHandItemSlot.Itemstack.Collectible.Attributes != null) {
-					dmg1 += (entity as EntityArcher).RightHandItemSlot.Itemstack.Collectible.Attributes["damage"].AsFloat();
+				if (entity.RightHandItemSlot.Itemstack.Collectible.Attributes != null) {
+					dmg1 += entity.RightHandItemSlot.Itemstack.Collectible.Attributes["damage"].AsFloat();
 				}
-				if ((entity as EntityArcher).AmmoItemSlot.Itemstack.Collectible.Attributes != null) {
-					dmg2 = (entity as EntityArcher).AmmoItemSlot.Itemstack.Collectible.Attributes["damage"].AsFloat();
+				if (entity.GearInventory[18].Itemstack.Collectible.Attributes != null) {
+					dmg2 = entity.GearInventory[18].Itemstack.Collectible.Attributes["damage"].AsFloat();
 				}
 				return dmg1 + dmg2;
 			} else {
@@ -292,17 +286,17 @@ namespace VSKingdom {
 		}
 
 		private bool HasRanged() {
-			if ((entity as EntityArcher).AmmoItemSlot.Empty) {
+			if (entity.GearInventory[18].Empty) {
 				return false;
 			}
-			if ((entity as EntityArcher).RightHandItemSlot.Empty) {
+			if (entity.RightHandItemSlot.Empty) {
 				return false;
 			}
-			if ((entity as EntityArcher).RightHandItemSlot.Itemstack.Item is ItemBow) {
-				return (entity as EntityArcher).AmmoItemSlot.Itemstack.Collectible.Code.PathStartsWith("arrow-");
+			if (entity.RightHandItemSlot.Itemstack.Item is ItemBow) {
+				return entity.GearInventory[18].Itemstack.Item is ItemArrow || entity.GearInventory[18].Itemstack.Collectible.Code.PathStartsWith("arrow-");
 			}
-			if ((entity as EntityArcher).RightHandItemSlot.Itemstack.Item is ItemSling) {
-				return (entity as EntityArcher).AmmoItemSlot.Itemstack.Collectible.Code.PathStartsWith("thrownstone-");
+			if (entity.RightHandItemSlot.Itemstack.Item is ItemSling) {
+				return entity.GearInventory[18].Itemstack.Item is ItemStone || entity.GearInventory[18].Itemstack.Collectible.Code.PathStartsWith("thrownstone-");
 			}
 			return false;
 		}

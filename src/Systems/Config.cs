@@ -2,7 +2,7 @@
 
 namespace VSKingdom {
 	class ModConfig {
-		private SoldierConfig config;
+		private VSKingdomConfig config;
 		class RegisterConfig : ModSystem {
 			ModConfig config = new ModConfig();
 
@@ -31,61 +31,56 @@ namespace VSKingdom {
 				GenerateConfig(api);
 				config = LoadConfig(api);
 			}
-			api.World.Config.SetBool("PvpOff", config.PvpOff);
-			api.World.Config.SetBool("Groups", config.Groups);
-			api.World.Config.SetBool("FriendlyFireO", config.FriendlyFireO);
-			api.World.Config.SetBool("FriendlyFireG", config.FriendlyFireG);
-			api.World.Config.SetBool("GroupRelation", config.GroupRelation);
-			api.World.Config.SetBool("ArmorWeightOn", config.ArmorWeightOn);
-			api.World.Config.SetBool("AllowResupply", config.AllowResupply);
-			api.World.Config.SetBool("InfiniteAmmos", config.InfiniteAmmos);
-			api.World.Config.SetBool("InfiniteHeals", config.InfiniteHeals);
-			api.World.Config.SetBool("FallDamageOff", config.FallDamageOff);
-			api.World.Config.SetBool("AllowTeleport", config.AllowTeleport);
+			api.World.Config.SetBool("FriendlyFire", config.FriendlyFire);
+			api.World.Config.SetBool("FallDamageOn", config.FallDamageOn);
+			api.World.Config.SetBool("ArmorWeights", config.ArmorWeights);
+			api.World.Config.SetBool("InfiniteAmmo", config.InfiniteAmmo);
+			api.World.Config.SetBool("InfiniteHeal", config.InfiniteHeal);
+			api.World.Config.SetBool("AllowCivilWars", config.AllowCivilWars);
+			api.World.Config.SetBool("AllowTeleports", config.AllowTeleports);
+			api.World.Config.SetInt("MinCreateLevel", config.MinCreateLevel);
+			api.World.Config.SetInt("MaxNewKingdoms", config.MaxNewKingdoms);
+			api.World.Config.SetInt("MaxNewCultures", config.MaxNewCultures);
 		}
 
-		private SoldierConfig LoadConfig(ICoreAPI api) {
-			return api.LoadModConfig<SoldierConfig>("SoldierConfig.json");
+		private VSKingdomConfig LoadConfig(ICoreAPI api) {
+			return api.LoadModConfig<VSKingdomConfig>("VSKingdomConfig.json");
 		}
 
 		private void GenerateConfig(ICoreAPI api) {
-			api.StoreModConfig<SoldierConfig>(new SoldierConfig(), "SoldierConfig.json");
+			api.StoreModConfig<VSKingdomConfig>(new VSKingdomConfig(), "VSKingdomConfig.json");
 		}
 
-		private void GenerateConfig(ICoreAPI api, SoldierConfig previousConfig) {
-			api.StoreModConfig<SoldierConfig>(new SoldierConfig(previousConfig), "SoldierConfig.json");
+		private void GenerateConfig(ICoreAPI api, VSKingdomConfig previousConfig) {
+			api.StoreModConfig<VSKingdomConfig>(new VSKingdomConfig(previousConfig), "VSKingdomConfig.json");
 		}
 	}
 
-	class SoldierConfig {
-		public SoldierConfig() { }
+	class VSKingdomConfig {
+		public VSKingdomConfig() { }
 
 		// Default Settings for Configuration.
-		public bool PvpOff { get; set; } = false;
-		public bool Groups { get; set; } = true;
-		public bool FriendlyFireO { get; set; } = false;
-		public bool FriendlyFireG { get; set; } = false;
-		public bool GroupRelation { get; set; } = true;
-		public bool ArmorWeightOn { get; set; } = true;
-		public bool AllowResupply { get; set; } = true;
-		public bool InfiniteAmmos { get; set; } = true;
-		public bool InfiniteHeals { get; set; } = true;
-		public bool FallDamageOff { get; set; } = true;
-		public bool AllowTeleport { get; set; } = true;
+		public bool FriendlyFire { get; set; } = true;
+		public bool FallDamageOn { get; set; } = true;
+		public bool ArmorWeights { get; set; } = true;
+		public bool InfiniteAmmo { get; set; } = false;
+		public bool InfiniteHeal { get; set; } = false;
+		public bool AllowCivilWars { get; set; } = true;
+		public bool AllowTeleports { get; set; } = true;
+		public int MinCreateLevel { get; set; } = -1;
+		public int MaxNewKingdoms { get; set; } = -1;
+		public int MaxNewCultures { get; set; } = -1;
 
 		// Loaded Previous Configuration if exists.
-		public SoldierConfig(SoldierConfig prev) {
-			PvpOff = prev.PvpOff;
-			Groups = prev.Groups;
-			FriendlyFireO = prev.FriendlyFireO;
-			FriendlyFireG = prev.FriendlyFireG;
-			GroupRelation = prev.GroupRelation;
-			ArmorWeightOn = prev.ArmorWeightOn;
-			AllowResupply = prev.AllowResupply;
-			InfiniteAmmos = prev.InfiniteAmmos;
-			InfiniteHeals = prev.InfiniteHeals;
-			FallDamageOff = prev.FallDamageOff;
-			AllowTeleport = prev.AllowTeleport;
+		public VSKingdomConfig(VSKingdomConfig prev) {
+			
+			FriendlyFire = prev.FriendlyFire;
+			ArmorWeights = prev.ArmorWeights;
+			InfiniteAmmo = prev.InfiniteAmmo;
+			InfiniteHeal = prev.InfiniteHeal;
+			FallDamageOn = prev.FallDamageOn;
+			AllowCivilWars = prev.AllowCivilWars;
+			AllowTeleports = prev.AllowTeleports;
 		}
 	}
 }

@@ -1,12 +1,13 @@
 {
 	"code": "archer",
-	"class": "EntityArcher",
+	"class": "EntitySentry",
 	"variantGroups": [ { "code": "gender", "states": [ "masc", "femm" ] } ],
 	"canClimb": true,
 	"hitboxSize": { "x": 0.6, "y": 1.85 },
 	"deadHitboxSize": {"x": 0.75, "y": 0.5},
 	"eyeHeight": 1.7,
 	"attributes": {
+		"kingdomClass": "range",
 		"spawnDamageParticles": true,
 		"skinnableParts": [
 			{
@@ -362,12 +363,11 @@
 			{ "code": "extraskinnable" },
 			{ "code": "SoldierDecayBody", "hoursToDecay": 96, "skeleton": "body-humanoid2" },
 			{ "code": "KingdomLoyalties" },
-			{ "code": "SoldierTraverser" },
 			{
 				"code": "taskai",
 				"aitasks": [
 					{
-						"code": "SoldierRangeAttack",
+						"code": "SentryRanged",
 						"entityCodes": [ "player", "archer-*", "knight-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "looter", "bandit-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
 						"priority": 2,
 						"seekingRange": 15,
@@ -378,7 +378,7 @@
 						"damageTier": 3
 					},
 					{
-						"code": "SoldierSeeksEntity",
+						"code": "SentrySearch",
 						"entityCodes": [ "player", "archer-*", "knight-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "looter", "bandit-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
 						"priority": 1.5,
 						"mincooldown": 1000,
@@ -389,7 +389,7 @@
 						"animationSpeed": 1.75
 					},
 					{
-						"code": "SoldierHealingSelf",
+						"code": "SentryHealth",
 						"priority": 1.2,
 						"animation": "sprint",
 						"mincooldown": 1000,
@@ -397,43 +397,24 @@
 						"seekingRange": 20
 					},
 					{
-						"code": "getoutofwater",
+						"code": "SentryWaters",
 						"priority": 1.2,
-						"animation": "walk",
-						"movespeed": 0.030,
-						"animationSpeed": 1.55
+						"animation": "walk"
 					},
 					{
-						"code": "FollowEntityLeader",
+						"code": "SentryFollow",
 						"priority": 1.0,
-						"animation": "sprint",
-						"movespeed": 0.02
+						"animation": "walk"
 					},
 					{
-						"code": "SoldierReturningTo",
+						"code": "SentryReturn",
 						"priority": 1.0,
-						"animation": "sprint",
-						"movespeed": 0.02
+						"animation": "sprint"
 					},
 					{
-						"code": "SoldierWanderAbout",
+						"code": "SentryWander",
 						"priority": 1.0,
-						"animation": "walk",
-						"movespeed": 0.02,
-						"wanderChance": 0.005,
-						"wanderRangeMin": 3,
-						"wanderRangeMax": 7,
-						"teleportWhenOutOfRange": false,
-						"teleportInGameHours": 1
-					},
-					{
-						"code": "idle",
-						"priority": 0.5,
-						"minduration": 2500,
-						"maxduration": 2500,
-						"mincooldown": 2000,
-						"maxcooldown": 10000,
-						"animation": "idle"
+						"animation": "walk"
 					},
 					{
 						"code": "lookaround",

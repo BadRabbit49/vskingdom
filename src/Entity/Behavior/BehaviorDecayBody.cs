@@ -7,11 +7,15 @@ using Vintagestory.GameContent;
 namespace VSKingdom {
 	public class EntityBehaviorDecayBody : EntityBehavior {
 		public EntityBehaviorDecayBody(Entity entity) : base(entity) { }
-		ITreeAttribute decayTree;
-		JsonObject typeAttributes;
-		public bool DiedNaturally;
-		public float HoursToDecay { get; set; }
-		public double TotalHoursDead { get => decayTree.GetDouble("totalHoursDead"); set => decayTree.SetDouble("totalHoursDead", value); }
+		protected ITreeAttribute decayTree;
+		protected JsonObject typeAttributes;
+		protected bool DiedNaturally;
+		protected bool HasAnyInvLeft;
+		protected double HoursDecayTime { get; set; }
+		protected double TotalHoursDead {
+			get => decayTree.GetDouble("totalHoursDead");
+			set => decayTree.SetDouble("totalHoursDead", value);
+		}
 		
 		public override string PropertyName() {
 			return "SoldierDecayBody";
@@ -20,9 +24,10 @@ namespace VSKingdom {
 		public override void Initialize(EntityProperties properties, JsonObject typeAttributes) {
 			base.Initialize(properties, typeAttributes);
 			DiedNaturally = true;
+			HasAnyInvLeft = false;
 			(entity as EntityAgent).AllowDespawn = false;
 			this.typeAttributes = typeAttributes;
-			HoursToDecay = typeAttributes["hoursToDecay"].AsFloat(96);
+			HoursDecayTime = typeAttributes["hoursToDecay"].AsFloat(96);
 			decayTree = entity.WatchedAttributes.GetTreeAttribute("decay");
 			if (decayTree is null) {
 				entity.WatchedAttributes.SetAttribute("decay", decayTree = new TreeAttribute());
@@ -32,7 +37,7 @@ namespace VSKingdom {
 
 		public override void OnGameTick(float deltaTime) {
 			base.OnGameTick(deltaTime);
-			if (!entity.Alive && TotalHoursDead + HoursToDecay < entity.World.Calendar.TotalHours) {
+			if (!entity.Alive && TotalHoursDead + HoursDecayTime < entity.World.Calendar.TotalHours) {
 				DecayNow();
 			}
 		}
@@ -70,14 +75,14 @@ namespace VSKingdom {
 								entity.World.BlockAccessor.SpawnBlockEntity(typeAttributes["skeleton"].AsString(), bonepos);
 								break;
 							} else {
-								if (entity is EntityArcher) {
-									(entity as EntityArcher).gearInv.DropAll(entity.ServerPos.AsBlockPos.ToVec3d().Add(0.5, 0.5, 0.5));
+								if (entity is EntitySentry) {
+									(entity as EntitySentry).gearInv.DropAll(entity.ServerPos.AsBlockPos.ToVec3d().Add(0.5, 0.5, 0.5));
 								}
 							}
 						}
 					}
 					// Get the inventory of the person who died if they have one.
-					if (entity.WatchedAttributes.HasAttribute("inventory") && entity is EntityArcher thisEnt) {
+					if (entity.WatchedAttributes.HasAttribute("inventory") && entity is EntitySentry thisEnt) {
 						for (int i = 0; i < thisEnt.gearInv.Count; i++) {
 							thisEnt.gearInv[i].TryPutInto(entity.Api.World, bodyblock.gearInv[i], thisEnt.gearInv[i].StackSize);
 						}
@@ -98,6 +103,9 @@ namespace VSKingdom {
 			}
 			if (damageSourceForDeath?.Source == EnumDamageSource.Void) {
 				(entity as EntityAgent).AllowDespawn = true;
+			}
+			if (entity is EntitySentry thisEnt) {
+				HasAnyInvLeft = !thisEnt.GearInventory.Empty;
 			}
 		}
 	}

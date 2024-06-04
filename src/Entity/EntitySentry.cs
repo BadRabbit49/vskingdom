@@ -86,7 +86,7 @@ namespace VSKingdom {
 		}
 
 		public override bool ShouldReceiveDamage(DamageSource damageSource, float damage) {
-			/**if (damageSource.CauseEntity is EntityHumanoid attacker) {
+			if (damageSource.CauseEntity is EntityHumanoid attacker) {
 				if (damageSource.CauseEntity is EntityPlayer player && WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("leaders_guid") == player.PlayerUID) {
 					return player.ServerControls.Sneak && base.ShouldReceiveDamage(damageSource, damage);
 				}
@@ -96,7 +96,7 @@ namespace VSKingdom {
 				if (DataUtility.IsAFriend(WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdom_guid"), attacker)) {
 					return Api.World.Config.GetAsBool("FriendlyFire") && base.ShouldReceiveDamage(damageSource, damage);
 				}
-			}**/
+			}
 			return base.ShouldReceiveDamage(damageSource, damage);
 		}
 

@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Linq;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
+using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
@@ -10,29 +12,41 @@ namespace VSKingdom {
 	public class AiTaskSentryEscape : AiTaskFleeEntity {
 		public AiTaskSentryEscape(EntityAgent entity) : base(entity) { }
 
-		protected bool stuck;
+		public override bool AggressiveTargeting => false;
+
 		protected bool finished;
-		protected long fleeStartMs;
-		protected long fleeDurationMs = 9000L;
+		protected long fleeingStartMs;
+		protected long fleeDurationMs = 5000L;
 		protected float moveSpeed = 0.035f;
 		protected float seekRange = 25f;
-		protected float executionChance = 0.1f;
-		protected float fleeingDistance = 30f;
+		protected float fleeRange = 30f;
 		protected Vec3d targetPos = new Vec3d();
 
 		private ITreeAttribute healthTree;
 		private float CurHealth => healthTree.GetFloat("currenthealth");
 		private float MaxHealth => healthTree.GetFloat("basemaxhealth");
 
-		public override bool AggressiveTargeting => false;
-
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);
 			moveSpeed = taskConfig["movespeed"].AsFloat(0.035f);
-			seekRange = taskConfig["seekingRange"].AsFloat(25);
-			executionChance = taskConfig["executionChance"].AsFloat(0.1f);
-			fleeingDistance = taskConfig["fleeingDistance"].AsFloat(seekRange + 15f);
-			fleeDurationMs = taskConfig["fleeDurationMs"].AsInt(9000);
+			seekRange = taskConfig["seekRange"].AsFloat(25);
+			fleeRange = taskConfig["fleeRange"].AsFloat(seekRange + 15f);
+			fleeDurationMs = taskConfig["fleeDurationMs"].AsInt(5000);
+			JsonObject jsonObject = taskConfig["animation"];
+			if (jsonObject.Exists) {
+				AnimationMetaData animationMetaData = entity.Properties.Client.Animations.FirstOrDefault((AnimationMetaData a) => a.Code == jsonObject.AsString()?.ToLowerInvariant());
+				if (animationMetaData != null) {
+					animMeta = animationMetaData;
+				} else {
+					animMeta = new AnimationMetaData {
+						Code = taskConfig["animation"].AsString("sprint").ToLowerInvariant(),
+						Animation = taskConfig["animation"].AsString("sprint").ToLowerInvariant(),
+						AnimationSpeed = taskConfig["animationSpeed"].AsFloat(1),
+					}.Init();
+					animMeta.EaseInSpeed = 1f;
+					animMeta.EaseOutSpeed = 1f;
+				}
+			}
 		}
 
 		public override void AfterInitialize() {
@@ -43,7 +57,7 @@ namespace VSKingdom {
 		public override bool ShouldExecute() {
 			soundChance = Math.Min(1.01f, soundChance + 1 / 500f);
 			// If this flee behavior is due to the 'fleeondamage' condition, then lets make it react 4 times quicker!
-			if (rand.NextDouble() > 3 * executionChance) {
+			if (rand.NextDouble() > 3 * 0.1) {
 				return false;
 			}
 			if (noEntityCodes && (attackedByEntity is null || !retaliateAttacks)) {
@@ -65,10 +79,8 @@ namespace VSKingdom {
 			base.StartExecute();
 			finished = false;
 			soundChance = Math.Max(0.025f, soundChance - 0.2f);
-			float size = targetEntity.SelectionBox.XSize;
-			pathTraverser.WalkTowards(targetPos, moveSpeed, size + 0.2f, OnGoalReached, OnStuck);
-			fleeStartMs = entity.World.ElapsedMilliseconds;
-			stuck = false;
+			pathTraverser.WalkTowards(targetPos, moveSpeed * (float)GlobalConstants.SprintSpeedMultiplier, targetEntity.SelectionBox.XSize + 0.2f, OnGoalReached, OnStuck);
+			fleeingStartMs = entity.World.ElapsedMilliseconds;
 			entity.CurrentControls = EnumEntityActivity.SprintMode;
 		}
 
@@ -80,10 +92,10 @@ namespace VSKingdom {
 				pathTraverser.CurrentTarget.Z = targetPos.Z;
 				pathTraverser.Retarget();
 			}
-			if (entity.ServerPos.SquareDistanceTo(targetEntity.ServerPos) > fleeingDistance * fleeingDistance) {
+			if (entity.ServerPos.SquareDistanceTo(targetEntity.ServerPos) > fleeRange * fleeRange) {
 				return false;
 			}
-			return !stuck && targetEntity.Alive && (entity.World.ElapsedMilliseconds - fleeStartMs < fleeDurationMs) && !finished && pathTraverser.Active;
+			return !finished && targetEntity.Alive && (entity.World.ElapsedMilliseconds - fleeingStartMs < fleeDurationMs) && !finished && pathTraverser.Active;
 		}
 
 		public override void OnEntityHurt(DamageSource source, float damage) {
@@ -93,6 +105,7 @@ namespace VSKingdom {
 
 		public override void FinishExecute(bool cancelled) {
 			pathTraverser.Stop();
+			finished = true;
 			base.FinishExecute(cancelled);
 		}
 
@@ -115,10 +128,11 @@ namespace VSKingdom {
 		}
 
 		private void OnStuck() {
-			stuck = true;
+			finished = true;
 		}
 
 		private void OnGoalReached() {
+			finished = true;
 			pathTraverser.Retarget();
 		}
 

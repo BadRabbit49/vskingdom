@@ -145,7 +145,7 @@ namespace VSKingdom {
 
 		public override void OnInteract(EntityAgent byEntity, ItemSlot itemslot, Vec3d hitPosition, EnumInteractMode mode, ref EnumHandling handled) {
 			// Other players won't be interactable for now.
-			if (entity is EntityPlayer) {
+			if (mode == EnumInteractMode.Attack || entity is EntityPlayer) {
 				base.OnInteract(byEntity, itemslot, hitPosition, mode, ref handled);
 				return;
 			}
@@ -174,9 +174,8 @@ namespace VSKingdom {
 				if (leadersGUID == player.PlayerUID && player.Controls.Sneak && itemslot.Empty) {
 					(entity as EntitySentry).ToggleInventoryDialog(player.Player);
 				}
-			} else {
-				base.OnInteract(byEntity, itemslot, hitPosition, mode, ref handled);
 			}
+			base.OnInteract(byEntity, itemslot, hitPosition, mode, ref handled);
 		}
 
 		public override void GetInfoText(StringBuilder infotext) {
@@ -233,8 +232,8 @@ namespace VSKingdom {
 				(entity.Api as ICoreServerAPI)?.Network.GetChannel("kingdomnetwork").SendPacket<KingdomCommand>(command, entity.GetBehavior<EntityBehaviorLoyalties>()?.cachedLeaders as IServerPlayer);
 			}
 			// Why did you make me do this?!
-			VSKingdom.serverAPI.World.GetEntityById(entity.EntityId).WatchedAttributes.GetTreeAttribute("loyalties").SetString("kingdom_guid", kingdomUID);
-			VSKingdom.serverAPI.World.GetEntityById(entity.EntityId).WatchedAttributes.MarkPathDirty("loyalties");
+			(entity.Api as ICoreServerAPI)?.World.GetEntityById(entity.EntityId).WatchedAttributes.GetTreeAttribute("loyalties").SetString("kingdom_guid", kingdomUID);
+			(entity.Api as ICoreServerAPI)?.World.GetEntityById(entity.EntityId).WatchedAttributes.MarkPathDirty("loyalties");
 		}
 		
 		public virtual void SetLeaders(string playerUID) {
@@ -246,22 +245,26 @@ namespace VSKingdom {
 				SetKingdom(cachedLeaders.Entity.GetBehavior<EntityBehaviorLoyalties>()?.kingdomGUID);
 			}
 		}
-
+		
 		public virtual void SetOutpost(BlockPos blockPos) {
-			if (blockPos is null) {
-				return;
-			}
 			if (blockPos.X == 0 && blockPos.Y == 0 && blockPos.Z == 0) {
-				VSKingdom.serverAPI.World.GetEntityById(entity.EntityId).WatchedAttributes.GetTreeAttribute("loyalties").SetDouble("outpost_size", 5.0);
-				VSKingdom.serverAPI.World.GetEntityById(entity.EntityId).WatchedAttributes.MarkPathDirty("loyalties");
+				(entity.Api as ICoreServerAPI)?.World.GetEntityById(entity.EntityId).WatchedAttributes.GetTreeAttribute("loyalties").SetDouble("outpost_size", 5.0);
+				(entity.Api as ICoreServerAPI)?.World.GetEntityById(entity.EntityId).WatchedAttributes.MarkPathDirty("loyalties");
 				return;
 			}
 			if (entity.World.BlockAccessor.GetBlockEntity(blockPos) is BlockEntityPost outpost) {
 				if (outpost is not null && outpost.IsCapacity(entity.EntityId)) {
 					this.outpostSIZE = outpost.areasize;
 					this.outpostXYZD = blockPos;
+					(entity.Api as ICoreServerAPI)?.World.GetEntityById(entity.EntityId).WatchedAttributes.MarkPathDirty("loyalties");
 				}
 			}
+		}
+
+		public virtual void SetCommand(string commands, bool value) {
+			// This is a very brute-force and unsophisticated way of doing this. In the future it should be changed.
+			(entity.Api as ICoreServerAPI)?.World.GetEntityById(entity.EntityId).WatchedAttributes.GetTreeAttribute("loyalties").SetBool(commands, value);
+			(entity.Api as ICoreServerAPI)?.World.GetEntityById(entity.EntityId).WatchedAttributes.MarkPathDirty("loyalties");
 		}
 
 		private void TryRecruiting(ItemSlot itemslot, IPlayer player) {
@@ -273,8 +276,8 @@ namespace VSKingdom {
 				enlistedStatus = EnlistedStatus.ENLISTED;
 				// If the owner also is in a group then go ahead and join that too.
 				string newKingdomGUID = player.Entity.GetBehavior<EntityBehaviorLoyalties>()?.kingdomGUID ?? loyalties.GetString("kingdom_guid");
-				VSKingdom.serverAPI.World.GetEntityById(entity.EntityId).WatchedAttributes.GetTreeAttribute("loyalties").SetString("kingdom_guid", newKingdomGUID);
-				VSKingdom.serverAPI.World.GetEntityById(entity.EntityId).WatchedAttributes.MarkPathDirty("loyalties");
+				(entity.Api as ICoreServerAPI)?.World.GetEntityById(entity.EntityId).WatchedAttributes.GetTreeAttribute("loyalties").SetString("kingdom_guid", newKingdomGUID);
+				(entity.Api as ICoreServerAPI)?.World.GetEntityById(entity.EntityId).WatchedAttributes.MarkPathDirty("loyalties");
 			}
 		}
 

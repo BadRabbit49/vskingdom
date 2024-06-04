@@ -15,12 +15,13 @@ namespace VSKingdom {
 		protected bool cancelAttack = false;
 		protected bool didRenderSwitch = false;
 		protected bool projectileFired = false;
-		protected int durationOfMs = 1500;
+		protected int durationOfMs = 1200;
 		protected int releasesAtMs = 1000;
-		protected int searchWaitMs = 7000;
-		protected long lastSearchMs;
+		protected long totalDurationMs;
+		protected long totalCooldownMs = 1000L;
 		protected float maxDist;
 		protected float minDist;
+		protected float moveSpeed = 0.035f;
 		protected float accum = 0;
 		protected float minTurnAnglePerSec;
 		protected float maxTurnAnglePerSec;
@@ -39,6 +40,9 @@ namespace VSKingdom {
 		
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);
+			maxDist = taskConfig["maxDist"].AsFloat(20f);
+			minDist = taskConfig["minDist"].AsFloat(10f);
+			moveSpeed = taskConfig["movespeed"].AsFloat(0.035f);
 			drawBowsMeta = new AnimationMetaData() {
 				Code = "bowdraw",
 				Animation = "bowdraw",
@@ -51,35 +55,30 @@ namespace VSKingdom {
 				Code = "bowload",
 				Animation = "bowload",
 			}.Init();
-			maxDist = 20f;
-			minDist = 10f;
 		}
 
 		public override void AfterInitialize() {
 			base.AfterInitialize();
-			// We are using loyalties attribute tree to get our kingdomUID.
+			// We are using loyalties attribute tree to get our kingdomGUID.
 			loyalties = entity.WatchedAttributes.GetTreeAttribute("loyalties");
 		}
 
 		public override bool ShouldExecute() {
-			if (cooldownUntilMs > entity.World.ElapsedMilliseconds) {
+			if (cooldownUntilMs > entity.World.ElapsedMilliseconds || !HasRanged()) {
 				return false;
 			}
-			if (!HasRanged()) {
-				return false;
-			}
-			if (lastSearchMs + searchWaitMs < entity.World.ElapsedMilliseconds) {
-				Entity obj = targetEntity;
-				if (obj is null || !obj.Alive) {
+			if (totalDurationMs + totalCooldownMs < entity.World.ElapsedMilliseconds) {
+				Entity target = targetEntity;
+				if (target is null || !target.Alive) {
 					goto IL_0095;
 				}
 			}
-			if (lastSearchMs + searchWaitMs * 5 < entity.World.ElapsedMilliseconds) {
+			if (totalDurationMs + totalCooldownMs * 5 < entity.World.ElapsedMilliseconds) {
 				goto IL_0095;
 			}
 			goto IL_00d6;
 		IL_0095:
-			lastSearchMs = entity.World.ElapsedMilliseconds;
+			totalDurationMs = entity.World.ElapsedMilliseconds;
 			targetEntity = partitionUtil.GetNearestInteractableEntity(entity.ServerPos.XYZ, maxDist, (Entity ent) => IsTargetableEntity(ent, maxDist * 4f) && hasDirectContact(ent, maxDist * 4f, minDist));
 			goto IL_00d6;
 		IL_00d6:
@@ -205,8 +204,8 @@ namespace VSKingdom {
 			entity.AnimManager.StopAnimation(drawBowsMeta.Code);
 			if (projectileFired) {
 				if (!entity.Api.World.Config.GetAsBool("InfiniteAmmo")) {
-					entity.GearInventory[18]?.TakeOut(1);
-					entity.GearInventory[18]?.MarkDirty();
+					entity.GearInventory[18].TakeOut(1);
+					entity.GearInventory[18].MarkDirty();
 				}
 			}
 		}
@@ -214,9 +213,8 @@ namespace VSKingdom {
 		public override void OnEntityHurt(DamageSource source, float damage) {
 			base.OnEntityHurt(source, damage);
 			cancelAttack = true;
-			// Do a little reminder so we can make things easier.
-			loyalties = entity.WatchedAttributes.GetTreeAttribute("loyalties");
 			FinishExecute(true);
+
 		}
 
 		public void OnEnemySpotted(Entity targetEnt) {
@@ -274,10 +272,10 @@ namespace VSKingdom {
 				float dmg1 = 0f;
 				float dmg2 = 0f;
 				if (entity.RightHandItemSlot.Itemstack.Collectible.Attributes != null) {
-					dmg1 += entity.RightHandItemSlot.Itemstack.Collectible.Attributes["damage"].AsFloat();
+					dmg1 += entity.RightHandItemSlot.Itemstack.Collectible.Attributes["damage"].AsFloat(0);
 				}
 				if (entity.GearInventory[18].Itemstack.Collectible.Attributes != null) {
-					dmg2 = entity.GearInventory[18].Itemstack.Collectible.Attributes["damage"].AsFloat();
+					dmg2 = entity.GearInventory[18].Itemstack.Collectible.Attributes["damage"].AsFloat(0);
 				}
 				return dmg1 + dmg2;
 			} else {

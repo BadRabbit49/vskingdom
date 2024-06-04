@@ -12,9 +12,6 @@ namespace VSKingdom {
 		protected float minRange;
 
 		public override bool ShouldExecute() {
-			if (whenInEmotionState is null) {
-				return false;
-			}
 			if (lastCheckTotalMs + lastCheckCooldown > entity.World.ElapsedMilliseconds) {
 				return false;
 			}

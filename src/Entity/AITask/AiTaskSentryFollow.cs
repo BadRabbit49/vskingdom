@@ -37,7 +37,6 @@ namespace VSKingdom {
 			pathTraverser.NavigateTo_Async(targetEntity.ServerPos.XYZ, moveSpeed, size + 0.2f, OnGoalReached, () => stuck = true, null, 1000, 1);
 			targetOffset.Set(entity.World.Rand.NextDouble() * 2 - 1, 0, entity.World.Rand.NextDouble() * 2 - 1);
 			stuck = false;
-			entity.World.Logger.Notification("Started FOLLOWING...");
 			// Overridden base method to avoid constant teleporting when stuck.
 			if (allowTeleport && entity.ServerPos.SquareDistanceTo(targetEntity.ServerPos.X + targetOffset.X, targetEntity.ServerPos.Y, targetEntity.ServerPos.Z + targetOffset.Z) > teleportAfterRange * teleportAfterRange) {
 				tryTeleport();
@@ -46,7 +45,6 @@ namespace VSKingdom {
 
 		public override void FinishExecute(bool cancelled) {
 			base.FinishExecute(cancelled);
-			entity.World.Logger.Notification("Stopped FOLLOWING...");
 		}
 
 		public Entity GetGuardedEntity() {

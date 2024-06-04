@@ -378,12 +378,8 @@
 						"damageTier": 3
 					},
 					{
-						"code": "SentrySearch",
+						"code": "SentryEscape",
 						"entityCodes": [ "player", "archer-*", "knight-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "looter", "bandit-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
-						"priority": 1.5,
-						"mincooldown": 1000,
-						"maxcooldown": 1500,
-						"seekingRange": 20,
 						"animation": "sprint",
 						"movespeed": 0.035,
 						"animationSpeed": 1.75

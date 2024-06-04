@@ -10,16 +10,17 @@ using Vintagestory.API.Config;
 namespace VSKingdom {
 	public class AiTaskSentryAttack : AiTaskBaseTargetable {
 		public AiTaskSentryAttack(EntityAgent entity) : base(entity) { }
-
-		protected int durationOfMs = 1500;
-		protected long lastSearchMs;
-		protected float maxDist;
-		protected float minDist;
-		protected float curTurn;
+		
 		protected bool animsStarted;
 		protected bool cancelAttack;
 		protected bool turnToTarget;
 		protected bool damageDealed;
+		protected long durationOfMs = 1500L;
+		protected long lastSearchMs;
+		protected float maxDist;
+		protected float minDist;
+		protected float moveSpeed = 0.035f;
+		protected float curTurn;
 
 		protected AnimationMetaData swordSwingMeta;
 		protected AnimationMetaData swordSmashMeta;
@@ -28,10 +29,14 @@ namespace VSKingdom {
 		protected AnimationMetaData spearStabsMeta;
 
 		private ITreeAttribute loyalties;
+		private bool pursuing { get => loyalties.GetBool("command_pursue"); }
 		private string entKingdom { get => loyalties?.GetString("kingdom_guid"); }
 		
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);
+			maxDist = taskConfig["maxDist"].AsFloat(20f);
+			minDist = taskConfig["minDist"].AsFloat(0.5f);
+			moveSpeed = taskConfig["movespeed"].AsFloat(0.035f);
 			animMeta = new AnimationMetaData() {
 				Animation = "hit",
 				Code = "hit",
@@ -56,8 +61,6 @@ namespace VSKingdom {
 				Animation = "spearstabs",
 				Code = "spearstabs",
 			}.Init();
-			maxDist = 20f;
-			minDist = 2f;
 			turnToTarget = true;
 		}
 
@@ -87,13 +90,10 @@ namespace VSKingdom {
 		}
 
 		public override bool IsTargetableEntity(Entity ent, float range, bool ignoreEntityCode = false) {
-			if (ent == entity) {
+			if (ent == entity || !ent.Alive || ent is null) {
 				return false;
 			}
-			if (!ent.Alive || ent is null) {
-				return false;
-			}
-			if (ent is EntityProjectile projectile) {
+			if (ent is EntityProjectile projectile && projectile.FiredBy is not null) {
 				targetEntity = projectile.FiredBy;
 			}
 			if (ent is EntityHumanoid) {
@@ -155,28 +155,25 @@ namespace VSKingdom {
 					base.StartExecute();
 				}
 			}
-			/** NEED TO GET THIS TO WORK, CURRENTLY DOESN'T DO SHIT **/
 			// Get closer if target is too far, but if they're super far then give up!
-			if (serverPos1.SquareDistanceTo(serverPos2) >= 2f) {
-				if (serverPos1.SquareDistanceTo(serverPos2) >= 512f) {
+			if (serverPos1.SquareDistanceTo(serverPos2) >= minDist) {
+				// Do not pursue if not being told to pursue endlessly and outside range.
+				if (pursuing == false && serverPos1.SquareDistanceTo(serverPos2) >= maxDist * maxDist) {
 					targetEntity = null;
 					cancelAttack = true;
 					animsStarted = false;
-					entity.AnimManager.StopAnimation(animMeta.Code);
-					entity.World.Logger.Notification("Giving up: " + (serverPos1.SquareDistanceTo(serverPos2) + " is greater or equal to " + 512f));
+					entity.StopAnimation(animMeta.Code);
 					return false;
 				}
 				Vec3d targetPos = new Vec3d(serverPos2);
-				pathTraverser.WalkTowards(targetPos, 0.035f, minDist, OnGoalReached, OnStuck);
+				pathTraverser.WalkTowards(targetPos, moveSpeed, minDist, OnGoalReached, OnStuck);
 				pathTraverser.CurrentTarget.X = targetPos.X;
 				pathTraverser.CurrentTarget.Y = targetPos.Y;
 				pathTraverser.CurrentTarget.Z = targetPos.Z;
 				pathTraverser.Retarget();
-				entity.World.Logger.Notification("Moving to: " + targetPos + "\nDistance is: " + (serverPos1.SquareDistanceTo(serverPos2)));
 			} else {
-				entity.AnimManager.StopAnimation(animMeta.Code);
+				entity.StopAnimation(animMeta.Code);
 				pathTraverser.Stop();
-				entity.World.Logger.Notification("Stopping, because square distance is: " + (serverPos1.SquareDistanceTo(serverPos2) + " which is less than " + (4 * 4)));
 			}
 			if (lastSearchMs + 500L > entity.World.ElapsedMilliseconds) {
 				return true;
@@ -206,6 +203,9 @@ namespace VSKingdom {
 		protected virtual void AttackTarget() {
 			if (!hasDirectContact(targetEntity, minDist, 1f)) {
 				return;
+			}
+			if (animMeta != null) {
+				entity.AnimManager.StartAnimation(animMeta);
 			}
 			float damage = 1f;
 			bool alive = targetEntity.Alive;

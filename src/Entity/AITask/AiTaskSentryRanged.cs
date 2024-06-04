@@ -6,6 +6,7 @@ using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using System;
 using System.Collections.Generic;
+using Vintagestory.API.Config;
 
 namespace VSKingdom {
 	public class AiTaskSentryRanged : AiTaskBaseTargetable {
@@ -79,7 +80,7 @@ namespace VSKingdom {
 			goto IL_00d6;
 		IL_0095:
 			totalDurationMs = entity.World.ElapsedMilliseconds;
-			targetEntity = partitionUtil.GetNearestInteractableEntity(entity.ServerPos.XYZ, maxDist, (Entity ent) => IsTargetableEntity(ent, maxDist * 4f) && hasDirectContact(ent, maxDist * 4f, minDist));
+			targetEntity = partitionUtil.GetNearestInteractableEntity(entity.ServerPos.XYZ, maxDist * 3f, (Entity ent) => IsTargetableEntity(ent, maxDist * 4f) && hasDirectContact(ent, maxDist * 4f, minDist));
 			goto IL_00d6;
 		IL_00d6:
 			return targetEntity?.Alive ?? false;
@@ -197,11 +198,10 @@ namespace VSKingdom {
 
 		public override void FinishExecute(bool cancelled) {
 			base.FinishExecute(cancelled);
-			entity.Controls.IsAiming = false;
-			entity.ServerControls.IsAiming = false;
 			entity.RightHandItemSlot?.Itemstack?.Attributes?.SetInt("renderVariant", 0);
 			entity.RightHandItemSlot?.MarkDirty();
-			entity.AnimManager.StopAnimation(drawBowsMeta.Code);
+			entity.CurrentControls = EnumEntityActivity.Idle;
+			entity.StopAnimation(drawBowsMeta.Code);
 			if (projectileFired) {
 				if (!entity.Api.World.Config.GetAsBool("InfiniteAmmo")) {
 					entity.GearInventory[18].TakeOut(1);
@@ -212,9 +212,17 @@ namespace VSKingdom {
 		
 		public override void OnEntityHurt(DamageSource source, float damage) {
 			base.OnEntityHurt(source, damage);
+			// Interrupt attack and flee.
 			cancelAttack = true;
 			FinishExecute(true);
-
+			Vec3d targetPos = new Vec3d();
+			updateTargetPosFleeMode(targetPos);
+			entity.CurrentControls = EnumEntityActivity.SprintMode;
+			pathTraverser.WalkTowards(targetPos, moveSpeed * (float)GlobalConstants.SprintSpeedMultiplier, targetEntity.SelectionBox.XSize + 0.2f, OnGoalReached, OnStuck);
+			pathTraverser.CurrentTarget.X = targetPos.X;
+			pathTraverser.CurrentTarget.Y = targetPos.Y;
+			pathTraverser.CurrentTarget.Z = targetPos.Z;
+			pathTraverser.Retarget();
 		}
 
 		public void OnEnemySpotted(Entity targetEnt) {
@@ -255,6 +263,7 @@ namespace VSKingdom {
 			projectile.Pos.SetFrom(projectile.ServerPos);
 			projectile.SetRotation();
 			// Spawn and fire the entity with given parameters.
+			entity.RightHandItemSlot?.Itemstack?.Attributes?.SetInt("renderVariant", 0);
 			entity.World.SpawnEntity(projectile);
 			projectileFired = true;
 		}
@@ -325,7 +334,7 @@ namespace VSKingdom {
 			// Do a line Trace into the target, see if there are any entities in the way.
 			entity.World.RayTraceForSelection(entity.ServerPos.XYZ.AddCopy(entity.LocalEyePos), targetEntity?.ServerPos?.XYZ.AddCopy(targetEntity?.LocalEyePos), ref blockSel, ref entitySel);
 			// Make sure the target isn't obstructed by other entities, but if it IS then make sure it's okay to hit them.
-			if (entitySel?.Entity != targetEntity) {
+			if (entitySel?.Entity != entity && entitySel?.Entity != targetEntity) {
 				// Fuck all drifters, locusts, and bells, a shot well placed I say. Infact, switch targets to kill IT.
 				if (entitySel?.Entity is EntityDrifter || entitySel?.Entity is EntityLocust || entitySel?.Entity is EntityBell) {
 					targetEntity = entitySel.Entity;
@@ -333,12 +342,7 @@ namespace VSKingdom {
 				}
 				// Determine if the entity in the way is a friend or foe, if they're an enemy then disregard and shoot anyway.
 				if (entitySel?.Entity is EntityHumanoid) {
-					return !DataUtility.IsAnEnemy(entity, entitySel.Entity);
-				}
-				// For the outlaw mod specifically. These bozos are just as bad. So don't worry about it, reprioritize.
-				if (entitySel?.Entity?.Class == "EntityOutlaw") {
-					targetEntity = entitySel.Entity;
-					return false;
+					return !DataUtility.IsAnEnemy(entKingdom, entitySel.Entity);
 				}
 				return true;
 			}

@@ -114,6 +114,19 @@ namespace VSKingdom {
 			base.ToBytes(writer, forClient);
 		}
 
+		public override void StartAnimation(string code) {
+			// Set the animation to sprint if walking but controls are set to sprint.
+			if (code == "walk" && CurrentControls == EnumEntityActivity.SprintMode) {
+				Api.Logger.Notification(GetName() + " is switching to sprinting mode.");
+				AnimManager.StartAnimation("sprint");
+			}
+			if (code == "walk" && CurrentControls == EnumEntityActivity.SneakMode) {
+				Api.Logger.Notification(GetName() + " is switching to sneaking mode.");
+				AnimManager.StartAnimation("sneak");
+			}
+			base.StartAnimation(code);
+		}
+
 		public virtual ITreeAttribute GetInventoryTree() {
 			if (!WatchedAttributes.HasAttribute("inventory")) {
 				ITreeAttribute tree = new TreeAttribute();

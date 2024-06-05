@@ -116,11 +116,11 @@ namespace VSKingdom {
 
 		public override void StartAnimation(string code) {
 			// Set the animation to sprint if walking but controls are set to sprint.
-			if (code == "walk" && CurrentControls == EnumEntityActivity.SprintMode) {
+			if (code == "walk" && ServerControls.Sprint) {
 				Api.Logger.Notification(GetName() + " is switching to sprinting mode.");
 				AnimManager.StartAnimation("sprint");
 			}
-			if (code == "walk" && CurrentControls == EnumEntityActivity.SneakMode) {
+			if (code == "walk" && ServerControls.Sneak) {
 				Api.Logger.Notification(GetName() + " is switching to sneaking mode.");
 				AnimManager.StartAnimation("sneak");
 			}

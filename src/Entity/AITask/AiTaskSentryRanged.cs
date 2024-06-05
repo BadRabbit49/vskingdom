@@ -114,8 +114,6 @@ namespace VSKingdom {
 			cancelAttack = false;
 			didRenderSwitch = false;
 			projectileFired = false;
-			entity.Controls.IsAiming = true;
-			entity.ServerControls.IsAiming = true;
 			// Get and initialize the item's attributes to the weapon.
 			drawingsound = ItemsProperties.wepnAimAudio.Get(entity.RightHandItemSlot?.Itemstack?.Collectible?.Code);
 			List<AssetLocation> hitAudio = ItemsProperties.wepnHitAudio.Get(entity.RightHandItemSlot?.Itemstack?.Collectible?.Code);
@@ -130,15 +128,16 @@ namespace VSKingdom {
 			if (entity.Properties.Server?.Attributes != null) {
 				ITreeAttribute pathfinder = entity.Properties.Server.Attributes.GetTreeAttribute("pathfinder");
 				if (pathfinder != null) {
-					minTurnAnglePerSec = pathfinder.GetFloat("minTurnAnglePerSec", 250);
-					maxTurnAnglePerSec = pathfinder.GetFloat("maxTurnAnglePerSec", 450);
+					minTurnAnglePerSec = pathfinder.GetFloat("minTurnAnglePerSec", 250f);
+					maxTurnAnglePerSec = pathfinder.GetFloat("maxTurnAnglePerSec", 450f);
 				}
 			} else {
-				minTurnAnglePerSec = 250;
-				maxTurnAnglePerSec = 450;
+				minTurnAnglePerSec = 250f;
+				maxTurnAnglePerSec = 450f;
 			}
 			curTurnAnglePerSec = minTurnAnglePerSec + (float)entity.World.Rand.NextDouble() * (maxTurnAnglePerSec - minTurnAnglePerSec);
 			curTurnAnglePerSec *= GameMath.DEG2RAD * 50 * 0.02f;
+			entity.ServerControls.IsAiming = true;
 		}
 
 		public override bool ContinueExecute(float dt) {
@@ -148,21 +147,13 @@ namespace VSKingdom {
 			}
 			// Retreat if target is too close!
 			if (entity.ServerPos.SquareDistanceTo(targetEntity.ServerPos.XYZ) <= 4 * 4) {
-				Vec3d targetPos = new Vec3d();
-				updateTargetPosFleeMode(targetPos);
-				pathTraverser.WalkTowards(targetPos, 0.035f, targetEntity.SelectionBox.XSize + 0.2f, OnGoalReached, OnStuck);
-				pathTraverser.CurrentTarget.X = targetPos.X;
-				pathTraverser.CurrentTarget.Y = targetPos.Y;
-				pathTraverser.CurrentTarget.Z = targetPos.Z;
-				pathTraverser.Retarget();
+				PartRetreat();
 			}
-
+			// Calculate aiming at targetEntity!
 			Vec3f targetVec = targetEntity.ServerPos.XYZFloat.Sub(entity.ServerPos.XYZFloat);
 			targetVec.Set((float)(targetEntity.ServerPos.X - entity.ServerPos.X), (float)(targetEntity.ServerPos.Y - entity.ServerPos.Y), (float)(targetEntity.ServerPos.Z - entity.ServerPos.Z));
-
 			float desiredYaw = (float)Math.Atan2(targetVec.X, targetVec.Z);
 			float yawDist = GameMath.AngleRadDistance(entity.ServerPos.Yaw, desiredYaw);
-
 			entity.ServerPos.Yaw += GameMath.Clamp(yawDist, -curTurnAnglePerSec * dt, curTurnAnglePerSec * dt);
 			entity.ServerPos.Yaw = entity.ServerPos.Yaw % GameMath.TWOPI;
 			if (Math.Abs(yawDist) > 0.02) {
@@ -202,12 +193,7 @@ namespace VSKingdom {
 			entity.RightHandItemSlot?.MarkDirty();
 			entity.CurrentControls = EnumEntityActivity.Idle;
 			entity.StopAnimation(drawBowsMeta.Code);
-			if (projectileFired) {
-				if (!entity.Api.World.Config.GetAsBool("InfiniteAmmo")) {
-					entity.GearInventory[18].TakeOut(1);
-					entity.GearInventory[18].MarkDirty();
-				}
-			}
+			entity.ServerControls.IsAiming = false;
 		}
 		
 		public override void OnEntityHurt(DamageSource source, float damage) {
@@ -215,14 +201,7 @@ namespace VSKingdom {
 			// Interrupt attack and flee.
 			cancelAttack = true;
 			FinishExecute(true);
-			Vec3d targetPos = new Vec3d();
-			updateTargetPosFleeMode(targetPos);
-			entity.CurrentControls = EnumEntityActivity.SprintMode;
-			pathTraverser.WalkTowards(targetPos, moveSpeed * (float)GlobalConstants.SprintSpeedMultiplier, targetEntity.SelectionBox.XSize + 0.2f, OnGoalReached, OnStuck);
-			pathTraverser.CurrentTarget.X = targetPos.X;
-			pathTraverser.CurrentTarget.Y = targetPos.Y;
-			pathTraverser.CurrentTarget.Z = targetPos.Z;
-			pathTraverser.Retarget();
+			FullRetreat();
 		}
 
 		public void OnEnemySpotted(Entity targetEnt) {
@@ -266,6 +245,10 @@ namespace VSKingdom {
 			entity.RightHandItemSlot?.Itemstack?.Attributes?.SetInt("renderVariant", 0);
 			entity.World.SpawnEntity(projectile);
 			projectileFired = true;
+			if (!entity.Api.World.Config.GetAsBool("InfiniteAmmo")) {
+				entity.GearInventory[18].TakeOut(1);
+				entity.GearInventory[18].MarkDirty();
+			}
 		}
 		
 		private void OnStuck() {
@@ -273,6 +256,41 @@ namespace VSKingdom {
 		}
 
 		private void OnGoalReached() {
+			entity.CurrentControls = EnumEntityActivity.Idle;
+			entity.Controls.Backward = false;
+			entity.ServerControls.Backward = false;
+			entity.Controls.Forward = true;
+			entity.ServerControls.Forward = true;
+			pathTraverser.Retarget();
+		}
+
+		private void PartRetreat() {
+			Vec3d targetPos = new Vec3d();
+			updateTargetPosFleeMode(targetPos);
+			entity.CurrentControls = EnumEntityActivity.Move;
+			entity.Controls.Sprint = false;
+			entity.ServerControls.Sprint = false;
+			entity.Controls.Backward = true;
+			entity.ServerControls.Backward = true;
+			pathTraverser.WalkTowards(targetPos, moveSpeed, targetEntity.SelectionBox.XSize + 0.2f, OnGoalReached, OnStuck);
+			pathTraverser.CurrentTarget.X = targetPos.X;
+			pathTraverser.CurrentTarget.Y = targetPos.Y;
+			pathTraverser.CurrentTarget.Z = targetPos.Z;
+			pathTraverser.Retarget();
+		}
+
+		private void FullRetreat() {
+			Vec3d targetPos = new Vec3d();
+			updateTargetPosFleeMode(targetPos);
+			entity.CurrentControls = EnumEntityActivity.SprintMode;
+			entity.Controls.Sprint = true;
+			entity.ServerControls.Sprint = true;
+			entity.Controls.Forward = true;
+			entity.ServerControls.Forward = true;
+			pathTraverser.WalkTowards(targetPos, moveSpeed * (float)GlobalConstants.SprintSpeedMultiplier, targetEntity.SelectionBox.XSize + 0.2f, OnGoalReached, OnStuck);
+			pathTraverser.CurrentTarget.X = targetPos.X;
+			pathTraverser.CurrentTarget.Y = targetPos.Y;
+			pathTraverser.CurrentTarget.Z = targetPos.Z;
 			pathTraverser.Retarget();
 		}
 
@@ -293,10 +311,7 @@ namespace VSKingdom {
 		}
 
 		private bool HasRanged() {
-			if (entity.GearInventory[18].Empty) {
-				return false;
-			}
-			if (entity.RightHandItemSlot.Empty) {
+			if (entity.GearInventory[18].Empty || entity.RightHandItemSlot.Empty) {
 				return false;
 			}
 			if (entity.RightHandItemSlot.Itemstack.Item is ItemBow) {

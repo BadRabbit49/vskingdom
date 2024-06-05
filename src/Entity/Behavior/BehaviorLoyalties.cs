@@ -145,28 +145,23 @@ namespace VSKingdom {
 
 		public override void OnInteract(EntityAgent byEntity, ItemSlot itemslot, Vec3d hitPosition, EnumInteractMode mode, ref EnumHandling handled) {
 			// Other players won't be interactable for now.
-			if (mode == EnumInteractMode.Attack || entity is EntityPlayer) {
-				base.OnInteract(byEntity, itemslot, hitPosition, mode, ref handled);
-				return;
-			}
-			if (byEntity is EntityPlayer player && mode == EnumInteractMode.Interact) {
+			if (byEntity is EntityPlayer player && mode == EnumInteractMode.Interact && entity is not EntityPlayer) {
 				// Remind them to join their leaders kingdom if they aren't already in it.
 				if (leadersGUID == player.PlayerUID && kingdomGUID != player.GetBehavior<EntityBehaviorLoyalties>()?.kingdomGUID) {
-					kingdomGUID = player.GetBehavior<EntityBehaviorLoyalties>()?.kingdomGUID;
-					entity.WatchedAttributes.MarkPathDirty("loyalties");
+					SetKingdom(byEntity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdom_guid") ?? kingdomGUID);
 				}
 				// While a STRANGER has something in their ACTIVE SLOT try commands.
-				if (enlistedStatus == EnlistedStatus.CIVILIAN && entity.Alive && cachedLeaders is null && itemslot.Itemstack != null && !player.Controls.Sneak) {
+				if (enlistedStatus == EnlistedStatus.CIVILIAN && entity.Alive && cachedLeaders is null && itemslot.Itemstack != null && player.Controls.Sneak) {
 					TryRecruiting(itemslot, player.Player);
 					return;
 				}
 				// Try to revive if the entity is dead but not a carcass.
-				if (!entity.Alive && itemslot.Itemstack != null && player.Controls.Sneak) {
+				if (!entity.Alive && itemslot.Itemstack != null && byEntity.Controls.Sneak) {
 					TryReviveWith(itemslot);
 					return;
 				}
 				// While the OWNER or a GROUPMEMBER has something in their ACTIVE SLOT try commands.
-				if (!entity.Alive && itemslot.Itemstack != null && (leadersGUID == player.PlayerUID || player.GetBehavior<EntityBehaviorLoyalties>()?.kingdomGUID == kingdomGUID)) {
+				if (entity.Alive && itemslot.Itemstack != null && (DataUtility.IsAFriend(kingdomGUID, byEntity))) {
 					TryOrderRally(itemslot, player.Player);
 					return;
 				}
@@ -174,8 +169,9 @@ namespace VSKingdom {
 				if (leadersGUID == player.PlayerUID && player.Controls.Sneak && itemslot.Empty) {
 					(entity as EntitySentry).ToggleInventoryDialog(player.Player);
 				}
+			} else {
+				base.OnInteract(byEntity, itemslot, hitPosition, mode, ref handled);
 			}
-			base.OnInteract(byEntity, itemslot, hitPosition, mode, ref handled);
 		}
 
 		public override void GetInfoText(StringBuilder infotext) {
@@ -217,29 +213,28 @@ namespace VSKingdom {
 			RequestedDialog = null;
 		}
 
-		public virtual void SetKingdom(string kingdomUID) {
-			if (kingdomUID is null || kingdomUID == "") {
+		public virtual void SetKingdom(string kingdomGUID) {
+			if (kingdomGUID is null || kingdomGUID == "") {
 				return;
 			}
 			KingdomCommand command = new KingdomCommand();
 			command.entityID = entity.EntityId;
 			command.commands = "switch_kingdom";
 			command.oldGUIDs = this.kingdomGUID;
-			command.newGUIDs = kingdomUID;
+			command.newGUIDs = kingdomGUID;
 			if (entity is EntityPlayer) {
 				(entity.Api as ICoreServerAPI)?.Network.GetChannel("kingdomnetwork").SendPacket<KingdomCommand>(command, (entity as EntityPlayer).Player as IServerPlayer);
 			} else {
 				(entity.Api as ICoreServerAPI)?.Network.GetChannel("kingdomnetwork").SendPacket<KingdomCommand>(command, entity.GetBehavior<EntityBehaviorLoyalties>()?.cachedLeaders as IServerPlayer);
 			}
 			// Why did you make me do this?!
-			(entity.Api as ICoreServerAPI)?.World.GetEntityById(entity.EntityId).WatchedAttributes.GetTreeAttribute("loyalties").SetString("kingdom_guid", kingdomUID);
+			(entity.Api as ICoreServerAPI)?.World.GetEntityById(entity.EntityId).WatchedAttributes.GetTreeAttribute("loyalties").SetString("kingdom_guid", kingdomGUID);
 			(entity.Api as ICoreServerAPI)?.World.GetEntityById(entity.EntityId).WatchedAttributes.MarkPathDirty("loyalties");
 		}
 		
 		public virtual void SetLeaders(string playerUID) {
 			if (playerUID is not null && entity.World.PlayerByUid(playerUID) is not null) {
-				IServerPlayer player = entity.World.PlayerByUid(playerUID) as IServerPlayer;
-				this.leadersGUID = playerUID;
+				leadersGUID = playerUID;
 			}
 			if (cachedLeaders.Entity.HasBehavior<EntityBehaviorLoyalties>()) {
 				SetKingdom(cachedLeaders.Entity.GetBehavior<EntityBehaviorLoyalties>()?.kingdomGUID);

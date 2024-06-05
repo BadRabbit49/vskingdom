@@ -8,7 +8,6 @@
 	"eyeHeight": 1.7,
 	"attributes": {
 		"kingdomClass": "melee",
-		"spawnDamageParticles": true,
 		"skinnableParts": [
 			{
 				"code": "baseskin",

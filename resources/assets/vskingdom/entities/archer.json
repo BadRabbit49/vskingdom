@@ -8,7 +8,6 @@
 	"eyeHeight": 1.7,
 	"attributes": {
 		"kingdomClass": "range",
-		"spawnDamageParticles": true,
 		"skinnableParts": [
 			{
 				"code": "baseskin",

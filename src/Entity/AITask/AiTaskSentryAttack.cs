@@ -65,11 +65,12 @@ namespace VSKingdom {
 				Code = "spearstabs",
 			}.Init();
 		}
-
+		
 		public override void AfterInitialize() {
 			base.AfterInitialize();
 			// We are using loyalties attribute tree to get our kingdomGUID.
 			loyalties = entity.WatchedAttributes?.GetTreeAttribute("loyalties");
+			pathTraverser = entity.GetBehavior<EntityBehaviorTaskAI>().PathTraverser;
 		}
 
 		public override bool ShouldExecute() {
@@ -164,7 +165,8 @@ namespace VSKingdom {
 					return false;
 				}
 				Vec3d targetPos = new Vec3d(serverPos2);
-				pathTraverser.WalkTowards(targetPos, moveSpeed, weapRange, OnGoalReached, OnStuck);
+				// Try NavigateTo instead of WalkTowards?
+				pathTraverser.NavigateTo(targetPos, moveSpeed, weapRange, OnGoalReached, OnStuck);
 				pathTraverser.CurrentTarget.X = targetPos.X;
 				pathTraverser.CurrentTarget.Y = targetPos.Y;
 				pathTraverser.CurrentTarget.Z = targetPos.Z;
@@ -212,7 +214,6 @@ namespace VSKingdom {
 			if (alive && !targetEntity.Alive) {
 				return;
 			}
-			StepBackwards();
 		}
 
 		public void OnAllyAttacked(Entity targetEnt) {
@@ -229,20 +230,6 @@ namespace VSKingdom {
 		private void OnGoalReached() {
 			pathTraverser.Retarget();
 			entity.Controls.StopAllMovement();
-		}
-
-		private void StepBackwards() {
-			// Take a single step back, try to face the enemy though.
-			entity.Controls.Forward = false;
-			entity.ServerControls.Forward = false;
-			entity.Controls.Backward = true;
-			entity.ServerControls.Backward = true;
-			Vec3d behindPos = entity.ServerPos.BehindCopy(1).XYZ;
-			pathTraverser.WalkTowards(behindPos, moveSpeed, weapRange, OnGoalReached, OnStuck);
-			pathTraverser.CurrentTarget.X = behindPos.X;
-			pathTraverser.CurrentTarget.Y = behindPos.Y;
-			pathTraverser.CurrentTarget.Z = behindPos.Z;
-			pathTraverser.Retarget();
 		}
 
 		private bool IsTargetEntity(string testPath) {

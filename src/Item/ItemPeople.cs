@@ -4,6 +4,7 @@ using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Datastructures;
+using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
 
 namespace VSKingdom;
@@ -59,9 +60,9 @@ public class ItemPeople : Item {
 		try {
 			// If the byEntity is a player then make them the assigned leader.
 			if (byEntity is EntityPlayer playerEnt) {
-				entity.GetBehavior<EntityBehaviorLoyalties>().leadersGUID = playerEnt.PlayerUID ?? "";
-				entity.GetBehavior<EntityBehaviorLoyalties>().cultureGUID = byEntity.GetBehavior<EntityBehaviorLoyalties>()?.cultureGUID ?? "";
-				entity.GetBehavior<EntityBehaviorLoyalties>().kingdomGUID = byEntity.GetBehavior<EntityBehaviorLoyalties>()?.kingdomGUID ?? "";
+				entity.GetBehavior<EntityBehaviorLoyalties>().leadersGUID = playerEnt?.PlayerUID ?? null;
+				entity.GetBehavior<EntityBehaviorLoyalties>().cultureGUID = byEntity.GetBehavior<EntityBehaviorLoyalties>()?.cultureGUID ?? "00000000";
+				entity.GetBehavior<EntityBehaviorLoyalties>().kingdomGUID = byEntity.GetBehavior<EntityBehaviorLoyalties>()?.kingdomGUID ?? "00000000";
 			}
 			// If placed on a brazier soldier post then set that to be their outpost.
 			if (api.World.BlockAccessor.GetBlockEntity(blockSel.Position) is BlockEntityPost outpost) {

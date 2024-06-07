@@ -3,6 +3,7 @@ using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
+using Vintagestory.GameContent;
 
 namespace VSKingdom {
 	public class AiTaskSentryWaters : AiTaskBase {
@@ -20,6 +21,7 @@ namespace VSKingdom {
 
 		public override void AfterInitialize() {
 			base.AfterInitialize();
+			pathTraverser = entity.GetBehavior<EntityBehaviorTaskAI>().PathTraverser;
 		}
 
 		public override bool ShouldExecute() {

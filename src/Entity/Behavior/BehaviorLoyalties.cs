@@ -249,8 +249,8 @@ namespace VSKingdom {
 			}
 			if (entity.World.BlockAccessor.GetBlockEntity(blockPos) is BlockEntityPost outpost) {
 				if (outpost is not null && outpost.IsCapacity(entity.EntityId)) {
-					this.outpostSIZE = outpost.areasize;
-					this.outpostXYZD = blockPos;
+					(entity.Api as ICoreServerAPI)?.World.GetEntityById(entity.EntityId).WatchedAttributes.GetTreeAttribute("loyalties").SetDouble("outpost_size", outpost.areasize);
+					(entity.Api as ICoreServerAPI)?.World.GetEntityById(entity.EntityId).WatchedAttributes.GetTreeAttribute("loyalties").SetBlockPos("outpost_xyzd", blockPos);
 					(entity.Api as ICoreServerAPI)?.World.GetEntityById(entity.EntityId).WatchedAttributes.MarkPathDirty("loyalties");
 				}
 			}

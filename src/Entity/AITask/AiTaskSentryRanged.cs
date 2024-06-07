@@ -62,6 +62,7 @@ namespace VSKingdom {
 			base.AfterInitialize();
 			// We are using loyalties attribute tree to get our kingdomGUID.
 			loyalties = entity.WatchedAttributes.GetTreeAttribute("loyalties");
+			pathTraverser = entity.GetBehavior<EntityBehaviorTaskAI>().PathTraverser;
 		}
 
 		public override bool ShouldExecute() {

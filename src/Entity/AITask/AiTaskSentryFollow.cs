@@ -18,6 +18,7 @@ namespace VSKingdom {
 		public override void AfterInitialize() {
 			base.AfterInitialize();
 			loyalties = entity.WatchedAttributes.GetTreeAttribute("loyalties");
+			pathTraverser = entity.GetBehavior<EntityBehaviorTaskAI>().PathTraverser;
 		}
 
 		public override bool ShouldExecute() {

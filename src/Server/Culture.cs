@@ -6,21 +6,21 @@ namespace VSKingdom {
 		[ProtoMember(1)]
 		public string CultureGUID { get; set; }
 		[ProtoMember(2)]
-		public string CultureName { get; set; }
+		public string CultureNAME { get; set; }
 		[ProtoMember(3)]
-		public string CultureLong { get; set; }
+		public string CultureLONG { get; set; }
 		[ProtoMember(4)]
-		public string CultureDesc { get; set; }
+		public string CultureDESC { get; set; }
 		[ProtoMember(5)]
-		public string FoundingIRL { get; set; }
+		public string FoundedMETA { get; set; }
 		[ProtoMember(6)]
-		public string FoundingIGT { get; set; }
+		public string FoundedDATE { get; set; }
 		[ProtoMember(7)]
-		public string Predecessor { get; set; }
+		public double FoundedHOUR { get; set; }
 		[ProtoMember(8)]
-		public string[] AllTenants { get; set; }
+		public string Predecessor { get; set; }
 		[ProtoMember(9)]
-		public string[] AllBeliefs { get; set; }
+		public string[] AllTenants { get; set; }
 		[ProtoMember(10)]
 		public string[] MascFNames { get; set; }
 		[ProtoMember(11)]
@@ -36,12 +36,14 @@ namespace VSKingdom {
 		[ProtoMember(16)]
 		public string[] HairStyles { get; set; }
 		[ProtoMember(17)]
-		public string[] FaceStyles { get; set; }
+		public string[] HairExtras { get; set; }
 		[ProtoMember(18)]
-		public string[] TreeBlocks { get; set; }
+		public string[] FaceStyles { get; set; }
 		[ProtoMember(19)]
-		public string[] WoodBlocks { get; set; }
+		public string[] FaceBeards { get; set; }
 		[ProtoMember(20)]
+		public string[] WoodBlocks { get; set; }
+		[ProtoMember(21)]
 		public string[] RockBlocks { get; set; }
 	}
 }

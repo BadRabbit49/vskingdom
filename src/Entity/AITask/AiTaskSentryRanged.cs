@@ -148,7 +148,7 @@ namespace VSKingdom {
 			}
 			// Retreat if target is too close!
 			if (entity.ServerPos.SquareDistanceTo(targetEntity.ServerPos.XYZ) <= 4 * 4) {
-				PartRetreat();
+				Retreat(false);
 			}
 			// Calculate aiming at targetEntity!
 			Vec3f targetVec = targetEntity.ServerPos.XYZFloat.Sub(entity.ServerPos.XYZFloat);
@@ -202,7 +202,7 @@ namespace VSKingdom {
 			// Interrupt attack and flee.
 			cancelAttack = true;
 			FinishExecute(true);
-			FullRetreat();
+			Retreat(true);
 		}
 
 		public void OnEnemySpotted(Entity targetEnt) {
@@ -265,30 +265,19 @@ namespace VSKingdom {
 			pathTraverser.Retarget();
 		}
 
-		private void PartRetreat() {
+		private void Retreat(bool full) {
 			Vec3d targetPos = new Vec3d();
 			updateTargetPosFleeMode(targetPos);
-			entity.CurrentControls = EnumEntityActivity.Move;
-			entity.Controls.Sprint = false;
-			entity.ServerControls.Sprint = false;
-			entity.Controls.Backward = true;
-			entity.ServerControls.Backward = true;
-			pathTraverser.WalkTowards(targetPos, moveSpeed, targetEntity.SelectionBox.XSize + 0.2f, OnGoalReached, OnStuck);
-			pathTraverser.CurrentTarget.X = targetPos.X;
-			pathTraverser.CurrentTarget.Y = targetPos.Y;
-			pathTraverser.CurrentTarget.Z = targetPos.Z;
-			pathTraverser.Retarget();
-		}
-
-		private void FullRetreat() {
-			Vec3d targetPos = new Vec3d();
-			updateTargetPosFleeMode(targetPos);
-			entity.CurrentControls = EnumEntityActivity.SprintMode;
-			entity.Controls.Sprint = true;
-			entity.ServerControls.Sprint = true;
-			entity.Controls.Forward = true;
-			entity.ServerControls.Forward = true;
-			pathTraverser.WalkTowards(targetPos, moveSpeed * (float)GlobalConstants.SprintSpeedMultiplier, targetEntity.SelectionBox.XSize + 0.2f, OnGoalReached, OnStuck);
+			entity.ServerControls.Sprint = full;
+			entity.ServerControls.Forward = full;
+			entity.ServerControls.Backward = !full;
+			if (full) {
+				entity.CurrentControls = EnumEntityActivity.SprintMode;
+				pathTraverser.WalkTowards(targetPos, moveSpeed * (float)GlobalConstants.SprintSpeedMultiplier, targetEntity.SelectionBox.XSize + 0.2f, OnGoalReached, OnStuck);
+			} else {
+				entity.CurrentControls = EnumEntityActivity.Move;
+				pathTraverser.WalkTowards(targetPos, moveSpeed, targetEntity.SelectionBox.XSize + 0.2f, OnGoalReached, OnStuck);
+			}
 			pathTraverser.CurrentTarget.X = targetPos.X;
 			pathTraverser.CurrentTarget.Y = targetPos.Y;
 			pathTraverser.CurrentTarget.Z = targetPos.Z;

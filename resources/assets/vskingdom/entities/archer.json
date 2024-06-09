@@ -360,7 +360,7 @@
 			{ "code": "controlledphysics", "stepHeight": 1.2 },
 			{ "code": "health", "currenthealth": 20, "maxhealth": 20 },
 			{ "code": "extraskinnable" },
-			{ "code": "SoldierDecayBody", "hoursToDecay": 96, "skeleton": "body-humanoid2" },
+			{ "code": "SoldierDecayBody", "hoursToDecay": 0, "skeletonBody": ["humanoid1", "humanoid2"] },
 			{ "code": "KingdomLoyalties" },
 			{
 				"code": "taskai",

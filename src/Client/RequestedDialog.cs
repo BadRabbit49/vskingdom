@@ -1,8 +1,5 @@
-﻿using System.Collections.Generic;
-using Vintagestory.API.Client;
-using Vintagestory.API.Common;
+﻿using Vintagestory.API.Client;
 using Vintagestory.API.Server;
-using Vintagestory.API.Util;
 
 namespace VSKingdom {
 	public class RequestedDialog : GuiDialog {
@@ -97,17 +94,13 @@ namespace VSKingdom {
 		}
 
 		public string GetMessage() {
+			string sentKingdomName = LangUtility.Fix(DataUtility.GetKingdomNAME(senderKingdom));
 			switch (messagedTypes) {
-				case "invite":
-					return (senderPlayer.PlayerName + LangUtility.Get("command-choice-message-invite0") + DataUtility.GetKingdomName(senderKingdom) + LangUtility.Get("command-choice-message-invite1"));
-				case "become":
-					return (senderPlayer.PlayerName + LangUtility.Get("command-choice-message-become0") + DataUtility.GetKingdomName(senderKingdom) + LangUtility.Get("command-choice-message-become1"));
-				case "voting":
-					return (senderPlayer.PlayerName + LangUtility.Get("command-choice-message-voting0") + DataUtility.GetKingdomName(senderKingdom) + LangUtility.Get("command-choice-message-voting1"));
-				case "rebels":
-					return (senderPlayer.PlayerName + LangUtility.Get("command-choice-message-rebels0") + DataUtility.GetKingdomName(senderKingdom) + LangUtility.Get("command-choice-message-rebels1"));
-				default:
-					return null;
+				case "invite": return (senderPlayer.PlayerName + LangUtility.Set("command-choices-invite", sentKingdomName));
+				case "become": return (senderPlayer.PlayerName + LangUtility.Get("command-choices-become", sentKingdomName));
+				case "voting": return (senderPlayer.PlayerName + LangUtility.Get("command-choices-voting", sentKingdomName));
+				case "rebels": return (senderPlayer.PlayerName + LangUtility.Get("command-choices-rebels", sentKingdomName));
+				default: return null;
 			}
 		}
 

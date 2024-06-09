@@ -1,5 +1,6 @@
 {
 	"code": "post-temp",
+	"class": "BlockPost",
 	"entityClass": "BlockEntityPost",
 	"entityBehaviors": [ { "name": "Resupply" } ],
 	"attributes": { },

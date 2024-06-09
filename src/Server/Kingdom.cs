@@ -27,16 +27,18 @@ namespace VSKingdom {
 		[ProtoMember(9)]
 		public string LeadersDESC { get; set; }
 		[ProtoMember(10)]
-		public string FoundingIRL { get; set; }
+		public string FoundedDATE { get; set; }
 		[ProtoMember(11)]
-		public string FoundingIGT { get; set; }
+		public string FoundedMETA { get; set; }
 		[ProtoMember(12)]
-		public HashSet<string> PlayerUIDs { get; set; } = new HashSet<string>();
+		public double FoundedHOUR { get; set; }
 		[ProtoMember(13)]
-		public HashSet<string> EnemieUIDs { get; set; } = new HashSet<string>();
+		public HashSet<string> PlayerUIDs { get; set; } = new HashSet<string>();
 		[ProtoMember(14)]
-		public HashSet<string> AtWarsUIDs { get; set; } = new HashSet<string>();
+		public HashSet<string> EnemieUIDs { get; set; } = new HashSet<string>();
 		[ProtoMember(15)]
+		public HashSet<string> AtWarsUIDs { get; set; } = new HashSet<string>();
+		[ProtoMember(16)]
 		public HashSet<long> EntityUIDs { get; set; } = new HashSet<long>();
 
 		public Entity[] EntityList {

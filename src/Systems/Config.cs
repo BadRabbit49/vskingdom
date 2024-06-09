@@ -1,4 +1,5 @@
-﻿using Vintagestory.API.Common;
+﻿using System.IO;
+using Vintagestory.API.Common;
 
 namespace VSKingdom {
 	class ModConfig {
@@ -39,8 +40,12 @@ namespace VSKingdom {
 			api.World.Config.SetBool("AllowCivilWars", config.AllowCivilWars);
 			api.World.Config.SetBool("AllowTeleports", config.AllowTeleports);
 			api.World.Config.SetInt("MinCreateLevel", config.MinCreateLevel);
+			api.World.Config.SetInt("MinCultureMake", config.MinCultureMake);
 			api.World.Config.SetInt("MaxNewKingdoms", config.MaxNewKingdoms);
 			api.World.Config.SetInt("MaxNewCultures", config.MaxNewCultures);
+			api.World.Config.SetString("BasicMascNames", config.BasicMascNames);
+			api.World.Config.SetString("BasicFemmNames", config.BasicFemmNames);
+			api.World.Config.SetString("BasicLastNames", config.BasicLastNames);
 		}
 
 		private VSKingdomConfig LoadConfig(ICoreAPI api) {
@@ -58,7 +63,6 @@ namespace VSKingdom {
 
 	class VSKingdomConfig {
 		public VSKingdomConfig() { }
-
 		// Default Settings for Configuration.
 		public bool FriendlyFire { get; set; } = true;
 		public bool FallDamageOn { get; set; } = true;
@@ -68,12 +72,14 @@ namespace VSKingdom {
 		public bool AllowCivilWars { get; set; } = true;
 		public bool AllowTeleports { get; set; } = true;
 		public int MinCreateLevel { get; set; } = -1;
+		public int MinCultureMake { get; set; } = 720;
 		public int MaxNewKingdoms { get; set; } = -1;
 		public int MaxNewCultures { get; set; } = -1;
-
+		public string BasicMascNames { get; set; } = "Aphid, Eriek, Adachi, Farhad, Barker, Floyd, Temper, Kanin, Fauln, Riftok, Blauld, Canft, Henlir, Rauln, Gautfor, Gouldfor, Mantiel, Shink, Helno, Recksmeal, Marky, Marcus, Hardwin, Timoleon, Leonidas, Yikes, Brutus, William, Maurinus, Hubertus, Bikke";
+		public string BasicFemmNames { get; set; } = "Annie, Agnes, Lestli, Candis, Bianca, Hedwig, Demud, Imagina, Johanna, Judith, Magdalena, Philippa, Violat, Walpurga, Josephine, Joana, Yvonne, Tauts, Diane, Olivia, Hermoine, Triss, Harley, Lucia, Mirella, Bernadetta, Tacia, Listle, Willa, Sabrine";
+		public string BasicLastNames { get; set; } = "Ponright, Tonio, Elliott, Daniels, Perez, Smith, Parkins, Genright, Harkons, Newoak, Bishop, Gearsmith, Steenwilk, Beckett, Birchwood, Driftern, Caesaran, Lisbeth, Flenk, Tunnleway, Sharps, Reynolds, Cokforth, Reyleigh, Jaunt, Biklin, Brown, Meina, Kant";
 		// Loaded Previous Configuration if exists.
 		public VSKingdomConfig(VSKingdomConfig prev) {
-			
 			FriendlyFire = prev.FriendlyFire;
 			ArmorWeights = prev.ArmorWeights;
 			InfiniteAmmo = prev.InfiniteAmmo;
@@ -81,6 +87,13 @@ namespace VSKingdom {
 			FallDamageOn = prev.FallDamageOn;
 			AllowCivilWars = prev.AllowCivilWars;
 			AllowTeleports = prev.AllowTeleports;
+			MinCreateLevel = prev.MinCreateLevel;
+			MinCultureMake = prev.MinCultureMake;
+			MaxNewKingdoms = prev.MaxNewKingdoms;
+			MaxNewCultures = prev.MaxNewCultures;
+			BasicMascNames = prev.BasicMascNames;
+			BasicFemmNames = prev.BasicFemmNames;
+			BasicLastNames = prev.BasicLastNames;
 		}
 	}
 }

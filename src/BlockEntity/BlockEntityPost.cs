@@ -308,4 +308,40 @@ namespace VSKingdom {
 			Api.World.BlockAccessor.GetChunkAtBlockPos(Pos)?.MarkModified();
 		}
 	}
+
+	public class BlockPost : Block, IIgnitable {
+		public BlockPost() { }
+
+		public EnumIgniteState OnTryIgniteBlock(EntityAgent byEntity, BlockPos pos, float secondsIgniting) {
+			BlockEntityCharcoalPit becp = api.World.BlockAccessor.GetBlockEntity(pos) as BlockEntityCharcoalPit;
+			if (becp == null || becp.Lit) {
+				return EnumIgniteState.NotIgnitablePreventDefault;
+			}
+			return secondsIgniting > 3 ? EnumIgniteState.IgniteNow : EnumIgniteState.Ignitable;
+		}
+
+		EnumIgniteState IIgnitable.OnTryIgniteStack(EntityAgent byEntity, BlockPos pos, ItemSlot slot, float secondsIgniting) {
+			BlockEntityCharcoalPit becp = api.World.BlockAccessor.GetBlockEntity(pos) as BlockEntityCharcoalPit;
+			if (becp.Lit) {
+				return secondsIgniting > 2 ? EnumIgniteState.IgniteNow : EnumIgniteState.Ignitable;
+			}
+			return EnumIgniteState.NotIgnitable;
+		}
+
+		public void OnTryIgniteBlockOver(EntityAgent byEntity, BlockPos pos, float secondsIgniting, ref EnumHandling handling) {
+			BlockEntityCharcoalPit becp = api.World.BlockAccessor.GetBlockEntity(pos) as BlockEntityCharcoalPit;
+			if (becp != null && !becp.Lit) {
+				becp.IgniteNow();
+			}
+			handling = EnumHandling.PreventDefault;
+		}
+
+		public override ItemStack[] GetDrops(IWorldAccessor world, BlockPos pos, IPlayer byPlayer, float dropQuantityMultiplier = 1) {
+			return null;
+		}
+
+		public override BlockDropItemStack[] GetDropsForHandbook(ItemStack handbookStack, IPlayer forPlayer) {
+			return new BlockDropItemStack[0];
+		}
+	}
 }

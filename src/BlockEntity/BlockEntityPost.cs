@@ -96,9 +96,7 @@ namespace VSKingdom {
 
 		public override void OnBlockRemoved() {
 			base.OnBlockRemoved();
-			for (int n = 0; n < EntityUIDs.Count; n++) {
-				Api.World.GetEntityById(EntityUIDs[n]).GetBehavior<EntityBehaviorLoyalties>()?.SetOutpost(new BlockPos(0, 0, 0, 0));
-			}
+
 			if (Api is ICoreServerAPI sapi) {
 				sapi.ModLoader.GetModSystem<POIRegistry>().RemovePOI(this);
 			}
@@ -106,6 +104,12 @@ namespace VSKingdom {
 				invDialog?.TryClose();
 			}
 			invDialog?.Dispose();
+			if (EntityUIDs is null || EntityUIDs.Count == 0) {
+				return;
+			}
+			for (int n = 0; n < EntityUIDs.Count; n++) {
+				Api.World.GetEntityById(EntityUIDs[n]).GetBehavior<EntityBehaviorLoyalties>()?.SetOutpost(new BlockPos(0, 0, 0, 0));
+			}
 		}
 
 		public override bool OnPlayerRightClick(IPlayer byPlayer, BlockSelection blockSel) {
@@ -168,7 +172,7 @@ namespace VSKingdom {
 			tree.SetDouble("maxBTime", maxBTime);
 			tree.SetDouble("burnFuel", burnFuel);
 		}
-
+		
 		public override void OnReceivedClientPacket(IPlayer player, int packetid, byte[] data) {
 			if (packetid < 1000) {
 				Inventory.InvNetworkUtil.HandleClientPacket(player, packetid, data);

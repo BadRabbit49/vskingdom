@@ -10,5 +10,17 @@
 		"path": "/server/behaviors/-",
 		"op": "add",
 		"value": { "code": "KingdomLoyalties" }
+	},
+	{
+		"file": "game:entities/humanoid/player",
+		"path": "/client/behaviors/1",
+		"op": "add",
+		"value": { "showtagonlywhentargeted": true }
+	},
+	{
+		"file": "game:entities/humanoid/player",
+		"path": "/server/behaviors/1",
+		"op": "add",
+		"value": { "showtagonlywhentargeted": true }
 	}
 ]

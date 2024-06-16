@@ -205,13 +205,6 @@ namespace VSKingdom {
 			Retreat(true);
 		}
 
-		public void OnEnemySpotted(Entity targetEnt) {
-			if (targetEntity is null || !targetEntity.Alive) {
-				targetEntity = targetEnt;
-			}
-			ShouldExecute();
-		}
-
 		public void OnAllyAttacked(Entity byEntity) {
 			if (byEntity != entity) {
 				if (targetEntity is null || !targetEntity.Alive) {

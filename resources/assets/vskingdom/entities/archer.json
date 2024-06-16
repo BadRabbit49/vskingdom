@@ -269,10 +269,10 @@
 		"texture": { "base": "game:entity/humanoid/seraphskinparts/body/skin1" },
 		"behaviors": [
 			{ "code": "repulseagents" },
-			{ "code": "nametag", "showtagonlywhentargeted": true },
 			{ "code": "controlledphysics", "stepHeight": 1.2 },
 			{ "code": "interpolateposition" },
 			{ "code": "extraskinnable" },
+			{ "code": "KingdomFullNames" },
 			{ "code": "KingdomLoyalties" }
 		],
 		"animations": [
@@ -349,26 +349,20 @@
 		},
 		"behaviors": [
 			{ "code": "repulseagents" },
-			{
-				"code": "nametag",
-				"showtagonlywhentargeted": true,
-				"selectFromRandomNameByType": {
-					"*-masc": [ "Aphid", "Eriek", "Adachi", "Farhad", "Pegalesharro", "Floyd", "Temper", "Kanin", "Fauln", "Riftok", "Blauld", "Canft", "Henlir", "Rauln", "Gautfor", "Beckett", "Gouldfor", "Mantiel", "Shink", "Helno", "Recksmeal", "Rudolf", "Marcus", "Hardwin", "Cronos", "Timoleon", "Leonidas", "Xerxes", "Brutus", "William", "Maurinus", "Hubertus" ],
-					"*-femm": [ "Annie", "Agnes", "Lestli", "Candis", "Bianca", "Hedwig", "Demud", "Imagina", "Johanna", "Judith", "Magdalena", "Philippa", "Methild", "Violante", "Walpurga", "Josephine", "Joana", "Yvonne", "Lisbeth", "Dione", "Diana", "Olivia", "Hermine", "Triss", "Yennefer", "Lucia", "Mirella", "Bernadetta", "Tacia", "Listle", "Willa" ]
-				}
-			},
 			{ "code": "controlledphysics", "stepHeight": 1.2 },
 			{ "code": "health", "currenthealth": 20, "maxhealth": 20 },
 			{ "code": "extraskinnable" },
-			{ "code": "SoldierDecayBody", "hoursToDecay": 0, "skeletonBody": ["humanoid1", "humanoid2"] },
+			{ "code": "bodytemperature" },
+			{ "code": "KingdomFullNames" },
 			{ "code": "KingdomLoyalties" },
+			{ "code": "SoldierDecayBody", "hoursToDecay": 0, "skeletonBody": ["humanoid1", "humanoid2"] },
 			{
 				"code": "taskai",
 				"aitasks": [
 					{
 						"code": "SentryRanged",
 						"entityCodes": [ "player", "archer-*", "knight-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "looter", "bandit-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
-						"priority": 2,
+						"priority": 2.0,
 						"seekingRange": 15,
 						"mincooldown": 500,
 						"maxcooldown": 1500,
@@ -379,6 +373,7 @@
 					{
 						"code": "SentryEscape",
 						"entityCodes": [ "player", "archer-*", "knight-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "looter", "bandit-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
+						"priority": 1.8,
 						"animation": "sprint",
 						"movespeed": 0.035,
 						"animationSpeed": 1.75

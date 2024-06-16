@@ -10,17 +10,17 @@ using Vintagestory.API.MathTools;
 
 namespace VSKingdom {
 	internal static class DataUtility {
-		private static byte[] kingdomData => VSKingdom.serverAPI.WorldManager.SaveGame.GetData("kingdomData");
-		private static byte[] cultureData => VSKingdom.serverAPI.WorldManager.SaveGame.GetData("cultureData");
+		private static byte[] kingdomData { get => VSKingdom.serverAPI.WorldManager.SaveGame.GetData("kingdomData"); }
+		private static byte[] cultureData { get => VSKingdom.serverAPI.WorldManager.SaveGame.GetData("cultureData"); }
 		private static List<Kingdom> kingdomList => kingdomData is null ? new List<Kingdom>() : SerializerUtil.Deserialize<List<Kingdom>>(kingdomData);
-		private static List<Culture> cultureList => cultureList is null ? new List<Culture>() : SerializerUtil.Deserialize<List<Culture>>(cultureData);
+		private static List<Culture> cultureList => cultureData is null ? new List<Culture>() : SerializerUtil.Deserialize<List<Culture>>(cultureData);
 
-		public static string GetKingdomNAME(string KingdomGUID) {
-			return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == KingdomGUID)?.KingdomNAME;
+		public static string GetKingdomNAME(string kingdomGUID) {
+			return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID)?.KingdomNAME;
 		}
 
-		public static string GetKingdomGUID(string KingdomNAME) {
-			return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomNAME.ToLowerInvariant() == KingdomNAME.ToLowerInvariant())?.KingdomGUID;
+		public static string GetKingdomGUID(string kingdomNAME) {
+			return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomNAME.ToLowerInvariant() == kingdomNAME.ToLowerInvariant())?.KingdomGUID;
 		}
 
 		public static string GetKingdomGUID(IServerPlayer Player) {
@@ -31,16 +31,16 @@ namespace VSKingdom {
 			return VSKingdom.serverAPI.PlayerData.GetPlayerDataByUid(LeadersUID)?.LastKnownPlayername;
 		}
 
-		public static string GetLeadersGUID(string KingdomGUID) {
-			if (KingdomGUID != null) {
-				return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == KingdomGUID)?.LeadersGUID;
+		public static string GetLeadersGUID(string kingdomGUID) {
+			if (kingdomGUID != null) {
+				return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID)?.LeadersGUID;
 			}
 			return null;
 		}
 
-		public static string GetLeadersGUID(string KingdomGUID, string PlayersUID) {
-			if (KingdomGUID != null) {
-				return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == KingdomGUID)?.LeadersGUID;
+		public static string GetLeadersGUID(string kingdomGUID, string PlayersUID) {
+			if (kingdomGUID != null) {
+				return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID)?.LeadersGUID;
 			}
 			if (PlayersUID is not null) {
 				foreach (Kingdom kingdom in kingdomList) {
@@ -52,16 +52,16 @@ namespace VSKingdom {
 			return null;
 		}
 
-		public static string[] GetPlayerGUIDs(string KingdomGUID) {
-			return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == KingdomGUID)?.PlayerUIDs.ToArray<string>();
+		public static string[] GetPlayerGUIDs(string kingdomGUID) {
+			return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID)?.PlayerUIDs.ToArray<string>();
 		}
 
-		public static string[] GetEnemieGUIDs(string KingdomGUID) {
-			return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == KingdomGUID)?.EnemieUIDs.ToArray<string>();
+		public static string[] GetEnemieGUIDs(string kingdomGUID) {
+			return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID)?.EnemieUIDs.ToArray<string>();
 		}
 
-		public static string[] GetOnlineGUIDs(string KingdomGUID) {
-			string[] AllMembers = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == KingdomGUID)?.PlayerUIDs.ToArray<string>();
+		public static string[] GetOnlineGUIDs(string kingdomGUID) {
+			string[] AllMembers = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID)?.PlayerUIDs.ToArray<string>();
 			IPlayer[] AllPlayers = VSKingdom.serverAPI.World.AllOnlinePlayers;
 			string[] AllOnlines = Array.Empty<string>();
 			foreach (var player in AllPlayers) {
@@ -72,8 +72,8 @@ namespace VSKingdom {
 			return AllOnlines;
 		}
 
-		public static string[] GetOfflineGUIDs(string KingdomGUID) {
-			string[] AllMembers = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == KingdomGUID)?.PlayerUIDs.ToArray<string>();
+		public static string[] GetOfflineGUIDs(string kingdomGUID) {
+			string[] AllMembers = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID)?.PlayerUIDs.ToArray<string>();
 			IServerPlayer[] AllPlayers = VSKingdom.serverAPI.World.AllPlayers as IServerPlayer[];
 			string[] AllOffline = Array.Empty<string>();
 			foreach (var player in AllPlayers) {
@@ -84,32 +84,18 @@ namespace VSKingdom {
 			return AllOffline;
 		}
 
-		public static long[] GetEntityGUIDs(string KingdomGUID) {
-			return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == KingdomGUID)?.EntityUIDs.ToArray<long>();
+		public static long[] GetEntityGUIDs(string kingdomGUID) {
+			return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID)?.EntityUIDs.ToArray<long>();
 		}
 		
-		public static bool KingdomExists(string KingdomGUID = null, string KingdomNAME = null) {
-			bool lookingForGUID = KingdomGUID != null;
-			bool lookingForNAME = KingdomNAME != null;
+		public static bool KingdomExists(string kingdomGUID = null, string kingdomNAME = null) {
+			bool lookingForGUID = kingdomGUID != null;
+			bool lookingForNAME = kingdomNAME != null;
 			foreach (var kingdom in kingdomList) {
-				if (lookingForGUID && kingdom.KingdomGUID == KingdomGUID) {
+				if (lookingForGUID && kingdom.KingdomGUID == kingdomGUID) {
 					return true;
 				}
-				if (lookingForNAME && kingdom.KingdomNAME == KingdomNAME) {
-					return true;
-				}
-			}
-			return false;
-		}
-
-		public static bool CultureExists(string CultureGUID = null, string CultureNAME = null) {
-			bool lookingForGUID = CultureGUID != null;
-			bool lookingForNAME = CultureNAME != null;
-			foreach (var culture in cultureList) {
-				if (lookingForGUID && culture.CultureGUID == CultureGUID) {
-					return true;
-				}
-				if (lookingForNAME && culture.CultureNAME == CultureNAME) {
+				if (lookingForNAME && kingdom.KingdomNAME == kingdomNAME) {
 					return true;
 				}
 			}
@@ -209,19 +195,13 @@ namespace VSKingdom {
 			}
 		}
 
-		public static bool IsKingdom(string kingdomGUID, string kingdomNAME) {
-			if (kingdomGUID is not null) {
-				foreach (Kingdom kingdom in kingdomList) {
-					if (kingdom.KingdomGUID.ToLowerInvariant() == kingdomGUID.ToLowerInvariant()) {
-						return true;
-					}
+		public static bool IsKingdom(string kingdomGUID, string kingdomNAME = null) {
+			foreach (Kingdom kingdom in kingdomList) {
+				if (kingdomGUID != null && kingdom.KingdomGUID == kingdomGUID) {
+					return true;
 				}
-			}
-			if (kingdomNAME is not null) {
-				foreach (Kingdom kingdom in kingdomList) {
-					if (kingdom.KingdomNAME.ToLowerInvariant() == kingdomNAME.ToLowerInvariant()) {
-						return true;
-					}
+				if (kingdomNAME != null && kingdom.KingdomNAME.ToLowerInvariant() == kingdomNAME.ToLowerInvariant()) {
+					return true;
 				}
 			}
 			return false;
@@ -245,21 +225,12 @@ namespace VSKingdom {
 			return false;
 		}
 
-		public static bool NameTaken(string kingdomNAME, string cultureNAME = null) {
-			if (kingdomNAME != null) {
-				foreach (Kingdom kingdom in kingdomList) {
+		public static bool NameTaken(string kingdomNAME) {
+			foreach (Kingdom kingdom in kingdomList) {
 					if (kingdom.KingdomNAME.ToLowerInvariant() == kingdomNAME.ToLowerInvariant()) {
 						return true;
 					}
 				}
-			}
-			if (cultureNAME != null) {
-				foreach (Culture culture in cultureList) {
-					if (culture.CultureNAME.ToLowerInvariant() == cultureNAME.ToLowerInvariant()) {
-						return true;
-					}
-				}
-			}
 			return false;
 		}
 
@@ -273,36 +244,32 @@ namespace VSKingdom {
 			return false;
 		}
 
-		public static IServerPlayer GetLeaders(string KingdomNAME, string KingdomGUID = null) {
-			if (KingdomNAME != null) {
-				return VSKingdom.serverAPI?.World.PlayerByUid(kingdomList.Find(kingdomMatch => kingdomMatch.KingdomNAME == KingdomNAME)?.LeadersGUID) as IServerPlayer;
+		public static IServerPlayer GetLeaders(string kingdomNAME, string kingdomGUID = null) {
+			if (kingdomNAME != null) {
+				return VSKingdom.serverAPI?.World.PlayerByUid(kingdomList.Find(kingdomMatch => kingdomMatch.KingdomNAME == kingdomNAME)?.LeadersGUID) as IServerPlayer;
 			}
-			if (KingdomGUID != null) {
-				return VSKingdom.serverAPI?.World.PlayerByUid(kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == KingdomGUID)?.LeadersGUID) as IServerPlayer;
+			if (kingdomGUID != null) {
+				return VSKingdom.serverAPI?.World.PlayerByUid(kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID)?.LeadersGUID) as IServerPlayer;
 			}
 			return null;
-		}
-
-		public static IServerPlayer GetAPlayer(string PlayerUID) {
-			return VSKingdom.serverAPI.World.AllPlayers.ToList<IPlayer>().Find(playerMatch => playerMatch.PlayerUID == PlayerUID) as IServerPlayer ?? null;
 		}
 		
-		public static Kingdom GetKingdom(string KingdomGUID, string KingdomNAME = null) {
-			if (KingdomGUID != null) {
-				return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == KingdomGUID);
+		public static Kingdom GetKingdom(string kingdomGUID, string kingdomNAME = null) {
+			if (kingdomGUID != null) {
+				return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID);
 			}
-			if (KingdomNAME != null) {
-				return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomNAME == KingdomNAME);
+			if (kingdomNAME != null) {
+				return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomNAME == kingdomNAME);
 			}
 			return null;
 		}
 
-		public static Culture GetCulture(string CultureGUID, string CultureNAME = null) {
-			if (CultureGUID != null) {
-				return cultureList.Find(cultureMatch => cultureMatch.CultureGUID == CultureGUID);
+		public static Culture GetCulture(string cultureGUID, string cultureNAME = null) {
+			if (cultureGUID != null) {
+				return cultureList.Find(cultureMatch => cultureMatch.CultureGUID == cultureGUID);
 			}
-			if (CultureNAME != null) {
-				return cultureList.Find(cultureMatch => cultureMatch.CultureNAME == CultureNAME);
+			if (cultureNAME != null) {
+				return cultureList.Find(cultureMatch => cultureMatch.CultureNAME == cultureNAME);
 			}
 			return null;
 		}
@@ -312,6 +279,10 @@ namespace VSKingdom {
 				return block;
 			}
 			return null;
+		}
+
+		public static IServerPlayer GetAPlayer(string PlayerUID) {
+			return VSKingdom.serverAPI.World.AllPlayers.ToList<IPlayer>().Find(playerMatch => playerMatch.PlayerUID == PlayerUID) as IServerPlayer ?? null;
 		}
 	}
 }

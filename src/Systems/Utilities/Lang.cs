@@ -1,4 +1,5 @@
-﻿using Vintagestory.API.Config;
+﻿using System.Linq;
+using Vintagestory.API.Config;
 
 internal static class LangUtility {
 	public static string Get(string langKeys, params object[] args) {
@@ -6,7 +7,7 @@ internal static class LangUtility {
 	}
 
 	public static string Set(string langKeys, string entryKeys, params object[] args) {
-		return Lang.Get("vskingdom:" + langKeys, args).Replace("[ENTRY]", Lang.Get("vskingdom:" + entryKeys));
+		return Lang.Get("vskingdom:" + langKeys, args).Replace("[ENTRY]", entryKeys);
 	}
 
 	public static string Low(string fakeName) {
@@ -19,7 +20,19 @@ internal static class LangUtility {
 		return realName.Replace("_", " ");
 	}
 
+	public static string Msg(string[] stringList) {
+		string message = string.Empty;
+		foreach (string str in stringList) {
+			message += ("\n" + str);
+		}
+		return message;
+	}
+
 	public static string[] Open(string stringList) {
 		return stringList.Split(", ");
+	}
+
+	public static string[] Fuse(string[] array1, string[] array2) {
+		return array1.Concat(array2).ToArray();
 	}
 }

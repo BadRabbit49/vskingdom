@@ -217,21 +217,20 @@ namespace VSKingdom {
 			if (kingdomGUID is null || kingdomGUID == "") {
 				return;
 			}
-			KingdomCommand command = new KingdomCommand();
-			command.entityID = entity.EntityId;
-			command.commands = "switch_kingdom";
-			command.oldGUIDs = this.kingdomGUID;
-			command.newGUIDs = kingdomGUID;
-			if (entity is EntityPlayer) {
-				(entity.Api as ICoreServerAPI)?.Network.GetChannel("kingdomnetwork").SendPacket<KingdomCommand>(command, (entity as EntityPlayer).Player as IServerPlayer);
-			} else {
-				(entity.Api as ICoreServerAPI)?.Network.GetChannel("kingdomnetwork").SendPacket<KingdomCommand>(command, entity.GetBehavior<EntityBehaviorLoyalties>()?.cachedLeaders as IServerPlayer);
-			}
 			// Why did you make me do this?!
 			(entity.Api as ICoreServerAPI)?.World.GetEntityById(entity.EntityId).WatchedAttributes.GetTreeAttribute("loyalties").SetString("kingdom_guid", kingdomGUID);
 			(entity.Api as ICoreServerAPI)?.World.GetEntityById(entity.EntityId).WatchedAttributes.MarkPathDirty("loyalties");
 		}
-		
+
+		public virtual void SetCulture(string cultureGUID) {
+			if (cultureGUID is null || cultureGUID == "") {
+				return;
+			}
+			// Why did you make me do this?!
+			(entity.Api as ICoreServerAPI)?.World.GetEntityById(entity.EntityId).WatchedAttributes.GetTreeAttribute("loyalties").SetString("culture_guid", cultureGUID);
+			(entity.Api as ICoreServerAPI)?.World.GetEntityById(entity.EntityId).WatchedAttributes.MarkPathDirty("loyalties");
+		}
+
 		public virtual void SetLeaders(string playerUID) {
 			if (playerUID is not null && entity.World.PlayerByUid(playerUID) is not null) {
 				leadersGUID = playerUID;

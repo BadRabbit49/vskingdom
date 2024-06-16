@@ -81,10 +81,10 @@ namespace VSKingdom {
 		// Loaded Previous Configuration if exists.
 		public VSKingdomConfig(VSKingdomConfig prev) {
 			FriendlyFire = prev.FriendlyFire;
+			FallDamageOn = prev.FallDamageOn;
 			ArmorWeights = prev.ArmorWeights;
 			InfiniteAmmo = prev.InfiniteAmmo;
 			InfiniteHeal = prev.InfiniteHeal;
-			FallDamageOn = prev.FallDamageOn;
 			AllowCivilWars = prev.AllowCivilWars;
 			AllowTeleports = prev.AllowTeleports;
 			MinCreateLevel = prev.MinCreateLevel;

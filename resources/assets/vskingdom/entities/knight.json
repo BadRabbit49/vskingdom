@@ -269,10 +269,10 @@
 		"texture": { "base": "game:entity/humanoid/seraphskinparts/body/skin1" },
 		"behaviors": [
 			{ "code": "repulseagents" },
-			{ "code": "nametag", "showtagonlywhentargeted": true },
 			{ "code": "controlledphysics", "stepHeight": 1.2 },
 			{ "code": "interpolateposition" },
 			{ "code": "extraskinnable" },
+			{ "code": "KingdomFullNames" },
 			{ "code": "KingdomLoyalties" }
 		],
 		"animations": [
@@ -349,19 +349,13 @@
 		},
 		"behaviors": [
 			{ "code": "repulseagents" },
-			{
-				"code": "nametag",
-				"showtagonlywhentargeted": true,
-				"selectFromRandomNameByType": {
-					"*-masc": [ "Aphid", "Eriek", "Adachi", "Farhad", "Barker", "Floyd", "Temper", "Kanin", "Fauln", "Riftok", "Blauld", "Canft", "Henlir", "Rauln", "Gautfor", "Beckett", "Gouldfor", "Mantiel", "Shink", "Helno", "Recksmeal", "Marky", "Marcus", "Hardwin", "Cronos", "Timoleon", "Leonidas", "Yikes", "Brutus", "William", "Maurinus", "Hubertus" ],
-					"*-femm": [ "Annie", "Agnes", "Lestli", "Candis", "Bianca", "Hedwig", "Demud", "Imagina", "Johanna", "Judith", "Magdalena", "Philippa", "Methild", "Violante", "Walpurga", "Josephine", "Joana", "Yvonne", "Lisbeth", "Tauts", "Diana", "Olivia", "Hermine", "Triss", "Harley", "Lucia", "Mirella", "Bernadetta", "Tacia", "Listle", "Willa" ]
-				}
-			},
 			{ "code": "controlledphysics", "stepHeight": 1.2 },
 			{ "code": "health", "currenthealth": 20, "maxhealth": 20 },
+			{ "code": "bodytemperature" },
 			{ "code": "extraskinnable" },
-			{ "code": "SoldierDecayBody", "hoursToDecay": 96, "skeletonBody": ["humanoid1", "humanoid2"] },
+			{ "code": "KingdomFullNames" },
 			{ "code": "KingdomLoyalties" },
+			{ "code": "SoldierDecayBody", "hoursToDecay": 96, "skeletonBody": ["humanoid1", "humanoid2"] },
 			{
 				"code": "taskai",
 				"aitasks": [

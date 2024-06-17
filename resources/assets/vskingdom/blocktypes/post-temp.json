@@ -61,54 +61,53 @@
 		"*-dead": [ { "x1": 0.188, "y1": 0, "z1": 0.200, "x2": 0.813, "y2": 0.813, "z2": 0.813 } ]
 	},
 	"particlePropertiesByType": {
-		"*-live-good":
-			[
-				{
-					"__comment": "Temporal cubes",
-					"hsvaColor": [ { "avg": 180, "var": 180 }, { "avg": 255, "var": 50 }, { "avg": 255, "var": 50 }, { "avg": 255, "var": 0 } ],
-					"gravityEffect": { "avg": 0, "var": 0 },
-					"velocity": [ { "avg": 0.2, "var": 0.05 }, { "avg": 0.5, "var": 0.1 }, { "avg": 0, "var": 0.2 } ],
-					"posOffset": [ { "var": 0.2 }, { "var": 0.1 }, { "var": 0.2 } ],
-					"quantity": { "avg": 0 },
-					"size": { "avg": 0.25, "var": 0 },
-					"vertexFlags": 128,
-					"sizeEvolve": { "transform": "quadratic", "factor": -0.5 },
-					"selfPropelled": true
-				},
-				{
-					"__comment": "Temporal quads",
-					"hsvaColor": [ { "avg": 180, "var": 180 }, { "avg": 255, "var": 50 }, { "avg": 255, "var": 50 }, { "avg": 255, "var": 0 } ],
-					"opacityEvolve": { "transform": "quadratic", "factor": -16 },
-					"gravityEffect": { "avg": 0, "var": 0 },
-					"velocity": [ { "avg": 0, "var": 0.02 }, { "avg": 0.2, "var": 0.02 }, { "avg": 0, "var": 0.02 } ],
-					"posOffset": [ { "var": 0.2 }, { "var": 0.1 }, { "var": 0.2 } ],
-					"quantity": { "avg": 0 },
-					"size": { "avg": 0.3, "var": 0.05 },
-					"vertexFlags": 128,
-					"sizeEvolve": { "transform": "linear", "factor": 1.5 },
-					"particleModel": "Quad",
-					"lifeLength": { "avg": 0.5 },
-					"selfPropelled": true
-				}
-			],
-		"*-live-hurt":
-			[
-				{
-					"__comment": "Temporal quads",
-					"hsvaColor": [ { "avg": 180, "var": 180 }, { "avg": 255, "var": 50 }, { "avg": 255, "var": 50 }, { "avg": 255, "var": 0 } ],
-					"opacityEvolve": { "transform": "quadratic", "factor": -16 },
-					"gravityEffect": { "avg": 0, "var": 0 },
-					"velocity": [ { "avg": 0, "var": 0.02 }, { "avg": 0.2, "var": 0.02 }, { "avg": 0, "var": 0.02 } ],
-					"posOffset": [ { "var": 0.2 }, { "var": 0.1 }, { "var": 0.2 } ],
-					"quantity": { "avg": 0 },
-					"size": { "avg": 0.3, "var": 0.05 },
-					"vertexFlags": 128,
-					"sizeEvolve": { "transform": "linear", "factor": 1.5 },
-					"particleModel": "Quad",
-					"lifeLength": { "avg": 0.5 },
-					"selfPropelled": true
-				}
-			],
+		"*-live-good": [
+			{
+				"__comment": "Temporal cubes",
+				"hsvaColor": [ { "avg": 180, "var": 180 }, { "avg": 255, "var": 50 }, { "avg": 255, "var": 50 }, { "avg": 255, "var": 0 } ],
+				"gravityEffect": { "dist": "invexp", "avg": -0.1, "var": 0.4 },
+				"posOffset": [ { "avg": 0, "var": 0.2 }, { "avg": -0.4, "var": 0 }, { "avg": 0, "var": 0.2 }],
+				"velocity": [ { "avg": 0, "var": 0.15 }, { "avg": 0.5, "var": 0.1 }, { "avg": 0, "var": 0.15 }],
+				"quantity": { "avg": 0.015 },
+				"size": { "avg": 0.4, "var": 0 },
+				"sizeEvolve": { "transform": "quadratic", "factor": -0.7 },
+				"lifeLength": { "avg": 1.5 },
+				"vertexFlags": 128,
+				"windAffectednes": 0.2
+			},
+			{
+				"__comment": "Temporal quads",
+				"hsvaColor": [ { "avg": 180, "var": 180 }, { "avg": 255, "var": 50 }, { "avg": 255, "var": 50 }, { "avg": 255, "var": 0 } ],
+				"opacityEvolve": { "transform": "quadratic", "factor": -16 },
+				"gravityEffect": { "avg": 0, "var": 0 },
+				"velocity": [ { "avg": 0, "var": 0.02 }, { "avg": 0.2, "var": 0.02 }, { "avg": 0, "var": 0.02 } ],
+				"posOffset": [ { "var": 0.2 }, { "var": 0.1 }, { "var": 0.2 } ],
+				"quantity": { "avg": 0 },
+				"size": { "avg": 0.3, "var": 0.05 },
+				"vertexFlags": 128,
+				"sizeEvolve": { "transform": "linear", "factor": 1.5 },
+				"particleModel": "Quad",
+				"lifeLength": { "avg": 0.5 },
+				"selfPropelled": true
+			}
+		],
+		"*-live-hurt": [
+			{
+				"__comment": "Temporal quads",
+				"hsvaColor": [ { "avg": 180, "var": 180 }, { "avg": 255, "var": 50 }, { "avg": 255, "var": 50 }, { "avg": 255, "var": 0 } ],
+				"opacityEvolve": { "transform": "quadratic", "factor": -16 },
+				"gravityEffect": { "avg": 0, "var": 0 },
+				"velocity": [ { "avg": 0, "var": 0.02 }, { "avg": 0.2, "var": 0.02 }, { "avg": 0, "var": 0.02 } ],
+				"posOffset": [ { "var": 0.2 }, { "var": 0.1 }, { "var": 0.2 } ],
+				"quantity": { "avg": 0 },
+				"size": { "avg": 0.3, "var": 0.05 },
+				"vertexFlags": 128,
+				"sizeEvolve": { "transform": "linear", "factor": 1.5 },
+				"particleModel": "Quad",
+				"lifeLength": { "avg": 0.5 },
+				"selfPropelled": true
+			}
+		],
 		"*": [ ]
 	},
 	"sounds": {

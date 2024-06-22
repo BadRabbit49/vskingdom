@@ -517,16 +517,6 @@ namespace VSKingdom {
 			}
 		}
 
-		private void SendRequestedDialog(IServerPlayer player, IServerPlayer sender, string kingdomUID, string message) {
-			// Send a request notification to this player.
-			if (!player.Entity.HasBehavior<EntityBehaviorLoyalties>()) {
-				serverAPI.World.Logger.Error("Player does not have EntityBehaviorLoyalties so fix that.");
-				return;
-			}
-			serverAPI.World.Logger.Notification("Sending dialog over to player.");
-			player.Entity.GetBehavior<EntityBehaviorLoyalties>()?.GetRequestedDialog(sender, kingdomUID, message);
-		}
-
 		private TextCommandResult OnKingdomCommand(TextCommandCallingArgs args) {
 			string[] arguments = ((string)args[1]).Split(' ') ?? null;
 			string fullargs = (string)args[1];
@@ -672,7 +662,7 @@ namespace VSKingdom {
 					if (DataUtility.GetKingdom(null, fullargs).PlayersGUID.Contains(thisPlayer.PlayerUID)) {
 						return TextCommandResult.Error(LangUtility.Set("command-error-become01", LangUtility.Get("entries-keyword-kingdom")));
 					}
-					SendRequestedDialog(thisPlayer as IServerPlayer, DataUtility.GetLeaders(fullargs, null), DataUtility.GetKingdomGUID(fullargs), "become");
+					/** TODO: ADD REQUEST TO JOIN TO QUERY thatKingdom.RequestGUID **/
 					return TextCommandResult.Success(LangUtility.Set("command-success-become", fullargs));
 				// Leaves current Kingdom.
 				case "depart":

@@ -12,8 +12,6 @@ namespace VSKingdom {
 	public class EntityBehaviorLoyalties : EntityBehavior {
 		public EntityBehaviorLoyalties(Entity entity) : base(entity) { }
 
-		public RequestedDialog RequestedDialog { get; set; }
-
 		public ITreeAttribute loyalties {
 			get {
 				return entity.WatchedAttributes.GetOrAddTreeAttribute("loyalties");
@@ -188,29 +186,6 @@ namespace VSKingdom {
 				infotext.AppendLine(string.Concat(LangUtility.Get("gui-outpost-xyzd"), outpostXYZD.ToString()));
 			}
 			base.GetInfoText(infotext);
-		}
-
-		public virtual void GetRequestedDialog(IServerPlayer sender, string kingdomUID, string message) {
-			if (entity.Api.Side != EnumAppSide.Client) {
-				return;
-			}
-			var capi = (ICoreClientAPI)entity.Api;
-			if (RequestedDialog is null) {
-				RequestedDialog = new RequestedDialog((entity as EntityPlayer).Player as IServerPlayer, sender, kingdomUID, message, capi);
-				RequestedDialog.OnClosed += OnRequestedDialogClosed;
-			}
-			if (RequestedDialog.IsOpened()) {
-				RequestedDialog.TryClose();
-			} else {
-				RequestedDialog.TryOpen();
-			}
-		}
-
-		public virtual void OnRequestedDialogClosed() {
-			var capi = (ICoreClientAPI)entity.Api;
-			capi.Network.SendEntityPacket(entity.EntityId, 1510);
-			RequestedDialog?.Dispose();
-			RequestedDialog = null;
 		}
 
 		public virtual void SetKingdom(string kingdomGUID) {

@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Vintagestory.API.Config;
 
 internal static class LangUtility {
@@ -6,8 +7,8 @@ internal static class LangUtility {
 		return Lang.Get("vskingdom:" + langKeys, args);
 	}
 
-	public static string Set(string langKeys, string entryKeys, params object[] args) {
-		return Lang.Get("vskingdom:" + langKeys, args).Replace("[ENTRY]", entryKeys);
+	public static string Set(string langKeys, string entryKey, params object[] args) {
+		return Lang.Get("vskingdom:" + langKeys, args).Replace("[ENTRY]", entryKey);
 	}
 
 	public static string Low(string fakeName) {
@@ -24,6 +25,27 @@ internal static class LangUtility {
 		string message = string.Empty;
 		foreach (string str in stringList) {
 			message += ("\n" + str);
+		}
+		return message;
+	}
+	
+	public static string Mps(string sentence) {
+		sentence = sentence.Replace("_", " ").Substring(0, 1).ToUpperInvariant() + sentence.Substring(1);
+		if (!new char[] { '.', '!', '?', '。', '！', '？' }.Contains(sentence[sentence.Length - 1])) {
+			if(new string[]{ "zh-cn", "zh-tw", "ja", "ko" }.Contains(Lang.CurrentLocale)) {
+				sentence += '。';
+			} else if (Lang.CurrentLocale != "ar") {
+				sentence += '.';
+			}
+		}
+		return sentence;
+	}
+
+	public static string Sets(string langKeys, string[] entryKeys, params object[] args) {
+		string message = Lang.Get("vskingdom:" + langKeys, args);
+		for (int i = 0; i < entryKeys.Length; i++) {
+			string entryCode = "ENTRY" + (i + 1);
+			message.Replace(entryCode, entryKeys[i]);
 		}
 		return message;
 	}

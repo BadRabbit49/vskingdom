@@ -5,8 +5,6 @@
 	"entityBehaviors": [ { "name": "Resupply" } ],
 	"attributes": { },
 	"behaviors": [ { "name": "HeatSource", "properties": { "heatStrength": 4 } } ],
-	"enabled": true,
-	"heldTpIdleAnimation": "holdunderarm",
 	"variantgroups": [
 		{ "code": "metal", "states": [ "electrum" ] },
 		{ "code": "fuels", "states": [ "null", "temp" ] },
@@ -40,7 +38,7 @@
 	},
 	"creativeinventory": {
 		"general": [ "*" ],
-		"vskingdom": [ "*" ]
+		"vskingdom": [ "*-live-good" ]
 	},
 	"blockmaterial": "Metal",
 	"replaceable": 100,
@@ -116,6 +114,8 @@
 		"hit": "game:block/anvil",
 		"walk": "game:walk/stone*"
 	},
+	"enabled": true,
+	"heldTpIdleAnimation": "holdunderarm",
 	"tpHandTransform": {
 		"translation": { "x": -0.9, "y": -0.3, "z": -0.5 },
 		"rotation": { "x": 0, "y": 0, "z": -110 },

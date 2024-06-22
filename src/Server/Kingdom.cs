@@ -16,9 +16,13 @@ namespace VSKingdom {
 		public string FoundedDATE { get; set; }
 		public string FoundedMETA { get; set; }
 		public double FoundedHOUR { get; set; }
-		public HashSet<string> PlayerUIDs { get; set; } = new HashSet<string>();
-		public HashSet<string> EnemieUIDs { get; set; } = new HashSet<string>();
-		public HashSet<string> AtWarsUIDs { get; set; } = new HashSet<string>();
-		public HashSet<long> EntityUIDs { get; set; } = new HashSet<long>();
+		public string MembersROLE { get; set; }
+		public HashSet<string> PlayersGUID { get; set; } = new HashSet<string>();
+		public HashSet<string> PlayersINFO { get; set; } = new HashSet<string>();
+		public HashSet<string> EnemiesGUID { get; set; } = new HashSet<string>();
+		public HashSet<string> CurrentWars { get; set; } = new HashSet<string>();
+		public HashSet<string> InvitesGUID { get; set; } = new HashSet<string>();
+		public HashSet<string> RequestGUID { get; set; } = new HashSet<string>();
+		public HashSet<long> EntitiesALL { get; set; } = new HashSet<long>();
 	}
 }

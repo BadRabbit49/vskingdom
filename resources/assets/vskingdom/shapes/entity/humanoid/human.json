@@ -507,7 +507,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Idle2",
 			"code": "idle2",
@@ -577,7 +576,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Idle3",
 			"code": "idle3",
@@ -625,7 +623,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Walk",
 			"code": "walk",
@@ -723,7 +720,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Sprint",
 			"code": "sprint",
@@ -873,7 +869,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Jump",
 			"code": "jump",
@@ -943,7 +938,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Glide",
 			"code": "glide",
@@ -1016,7 +1010,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Creativefly",
 			"code": "creativefly",
@@ -1089,7 +1082,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Land",
 			"code": "land",
@@ -1161,7 +1153,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "SneakIdle",
 			"code": "sneakidle",
@@ -1203,7 +1194,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Sneak",
 			"code": "sneak",
@@ -1269,7 +1259,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "SwimIdle",
 			"code": "swimidle",
@@ -1390,7 +1379,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Swim",
 			"code": "swim",
@@ -1504,7 +1492,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Helditemready",
 			"code": "helditemready",
@@ -1529,7 +1516,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Block",
 			"code": "block",
@@ -1557,7 +1543,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "HeavyImpact",
 			"code": "heavyimpact",
@@ -1641,7 +1626,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Eat",
 			"code": "eat",
@@ -1709,7 +1693,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "BowlEat",
 			"code": "bowleat",
@@ -1783,7 +1766,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Hit",
 			"code": "hit",
@@ -1882,7 +1864,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "SpearIdle",
 			"code": "SpearIdle",
@@ -1900,7 +1881,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "SpearReady",
 			"code": "spearready",
@@ -1917,7 +1897,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "SpearStabs",
 			"code": "spearstabs",
@@ -2020,7 +1999,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "SwordSmash",
 			"code": "swordsmash",
@@ -2148,7 +2126,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "SwordSwing",
 			"code": "swordswing",
@@ -2212,7 +2189,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "SwordSlash",
 			"code": "swordslash",
@@ -2273,7 +2249,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "SwordStabs",
 			"code": "swordstabs",
@@ -2405,7 +2380,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "KnifeStabs",
 			"code": "knifestabs",
@@ -2508,7 +2482,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "BowIdle",
 			"code": "bowidle",
@@ -2530,7 +2503,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "BowWalk",
 			"code": "bowwalk",
@@ -2625,7 +2597,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "BowMove",
 			"code": "bowmove",
@@ -2775,7 +2746,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "BowDraw",
 			"code": "bowdraw",
@@ -2837,7 +2807,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "BowLoad",
 			"code": "bowload",
@@ -2883,7 +2852,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "GunIdlePistol",
 			"code": "gunidlepistol",
@@ -2901,7 +2869,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "GunWalkPistol",
 			"code": "gunwalkpistol",
@@ -2997,7 +2964,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "GunMovePistol",
 			"code": "gunmovepistol",
@@ -3138,7 +3104,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "GunDrawPistol",
 			"code": "gundrawpistol",
@@ -3173,7 +3138,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "GunFirePistol",
 			"code": "gunfirepistol",
@@ -3209,7 +3173,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "GunLoadPistol",
 			"code": "gunloadpistol",
@@ -3263,7 +3226,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "GunBashPistol",
 			"code": "gunbashpistol",
@@ -3293,7 +3255,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "GunIdleMusket",
 			"code": "gunidlemusket",
@@ -3311,7 +3272,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "GunWalkMusket",
 			"code": "gunwalkmusket",
@@ -3415,7 +3375,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "GunMoveMusket",
 			"code": "gunmovemusket",
@@ -3580,7 +3539,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "GunDrawMusket",
 			"code": "gundrawmusket",
@@ -3621,7 +3579,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "GunFireMusket",
 			"code": "gunfiremusket",
@@ -3659,7 +3616,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "GunLoadMusket",
 			"code": "gunloadmusket",
@@ -3843,7 +3799,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "GunBashMusket",
 			"code": "gunbashmusket",
@@ -3904,7 +3859,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "GunStabMusket",
 			"code": "gunstabmusket",
@@ -3938,7 +3892,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "GunIdleArquebus",
 			"code": "gunidlearquebus",
@@ -3963,7 +3916,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "GunWalkArquebus",
 			"code": "gunwalkarquebus",
@@ -4061,7 +4013,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "GunDrawArquebus",
 			"code": "gundrawarquebus",
@@ -4127,7 +4078,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "GunFireArquebus",
 			"code": "gunfirearquebus",
@@ -4165,7 +4115,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "GunLoadArquebus",
 			"code": "gunloadarquebus",
@@ -4349,7 +4298,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "GunBashArquebus",
 			"code": "gunbasharquebus",
@@ -4395,7 +4343,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "SlingAim1",
 			"code": "slingaim1",
@@ -4475,7 +4422,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "SlingThrow1",
 			"code": "slingthrow1",
@@ -4524,7 +4470,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "SlingAim2",
 			"code": "slingaim2",
@@ -4577,7 +4522,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "SlingThrow2",
 			"code": "slingthrow2",
@@ -4646,7 +4590,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "ThrowAim",
 			"code": "throwaim",
@@ -4679,7 +4622,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "ThrowHit",
 			"code": "throwHit",
@@ -4711,7 +4653,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "SitDown",
 			"code": "sitdown",
@@ -4768,7 +4709,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "SitIdle1",
 			"code": "sitidle1",
@@ -4796,7 +4736,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "SitIdle2",
 			"code": "sitidle2",
@@ -4848,7 +4787,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Lie",
 			"code": "lie",
@@ -4890,7 +4828,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Die",
 			"code": "die",
@@ -5042,7 +4979,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "BreakHand",
 			"code": "breakhand",
@@ -5100,7 +5036,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "BreakTool",
 			"code": "breaktool",
@@ -5158,7 +5093,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "LadderUp",
 			"code": "ladderup",
@@ -5224,7 +5158,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "LadderIdle",
 			"code": "ladderidle",
@@ -5268,7 +5201,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "LadderDown",
 			"code": "ladderdown",
@@ -5334,7 +5266,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "SitFloorIdle",
 			"code": "sitflooridle",
@@ -5369,7 +5300,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "SitDownFloor",
 			"code": "sitdownfloor",
@@ -5431,7 +5361,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "WalkRight",
 			"code": "walkright",
@@ -5533,7 +5462,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "WalkLeft",
 			"code": "walkleft",
@@ -5635,7 +5563,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "WalkBack",
 			"code": "walkback",
@@ -5691,7 +5618,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "WoundedIdle",
 			"code": "woundedidle",
@@ -5725,7 +5651,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "HurtPose",
 			"code": "hurtpose",
@@ -5752,7 +5677,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Hurt",
 			"code": "hurt",
@@ -5794,7 +5718,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "LowHealth",
 			"code": "lowhealth",
@@ -5838,7 +5761,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "AxeReady",
 			"code": "axeready",
@@ -5858,7 +5780,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "AxeChop",
 			"code": "axechop",
@@ -5904,7 +5825,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "KnockbackHit",
 			"code": "knockbackhit",
@@ -5982,7 +5902,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "KnockbackMidair",
 			"code": "knockbackmidair",
@@ -6026,7 +5945,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "KnockbackLand",
 			"code": "knockbackland",
@@ -6182,7 +6100,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Holding large animal",
 			"code": "holdunderarm",
@@ -6199,7 +6116,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Holding with both hands",
 			"code": "holdbothhands",
@@ -6218,7 +6134,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Holding with both hands (large object)",
 			"code": "holdbothhandslarge",
@@ -6237,7 +6152,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "ShovelDig",
 			"code": "shoveldig",
@@ -6318,7 +6232,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "ScytheIdle",
 			"code": "scytheIdle",
@@ -6336,7 +6249,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "ScytheReady",
 			"code": "scytheReady",
@@ -6356,7 +6268,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Scythe",
 			"code": "scythe",
@@ -6402,7 +6313,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "NewJump",
 			"code": "newjump",
@@ -6446,7 +6356,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Holding lantern left hand",
 			"code": "holdinglanternlefthand",
@@ -6463,7 +6372,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Holding lantern right hand",
 			"code": "holdinglanternrighthand",
@@ -6480,7 +6388,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Panning",
 			"code": "panning",
@@ -6550,7 +6457,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "TwoHandPlaceBlock",
 			"code": "twohandplaceblock",
@@ -6614,7 +6520,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Drop",
 			"code": "drop",
@@ -6656,7 +6561,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Talk",
 			"code": "talk",
@@ -6794,7 +6698,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Cheer",
 			"code": "cheer",
@@ -6882,7 +6785,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Wave",
 			"code": "wave",
@@ -7024,7 +6926,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Cry",
 			"code": "cry",
@@ -7138,7 +7039,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Laugh",
 			"code": "laugh",
@@ -7236,7 +7136,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Rage",
 			"code": "rage",
@@ -7345,7 +7244,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Facepalm",
 			"code": "facepalm",
@@ -7438,7 +7336,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Bow",
 			"code": "bow",
@@ -7544,7 +7441,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Nod",
 			"code": "nod",
@@ -7639,7 +7535,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "HeadScratch",
 			"code": "headscratch",
@@ -7688,7 +7583,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Cough",
 			"code": "cough",
@@ -7738,7 +7632,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Stretch",
 			"code": "stretch",
@@ -7818,7 +7711,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Yawn",
 			"code": "yawn",
@@ -7870,7 +7762,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "LookAround",
 			"code": "lookaround",
@@ -7924,7 +7815,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Drink",
 			"code": "drink",
@@ -7970,7 +7860,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Coldidle",
 			"code": "coldidle",
@@ -8098,7 +7987,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "ProtectEyes",
 			"code": "protecteyes",
@@ -8117,7 +8005,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "OarReady",
 			"code": "oarready",
@@ -8146,7 +8033,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "OarForward",
 			"code": "oarforward",
@@ -8198,7 +8084,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "OarBackward",
 			"code": "oarbackward",
@@ -8242,7 +8127,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "Raiseshield-left",
 			"code": "raiseshield-left",
@@ -8259,7 +8143,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "BandageSelf",
 			"code": "bandageself",
@@ -8509,7 +8392,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "SaluteKneelDown",
 			"code": "salutekneeldown",
@@ -8569,7 +8451,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "SaluteAttention",
 			"code": "saluteattention",
@@ -8598,7 +8479,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "SaluteTradition",
 			"code": "salutetradition",
@@ -8634,7 +8514,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "SaluteBowFull",
 			"code": "salutebowfull",
@@ -8671,7 +8550,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "SaluteBowHalf",
 			"code": "salutebowhalf",
@@ -8708,7 +8586,6 @@
 				}
 			]
 		},
-
 		{
 			"name": "SaluteOaktown",
 			"code": "saluteoaktown",

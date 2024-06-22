@@ -5,8 +5,7 @@
 	},
 	"textureWidth": 16,
 	"textureHeight": 16,
-	"textureSizes": {
-	},
+	"textureSizes": { },
 	"textures": {
 		"metal": "vskingdom:block/metal/iron",
 		"burns": "vskingdom:block/burns/live",
@@ -19,8 +18,7 @@
 			"from": [ 8.0, 0.0, 8.0 ],
 			"to": [ 8.0, 0.0, 8.0 ],
 			"rotationOrigin": [ 8.0, 0.0, 8.0 ],
-			"faces": {
-			},
+			"faces": { },
 			"children": [
 				{
 					"name": "ashtray",

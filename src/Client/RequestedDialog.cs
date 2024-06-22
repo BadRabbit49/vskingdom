@@ -94,7 +94,7 @@ namespace VSKingdom {
 		}
 
 		public string GetMessage() {
-			string sentKingdomName = LangUtility.Fix(DataUtility.GetKingdomNAME(senderKingdom));
+			string sentKingdomName = DataUtility.GetKingdomNAME(senderKingdom);
 			switch (messagedTypes) {
 				case "invite": return (senderPlayer.PlayerName + LangUtility.Set("command-choices-invite", sentKingdomName));
 				case "become": return (senderPlayer.PlayerName + LangUtility.Get("command-choices-become", sentKingdomName));

@@ -5,13 +5,13 @@
 	},
 	"textureWidth": 16,
 	"textureHeight": 16,
-	"textureSizes": {
+	"textureSizes": { },
+	"textures": {
 		"metal": "vskingdom:block/metal/iron",
 		"burns": "vskingdom:block/burns/live",
 		"fuels": "vskingdom:block/fuels/wood",
 		"fires": "vskingdom:block/fires/wood"
 	},
-	"textures": { },
 	"elements": [
 		{
 			"name": "origin",

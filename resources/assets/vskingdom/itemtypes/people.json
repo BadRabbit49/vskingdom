@@ -14,7 +14,20 @@
 		"vskingdom": [ "*" ]
 	},
 	"materialDensity": 600,
-	"guiTransform": { "rotate": true, "rotation": { "x": 0, "y": -90, "z": -178 }, "origin": { "x": 0.6, "y": 0.78, "z": 0.5 } },
-	"tpHandTransform":{ "translation": { "x": -0.6, "y": -1.1, "z": -0.2 }, "rotation": { "x": 0, "y": -10, "z": 90 }, "origin": { "x": 0.5, "y": 1, "z": 0.5 } },
-	"fpHandTransform": { "translation": { "x": 0.05, "y": -0.3, "z": 0 }, "rotation": { "x": 165, "y": 76, "z": -180 } }
+	"heldTpIdleAnimation": "holdunderarm",
+	"tpHandTransform": {
+		"translation": { "x": 0, "y": 0, "z": 0 },
+		"rotation": { "x": 0, "y": -10, "z": -90 },
+		"origin": { "x": 0, "y": 0, "z": 0 },
+		"scale": 1
+	},
+	"guiTransform": {
+		"rotate": true,
+		"rotation": { "x": 0, "y": -90, "z": -178 },
+		"origin": { "x": 0.6, "y": 0.78, "z": 0.5 }
+	},
+	"fpHandTransform": {
+		"translation": { "x": 0.05, "y": -0.3, "z": 0 },
+		"rotation": { "x": 165, "y": 76, "z": -180 }
+	}
 }

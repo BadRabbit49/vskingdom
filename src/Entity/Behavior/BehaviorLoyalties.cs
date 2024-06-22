@@ -130,14 +130,14 @@ namespace VSKingdom {
 				}
 				loyalties.RemoveAttribute("leaders_name");
 				loyalties.RemoveAttribute("leaders_guid");
-				cachedKingdom.EntityUIDs.Add(entity.EntityId);
+				cachedKingdom.EntitiesALL.Add(entity.EntityId);
 				cachedOutpost.EntityUIDs.Add(entity.EntityId);
 			} catch { }
 		}
 
 		public override void OnEntityDespawn(EntityDespawnData despawn) {
 			try {
-				cachedKingdom.EntityUIDs.Remove(entity.EntityId);
+				cachedKingdom.EntitiesALL.Remove(entity.EntityId);
 				cachedOutpost.EntityUIDs.Remove(entity.EntityId);
 			} catch { }
 			base.OnEntityDespawn(despawn);

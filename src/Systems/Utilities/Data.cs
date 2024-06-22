@@ -44,7 +44,7 @@ namespace VSKingdom {
 			}
 			if (PlayersUID is not null) {
 				foreach (Kingdom kingdom in kingdomList) {
-					if (kingdom.PlayerUIDs.Contains(PlayersUID)) {
+					if (kingdom.PlayersGUID.Contains(PlayersUID)) {
 						return kingdom.LeadersGUID;
 					}
 				}
@@ -53,15 +53,15 @@ namespace VSKingdom {
 		}
 
 		public static string[] GetPlayerGUIDs(string kingdomGUID) {
-			return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID)?.PlayerUIDs.ToArray<string>();
+			return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID)?.PlayersGUID.ToArray<string>();
 		}
 
 		public static string[] GetEnemieGUIDs(string kingdomGUID) {
-			return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID)?.EnemieUIDs.ToArray<string>();
+			return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID)?.EnemiesGUID.ToArray<string>();
 		}
 
 		public static string[] GetOnlineGUIDs(string kingdomGUID) {
-			string[] AllMembers = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID)?.PlayerUIDs.ToArray<string>();
+			string[] AllMembers = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID)?.PlayersGUID.ToArray<string>();
 			IPlayer[] AllPlayers = VSKingdom.serverAPI.World.AllOnlinePlayers;
 			string[] AllOnlines = Array.Empty<string>();
 			foreach (var player in AllPlayers) {
@@ -73,7 +73,7 @@ namespace VSKingdom {
 		}
 
 		public static string[] GetOfflineGUIDs(string kingdomGUID) {
-			string[] AllMembers = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID)?.PlayerUIDs.ToArray<string>();
+			string[] AllMembers = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID)?.PlayersGUID.ToArray<string>();
 			IServerPlayer[] AllPlayers = VSKingdom.serverAPI.World.AllPlayers as IServerPlayer[];
 			string[] AllOffline = Array.Empty<string>();
 			foreach (var player in AllPlayers) {
@@ -85,7 +85,7 @@ namespace VSKingdom {
 		}
 
 		public static long[] GetEntityGUIDs(string kingdomGUID) {
-			return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID)?.EntityUIDs.ToArray<long>();
+			return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID)?.EntitiesALL.ToArray<long>();
 		}
 		
 		public static bool KingdomExists(string kingdomGUID = null, string kingdomNAME = null) {
@@ -126,12 +126,12 @@ namespace VSKingdom {
 				return false;
 			}
 			if (target is EntityPlayer) {
-				return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == thisKingdomGUID).EnemieUIDs.Contains((target as EntityPlayer).PlayerUID);
+				return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == thisKingdomGUID).EnemiesGUID.Contains((target as EntityPlayer).PlayerUID);
 			}
-			if (kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == thisKingdomGUID).AtWarsUIDs.Contains(thatKingdomGUID)) {
+			if (kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == thisKingdomGUID).CurrentWars.Contains(thatKingdomGUID)) {
 				return true;
 			}
-			if (kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == thatKingdomGUID).AtWarsUIDs.Contains(thisKingdomGUID)) {
+			if (kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == thatKingdomGUID).CurrentWars.Contains(thisKingdomGUID)) {
 				return true;
 			}
 			return false;
@@ -155,7 +155,7 @@ namespace VSKingdom {
 				if (entity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("leaders_guid") == playerTarget.PlayerUID) {
 					return false;
 				}
-				return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == thisKingdomGUID).EnemieUIDs.Contains(playerTarget.PlayerUID);
+				return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == thisKingdomGUID).EnemiesGUID.Contains(playerTarget.PlayerUID);
 			}
 			return AtWarWith(thisKingdomGUID, thatKingdomGUID);
 		}
@@ -209,7 +209,7 @@ namespace VSKingdom {
 
 		public static bool InKingdom(string playerUID) {
 			foreach (Kingdom kingdom in kingdomList) {
-				if (kingdom.PlayerUIDs.Contains(playerUID)) {
+				if (kingdom.PlayersGUID.Contains(playerUID)) {
 					return true;
 				}
 			}
@@ -218,7 +218,7 @@ namespace VSKingdom {
 		
 		public static bool InKingdom(IServerPlayer player) {
 			foreach (Kingdom kingdom in kingdomList) {
-				if (kingdom.PlayerUIDs.Contains(player.PlayerUID)) {
+				if (kingdom.PlayersGUID.Contains(player.PlayerUID)) {
 					return true;
 				}
 			}
@@ -235,10 +235,10 @@ namespace VSKingdom {
 		}
 
 		public static bool AtWarWith(string thisKingdomGUID, string thatKingdomGUID) {
-			if (kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == thisKingdomGUID).AtWarsUIDs.Contains(thatKingdomGUID)) {
+			if (kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == thisKingdomGUID).CurrentWars.Contains(thatKingdomGUID)) {
 				return true;
 			}
-			if (kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == thatKingdomGUID).AtWarsUIDs.Contains(thisKingdomGUID)) {
+			if (kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == thatKingdomGUID).CurrentWars.Contains(thisKingdomGUID)) {
 				return true;
 			}
 			return false;
@@ -281,8 +281,8 @@ namespace VSKingdom {
 			return null;
 		}
 
-		public static IServerPlayer GetAPlayer(string PlayerUID) {
-			return VSKingdom.serverAPI.World.AllPlayers.ToList<IPlayer>().Find(playerMatch => playerMatch.PlayerUID == PlayerUID) as IServerPlayer ?? null;
+		public static IServerPlayer GetAPlayer(string playersNAME) {
+			return VSKingdom.serverAPI.World.AllPlayers.ToList<IPlayer>().Find(playerMatch => playerMatch.PlayerName == playersNAME) as IServerPlayer ?? null;
 		}
 	}
 }

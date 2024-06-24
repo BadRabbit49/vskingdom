@@ -95,7 +95,7 @@ namespace VSKingdom {
 				return new bool[6] { false, false, false, false, false, false };
 			} else if (!membersROLE.Contains(':')) {
 				string[] oneRoles = membersROLE.Split('/');
-				bool[] onePrivs = new bool[oneRoles.Length + 1];
+				bool[] onePrivs = new bool[oneRoles.Length - 1];
 				for (int i = 1; i < oneRoles.Length; i++) {
 					switch (oneRoles[i]) {
 						case "T": onePrivs[i - 1] = true; continue;
@@ -105,9 +105,9 @@ namespace VSKingdom {
 				}
 				return onePrivs;
 			} else {
-				string[] allRoles = membersROLE.Split(':');
-				string[] curRoles = allRoles[allRoles.IndexOf(role)].Split('/');
-				bool[] gotPrivs = new bool[curRoles.Length + 1];
+				string[] allRoles = membersROLE.Split(':'); // [Peasant], [Citizen], [Soldier], [Royalty]
+				string[] curRoles = allRoles[membersROLE.Replace("/T", "").Replace("/F", "").Split(':').IndexOf(role)].Split('/');
+				bool[] gotPrivs = new bool[curRoles.Length - 1];
 				for (int i = 1; i < curRoles.Length; i++) {
 					switch (curRoles[i]) {
 						case "T": gotPrivs[i - 1] = true; continue;
@@ -142,13 +142,12 @@ namespace VSKingdom {
 			return oldestPlayerGuid; 
 		}
 
-		public static string PlayerDetails(string kingdomGUID, string playersGUID, string membersROLE = null) {
-			Kingdom thisKingdom = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID);
+		public static string PlayerDetails(string playersGUID, string memberROLES = null, string membersROLE = null) {
 			IPlayer thisPlayer = VSKingdom.serverAPI.World.PlayerByUid(playersGUID);
-			string joinedRole = thisKingdom.MembersROLE.Split(':')[0].Split('/')[0];
-			string[] roles = GetRoleNames(thisKingdom.MembersROLE);
+			string joinedRole = memberROLES.Split(':')[0].Split('/')[0];
+			string[] roles = GetRoleNames(memberROLES);
 			if (membersROLE != null && roles.Contains(membersROLE)) {
-				joinedRole = roles[roles.IndexOf(membersROLE)];
+				joinedRole = memberROLES.Split(':')[roles.IndexOf(membersROLE)];
 			}
 			return playersGUID + ":" + thisPlayer.PlayerName + ":" + joinedRole + ":" + DateTime.Now.ToShortDateString();
 		}

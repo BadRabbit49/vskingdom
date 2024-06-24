@@ -113,7 +113,7 @@ namespace VSKingdom {
 			newKingdom.LeadersNAME = null;
 			newKingdom.LeadersLONG = KingUtility.CorrectedLONG(newKingdom.KingdomTYPE);
 			newKingdom.LeadersDESC = null;
-			newKingdom.MembersROLE = "Peasant/F/F/F/F/F/F:Citizen/T/T/T/F/F/T:Soldier/T/T/T/F/T/T:Royalty:/T/T/T/T/T/T";
+			newKingdom.MembersROLE = "Peasant/F/F/F/F/F/F:Citizen/T/T/T/F/F/T:Soldier/T/T/T/F/T/T:Royalty/T/T/T/T/T/T";
 			newKingdom.FoundedMETA = DateTime.Now.ToLongDateString();
 			newKingdom.FoundedDATE = serverAPI.World.Calendar.PrettyDate();
 			newKingdom.FoundedHOUR = serverAPI.World.Calendar.TotalHours;
@@ -121,7 +121,7 @@ namespace VSKingdom {
 				founder.Entity.GetBehavior<EntityBehaviorLoyalties>().kingdomGUID = newKingdom.KingdomGUID;
 				newKingdom.LeadersGUID = founderGUID;
 				newKingdom.PlayersGUID.Add(founderGUID);
-				newKingdom.PlayersINFO.Add(KingUtility.PlayerDetails(newKingdom.KingdomGUID, founderGUID, "Royalty"));
+				newKingdom.PlayersINFO.Add(KingUtility.PlayerDetails(founderGUID, newKingdom.MembersROLE, "Royalty"));
 				newKingdom.EntitiesALL.Add(founder.Entity.EntityId);
 			}
 			kingdomList.Add(newKingdom);
@@ -164,7 +164,7 @@ namespace VSKingdom {
 				oldKingdom.LeadersGUID = KingUtility.MostSeniority(oldKingdom.KingdomGUID);
 			}
 			newKingdom.PlayersGUID.Add(caller.PlayerUID);
-			newKingdom.PlayersINFO.Add(KingUtility.PlayerDetails(kingdomGUID, caller.PlayerUID));
+			newKingdom.PlayersINFO.Add(KingUtility.PlayerDetails(caller.PlayerUID, null, newKingdom.MembersROLE));
 			newKingdom.EntitiesALL.Add(caller.Entity.EntityId);
 			caller.Entity.WatchedAttributes.GetTreeAttribute("loyalties")?.SetString("kingdom_guid", kingdomGUID);
 			SaveKingdom();
@@ -518,7 +518,6 @@ namespace VSKingdom {
 		}
 
 		private TextCommandResult OnKingdomCommand(TextCommandCallingArgs args) {
-			string[] arguments = ((string)args[1]).Split(' ') ?? null;
 			string fullargs = (string)args[1];
 			string callerID = args.Caller.Player.PlayerUID;
 			IPlayer thisPlayer = args.Caller.Player;
@@ -529,13 +528,11 @@ namespace VSKingdom {
 			// Determine privillege role level and if they are allowed to make new kingdoms/cultures.
 			bool inKingdom = thisKingdom != null && thisKingdom.KingdomGUID != "00000000";
 			bool usingArgs = fullargs != null && fullargs != "" && fullargs != " ";
-			serverAPI.Logger.Notification("Role: " + KingUtility.GetMemberRole(thisKingdom.KingdomGUID, callerID));
-			serverAPI.Logger.Notification("Length: " + KingUtility.GetRolePrivs(thisKingdom.MembersROLE, KingUtility.GetMemberRole(thisKingdom.KingdomGUID, callerID)).Length);
 			bool canInvite = inKingdom && KingUtility.GetRolePrivs(thisKingdom.MembersROLE, KingUtility.GetMemberRole(thisKingdom.KingdomGUID, callerID))[5];
 			bool adminPass = args.Caller.HasPrivilege(Privilege.controlserver) || thisPlayer.PlayerName == "BadRabbit49";
 			bool canCreate = args.Caller.GetRole(serverAPI).PrivilegeLevel >= serverAPI.World.Config.GetInt("MinCreateLevel", -1);
 			bool maxCreate = serverAPI.World.Config.GetInt("MaxNewKingdoms", -1) != -1 || serverAPI.World.Config.GetInt("MaxNewKingdoms", -1) < (kingdomList.Count + 1);
-			
+
 			if (adminPass && inKingdom) {
 				serverAPI.Logger.Notification(KingUtility.ListedAllData(thisKingdom.KingdomGUID));
 			}
@@ -581,7 +578,9 @@ namespace VSKingdom {
 						return TextCommandResult.Error(LangUtility.Set("command-error-update01", LangUtility.Get("entries-keyword-kingdom")));
 					}
 					thisPlayer.Entity.World.PlaySoundAt(new AssetLocation("game:sounds/effect/writing"), thisPlayer.Entity);
-					string results = ChangeKingdom(thisKingdom.KingdomGUID, arguments[0].ToLower() ?? "", arguments[1]?.ToLower() ?? "", string.Join(" ", arguments.Skip(2)) ?? "");
+					string[] fullset = { fullargs };
+					try { fullset = fullargs.Split(' '); } catch { }
+					string results = ChangeKingdom(thisKingdom.KingdomGUID, fullset[0], fullset[1], string.Join(' ', fullset.Skip(2)));
 					return TextCommandResult.Success(results);
 				// Invites player to join Kingdom.
 				case "invite":

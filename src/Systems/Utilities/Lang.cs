@@ -28,7 +28,7 @@ internal static class LangUtility {
 		}
 		return message;
 	}
-	
+
 	public static string Mps(string sentence) {
 		sentence = sentence.Replace("_", " ").Substring(0, 1).ToUpperInvariant() + sentence.Substring(1);
 		if (!new char[] { '.', '!', '?', '。', '！', '？' }.Contains(sentence[sentence.Length - 1])) {
@@ -39,15 +39,6 @@ internal static class LangUtility {
 			}
 		}
 		return sentence;
-	}
-
-	public static string Sets(string langKeys, string[] entryKeys, params object[] args) {
-		string message = Lang.Get("vskingdom:" + langKeys, args);
-		for (int i = 0; i < entryKeys.Length; i++) {
-			string entryCode = "ENTRY" + (i + 1);
-			message.Replace(entryCode, entryKeys[i]);
-		}
-		return message;
 	}
 
 	public static string[] Open(string stringList) {

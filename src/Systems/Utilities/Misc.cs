@@ -70,53 +70,41 @@ namespace VSKingdom {
 			}
 		}
 
-		public static string GetMemberRole(string kingdomGUID, string playersGUID) {
-			Kingdom thisKingdom = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID);
-			foreach(string player in thisKingdom.PlayersINFO) {
+		public static string GetMemberRole(HashSet<string> playersINFO, string playersGUID) {
+			foreach (string player in playersINFO) {
 				string[] playerCard = player.Split(':');
 				if (playerCard[0] == playersGUID) {
-					return playerCard[2];
+					return playerCard[1].Replace("/T", "").Replace("/F", "");
 				}
 			}
 			return null;
 		}
 
 		public static string[] GetRoleNames(string membersROLE) {
-			string[] allRoles = membersROLE.Split(':');
-			string[] newRoles = new string[allRoles.Length - 1];
-			for (int i = 0; i < allRoles.Length - 1; i++) {
-				newRoles[i] = allRoles[i].Replace("/T", "").Replace("/F", "");
-			}
-			return newRoles;
+			string[] allRoles = membersROLE.Replace("/T", "").Replace("/F", "").Split(':');
+			return allRoles;
 		}
 
 		public static bool[] GetRolePrivs(string membersROLE, string role) {
 			if (membersROLE == null || membersROLE == "" || role == null || role == "") {
 				return new bool[6] { false, false, false, false, false, false };
-			} else if (!membersROLE.Contains(':')) {
-				string[] oneRoles = membersROLE.Split('/');
-				bool[] onePrivs = new bool[oneRoles.Length - 1];
-				for (int i = 1; i < oneRoles.Length; i++) {
-					switch (oneRoles[i]) {
-						case "T": onePrivs[i - 1] = true; continue;
-						case "F": onePrivs[i - 1] = false; continue;
-						default: onePrivs[i - 1] = false; continue;
-					}
-				}
-				return onePrivs;
-			} else {
-				string[] allRoles = membersROLE.Split(':'); // [Peasant], [Citizen], [Soldier], [Royalty]
-				string[] curRoles = allRoles[membersROLE.Replace("/T", "").Replace("/F", "").Split(':').IndexOf(role)].Split('/');
-				bool[] gotPrivs = new bool[curRoles.Length - 1];
-				for (int i = 1; i < curRoles.Length; i++) {
-					switch (curRoles[i]) {
-						case "T": gotPrivs[i - 1] = true; continue;
-						case "F": gotPrivs[i - 1] = false; continue;
-						default: gotPrivs[i - 1] = false; continue;
-					}
-				}
-				return gotPrivs;
 			}
+			string[] curRoles = new string[] { };
+			bool[] gotPrivs = new bool[] { };
+			if (!membersROLE.Contains(':')) {
+				curRoles = membersROLE.Split('/');
+			} else {
+				curRoles = membersROLE.Split(':')[membersROLE.Replace("/T", "").Replace("/F", "").Split(':').IndexOf(role)].Split('/');
+			}
+			gotPrivs = new bool[curRoles.Length - 1];
+			for (int i = 1; i < curRoles.Length; i++) {
+				switch (curRoles[i]) {
+					case "T": gotPrivs[i - 1] = true; continue;
+					case "F": gotPrivs[i - 1] = false; continue;
+					default: gotPrivs[i - 1] = false; continue;
+				}
+			}
+			return gotPrivs;
 		}
 
 		public static string MostSeniority(string kingdomGUID) {
@@ -142,14 +130,13 @@ namespace VSKingdom {
 			return oldestPlayerGuid; 
 		}
 
-		public static string PlayerDetails(string playersGUID, string memberROLES = null, string membersROLE = null) {
-			IPlayer thisPlayer = VSKingdom.serverAPI.World.PlayerByUid(playersGUID);
-			string joinedRole = memberROLES.Split(':')[0].Split('/')[0];
-			string[] roles = GetRoleNames(memberROLES);
-			if (membersROLE != null && roles.Contains(membersROLE)) {
-				joinedRole = memberROLES.Split(':')[roles.IndexOf(membersROLE)];
+		public static string PlayerDetails(string playersGUID, string membersROLE = null, string specifcROLE = null) {
+			string[] allRoles = GetRoleNames(membersROLE);
+			string joinedRole = membersROLE.Split(':')[allRoles.IndexOf(specifcROLE)];
+			if (specifcROLE == null || !allRoles.Contains(specifcROLE)) {
+				joinedRole = membersROLE.Split(':')[0].Split('/')[0];
 			}
-			return playersGUID + ":" + thisPlayer.PlayerName + ":" + joinedRole + ":" + DateTime.Now.ToShortDateString();
+			return playersGUID + ":" + joinedRole + ":" + DateTime.Now.ToShortDateString();
 		}
 
 		public static string ListedAllData(string kingdomGUID) {

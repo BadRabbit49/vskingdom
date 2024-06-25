@@ -290,17 +290,14 @@ namespace VSKingdom {
 		}
 
 		public string GetAllInvites(string playersGUID, bool getRequests) {
-			string results;
 			List<string> invites = new List<string>();
 			foreach (Kingdom kingdom in kingdomList) {
 				if (kingdom.InvitesGUID.Contains(playersGUID)) {
 					invites.Add(kingdom.KingdomNAME);
 				}
 			}
-			string[] entries = new string[] { invites.Count.ToString() };
-			results = LangUtility.Sets("command-success-invbox", entries.Concat(invites.ToArray()).ToArray());
+			string results = LangUtility.Get("command-success-invbox").Replace("[ENTRY1]", invites.Count.ToString()).Replace("[ENTRY2]", string.Join("\n", invites));
 			if (getRequests) {
-				List<string> requests = new List<string>();
 				foreach (Kingdom kingdom in kingdomList) {
 					if (kingdom.PlayersGUID.Contains(playersGUID)) {
 						string[] playerGuids = kingdom.RequestGUID.ToArray();
@@ -308,8 +305,7 @@ namespace VSKingdom {
 						foreach (string playerGUID in playerGuids) {
 							playerNames.AddToArray(serverAPI.World.PlayerByUid(playerGUID).PlayerName);
 						}
-						string[] reqEntries = new string[] { playerNames.Length.ToString() };
-						return results + "\n\n" + LangUtility.Sets("command-success-reqbox", reqEntries.Concat(playerNames).ToArray());
+						return results + "\n\n" + LangUtility.Get("command-success-reqbox").Replace("[ENTRY1]", playerNames.Length.ToString()).Replace("[ENTRY2]", string.Join("\n", playerNames));
 					}
 				}
 			}
@@ -523,18 +519,17 @@ namespace VSKingdom {
 			IPlayer thisPlayer = args.Caller.Player;
 			IPlayer thatPlayer = serverAPI.World.PlayerByUid(serverAPI.PlayerData.GetPlayerDataByLastKnownName(fullargs)?.PlayerUID) ?? null;
 			Kingdom thisKingdom = thisPlayer.Entity.GetBehavior<EntityBehaviorLoyalties>()?.cachedKingdom ?? DataUtility.GetKingdom(thisPlayer.Entity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdom_guid")) ?? null;
-			Kingdom thatKingdom = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomNAME.ToLowerInvariant() == fullargs.ToLowerInvariant()) ?? null;
-			
+			Kingdom thatKingdom = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomNAME.ToLowerInvariant() == fullargs?.ToLowerInvariant()) ?? null;
 			// Determine privillege role level and if they are allowed to make new kingdoms/cultures.
 			bool inKingdom = thisKingdom != null && thisKingdom.KingdomGUID != "00000000";
 			bool usingArgs = fullargs != null && fullargs != "" && fullargs != " ";
-			bool canInvite = inKingdom && KingUtility.GetRolePrivs(thisKingdom.MembersROLE, KingUtility.GetMemberRole(thisKingdom.KingdomGUID, callerID))[5];
+			bool canInvite = inKingdom && KingUtility.GetRolePrivs(thisKingdom.MembersROLE, KingUtility.GetMemberRole(thisKingdom.PlayersINFO, callerID))[5];
 			bool adminPass = args.Caller.HasPrivilege(Privilege.controlserver) || thisPlayer.PlayerName == "BadRabbit49";
 			bool canCreate = args.Caller.GetRole(serverAPI).PrivilegeLevel >= serverAPI.World.Config.GetInt("MinCreateLevel", -1);
 			bool maxCreate = serverAPI.World.Config.GetInt("MaxNewKingdoms", -1) != -1 || serverAPI.World.Config.GetInt("MaxNewKingdoms", -1) < (kingdomList.Count + 1);
 
 			if (adminPass && inKingdom) {
-				serverAPI.Logger.Notification(KingUtility.ListedAllData(thisKingdom.KingdomGUID));
+				try { serverAPI.Logger.Notification(KingUtility.ListedAllData(thisKingdom.KingdomGUID)); } catch { }
 			}
 
 			switch ((string)args[0]) {
@@ -586,7 +581,9 @@ namespace VSKingdom {
 				case "invite":
 					if (!usingArgs && canInvite && thisPlayer.CurrentEntitySelection.Entity is EntityPlayer playerEnt) {
 						thisKingdom.InvitesGUID.Add(playerEnt.PlayerUID);
-						serverAPI.SendMessage(playerEnt.Player, 0, (thisPlayer.PlayerName + LangUtility.Set("command-choices-invite", thisKingdom.KingdomNAME)), EnumChatType.OwnMessage);
+						/** TODO: THIS DOESN'T WANT TO PROPERLY SEND INVITES, DETERMINE IF THEY ARE GETTING THROUGH AND BEING SAVED. **/
+						SaveKingdom();
+						serverAPI.SendMessage(playerEnt.Player, 0, (thisPlayer.PlayerName + LangUtility.Set("command-message-invite", thisKingdom.KingdomNAME)), EnumChatType.OwnMessage);
 						return TextCommandResult.Success(LangUtility.Set("command-success-invite", playerEnt.Player.PlayerName));
 					}
 					if (thatPlayer == null || !serverAPI.World.AllOnlinePlayers.Contains(thatPlayer)) {
@@ -599,7 +596,8 @@ namespace VSKingdom {
 						return TextCommandResult.Error(LangUtility.Set("command-error-invite02", LangUtility.Get("entries-keyword-kingdom")));
 					}
 					thisKingdom.InvitesGUID.Add(thatPlayer.PlayerUID);
-					serverAPI.SendMessage(thatPlayer, 0, (thisPlayer.PlayerName + LangUtility.Set("command-choices-invite", thisKingdom.KingdomNAME)), EnumChatType.OwnMessage);
+					SaveKingdom();
+					serverAPI.SendMessage(thatPlayer, 0, (thisPlayer.PlayerName + LangUtility.Set("command-message-invite", thisKingdom.KingdomNAME)), EnumChatType.OwnMessage);
 					return TextCommandResult.Success(LangUtility.Set("command-success-invite", fullargs));
 				// Accept invites and requests.
 				case "accept":
@@ -617,7 +615,7 @@ namespace VSKingdom {
 					// Accept invitation to join kingdom.
 					if (thatKingdom != null && thatKingdom.InvitesGUID.Contains(thisPlayer.PlayerUID)) {
 						SwitchKingdom(thisPlayer as IServerPlayer, thatKingdom.KingdomGUID);
-						serverAPI.SendMessage(serverAPI.World.PlayerByUid(thatKingdom.LeadersGUID), 0, (thisPlayer.PlayerName + LangUtility.Set("command-choices-accept", thatKingdom.KingdomLONG)), EnumChatType.OwnMessage);
+						serverAPI.SendMessage(serverAPI.World.PlayerByUid(thatKingdom.LeadersGUID), 0, (thisPlayer.PlayerName + LangUtility.Set("command-message-accept", thatKingdom.KingdomLONG)), EnumChatType.OwnMessage);
 						return TextCommandResult.Success(LangUtility.Set("command-success-accept", thatPlayer.PlayerName));
 					}
 					return TextCommandResult.Error(LangUtility.Set("command-error-accept00", LangUtility.Get("entries-keyword-kingdom")));

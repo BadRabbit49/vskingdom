@@ -138,12 +138,12 @@
 	"command-error-create05": "[ERROR] Time since founding last [ENTRY] is too recent!",
 
 	"command-error-delete00": "[ERROR] No such [ENTRY] was found! Use capitalization and no spaces!",
-	"command-error-delete01": "[ERROR] You are not the [ENTRY] leader! You cannot dissolve this.",
+	"command-error-delete01": "[ERROR] You are not an admin or the [ENTRY] leader! You cannot dissolve this.",
 	"command-error-delete02": "[ERROR] This [ENTRY] is democratic! It requires a ¾ vote to dissolve!",
 
-	"command-error-invite00": "[ERROR] This player does not exist!",
+	"command-error-invite00": "[ERROR] Cannot invite to [ENTRY], this player does not exist!",
 	"command-error-invite01": "[ERROR] This player is already part of the [ENTRY].",
-	"command-error-invite02": "[ERROR] You do not have permission to invite this player!",
+	"command-error-invite02": "[ERROR] You do not have permission to invite this player to the [ENTRY]!",
 
 	"command-error-accept00": "[EEROR] No invitations or requests to join a [ENTRY] were found by that name!",
 	"command-error-accept01": "[ERROR] You do not have permission to accept [ENTRY]'s request!",
@@ -151,9 +151,9 @@
 	"command-error-reject00": "[EEROR] No invitations or requests to join a [ENTRY] were found by that name!",
 	"command-error-reject01": "[ERROR] You do not have permission to reject [ENTRY] from joining!",
 
-	"command-error-remove00": "[ERROR] This player does not exist!",
+	"command-error-remove00": "[ERROR] Cannote remove player from [ENTRY], they do not exist!",
 	"command-error-remove01": "[ERROR] This player is not part of your [ENTRY]!",
-	"command-error-remove02": "[ERROR] You do not have permission to remove this player!",
+	"command-error-remove02": "[ERROR] You do not have permission to remove this player from the [ENTRY]!",
 
 	"command-error-become00": "[ERROR] A [ENTRY] by this name does not exist!",
 	"command-error-become01": "[ERROR] You are already part of this [ENTRY]!",
@@ -168,10 +168,10 @@
 	"command-error-attack02": "[ERROR] You do not have the authority to declare war!",
 	"command-error-attack03": "[ERROR] You are already at war with [ENTRY]!",
 
-	"command-error-endwar00": "[ERROR] No [ENTRY] by that name exists!",
-	"command-error-endwar01": "[ERROR] You are not part of any [ENTRY]!",
-	"command-error-endwar02": "[ERROR] You do not have the authority to offer peace!",
-	"command-error-endwar03": "[ERROR] You are not at war with [ENTRY]!",
+	"command-error-treaty00": "[ERROR] No [ENTRY] by that name exists!",
+	"command-error-treaty01": "[ERROR] You are not part of any [ENTRY]!",
+	"command-error-treaty02": "[ERROR] You do not have the authority to offer peace!",
+	"command-error-treaty03": "[ERROR] You are not at war with [ENTRY]!",
 
 	"command-error-update00": "[ERROR] You are not part of any [ENTRY]!",
 	"command-error-update01": "[ERROR] You do not have permission to edit this [ENTRY]!",
@@ -198,7 +198,7 @@
 	"command-success-accept": "Accepted [ENTRY].",
 	"command-success-reject": "Rejected [ENTRY].",
 	"command-success-attack": "Declared war on [ENTRY].",
-	"command-success-endwar": "Made peace with [ENTRY].",
+	"command-success-treaty": "Made peace with [ENTRY].",
 
 	"entries-keyword-kingdom": "Kingdom",
 	"entries-keyword-culture": "Culture",
@@ -207,18 +207,21 @@
 	"entries-keyword-players": "Players",
 
 	"entries-keyword-player": "Player",
-	"entries-keyword-govrep": "Republic",
-	"entries-keyword-govmon": "Monarchy",
-	"entries-keyword-govdic": "Dictator",
 	"entries-keyword-common": "Common",
 	"entries-keyword-seraph": "Seraph",
 
-	"command-message-invite": " has invited you to join [ENTRY], will you accept the offer?",
-	"command-message-accept": " has accepted the invitation to join the [ENTRY].",
-	"command-message-reject": " has rejected the invitation to join the [ENTRY].",
-	"command-message-become": " has requested to join [ENTRY], may they be allowed?",
-	"command-message-voting": " has initiated a vote to [ENTRY], cast your vote now!",
-	"command-message-rebels": " has incited a rebellion against [ENTRY], who will you side with?",
+	"entries-keyword-govmon": "Monarchy",
+	"entries-keyword-govdic": "Dictator",
+	"entries-keyword-govrep": "Republic",
+
+	"command-message-invite": "[ENTRY1] has invited you to join [ENTRY2], will you accept the offer?",
+	"command-message-accept": "[ENTRY1] has accepted the invitation to join the [ENTRY2].",
+	"command-message-reject": "[ENTRY1] has rejected the invitation to join the [ENTRY2].",
+	"command-message-become": "[ENTRY1] has requested to join [ENTRY2], may they be allowed?",
+	"command-message-voting": "[ENTRY1] has initiated a vote to [ENTRY2], cast your vote now!",
+	"command-message-rebels": "[ENTRY1] has incited a rebellion against [ENTRY2], who will you side with?",
+	"command-message-attack": "[ENTRY1] has declared war on [ENTRY2]!",
+	"command-message-treaty": "[ENTRY1] and [ENTRY2] have signed a peace treaty, hostilities have ended.",
 
 	"interact-revive": "Revive",
 	"interact-enlist": "Enlist",
@@ -255,8 +258,8 @@
 	"gui-specialist-empty": "Unarmed",
 	"gui-specialist-melee": "Knight",
 	"gui-specialist-range": "Archer",
-	"gui-specialist-bannr": "Banner",
 	"gui-specialist-medic": "Doctor",
+	"gui-specialist-bannr": "Banner",
 
 	"gui-kingdom-name": "Kingdom: ",
 	"gui-leaders-name": "Leaders: ",

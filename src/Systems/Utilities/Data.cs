@@ -10,11 +10,12 @@ using Vintagestory.API.MathTools;
 
 namespace VSKingdom {
 	internal static class DataUtility {
+		private static ICoreServerAPI serverAPI { get => VSKingdom.serverAPI; }
 		private static byte[] kingdomData { get => VSKingdom.serverAPI.WorldManager.SaveGame.GetData("kingdomData"); }
 		private static byte[] cultureData { get => VSKingdom.serverAPI.WorldManager.SaveGame.GetData("cultureData"); }
 		private static List<Kingdom> kingdomList => kingdomData is null ? new List<Kingdom>() : SerializerUtil.Deserialize<List<Kingdom>>(kingdomData);
 		private static List<Culture> cultureList => cultureData is null ? new List<Culture>() : SerializerUtil.Deserialize<List<Culture>>(cultureData);
-
+		
 		public static string GetKingdomNAME(string kingdomGUID) {
 			return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID)?.KingdomNAME;
 		}
@@ -28,7 +29,7 @@ namespace VSKingdom {
 		}
 
 		public static string GetLeadersName(string LeadersUID) {
-			return VSKingdom.serverAPI.PlayerData.GetPlayerDataByUid(LeadersUID)?.LastKnownPlayername;
+			return serverAPI.PlayerData.GetPlayerDataByUid(LeadersUID)?.LastKnownPlayername;
 		}
 
 		public static string GetLeadersGUID(string kingdomGUID) {
@@ -51,25 +52,61 @@ namespace VSKingdom {
 			}
 			return null;
 		}
-
-		public static string[] GetPlayerGUIDs(string kingdomGUID) {
-			return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID)?.PlayersGUID.ToArray<string>();
+		
+		public static string[] GetKingdomGUIDs() {
+			string[] kingdomGUIDs = Array.Empty<string>();
+			foreach (var kingdom in kingdomList) {
+				kingdomGUIDs.AddItem(kingdom.KingdomGUID);
+			}
+			return kingdomGUIDs;
 		}
 
-		public static string[] GetEnemieGUIDs(string kingdomGUID) {
+		public static string[] GetCultureGUIDs() {
+			string[] cultureGUIDs = Array.Empty<string>();
+			foreach (var culture in cultureList) {
+				cultureGUIDs.AddItem(culture.CultureGUID);
+			}
+			return cultureGUIDs;
+		}
+
+		public static string[] GetPlayersGUIDs(string kingdomGUID = null, string cultureGUID = null) {
+			string[] playersGUID = Array.Empty<string>();
+			foreach (var player in serverAPI.World.AllPlayers) {
+				if (kingdomGUID == null && cultureGUID == null) {
+					playersGUID.AddItem(player.PlayerUID);
+					continue;
+				}
+				if (kingdomGUID != null && player.Entity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdom_guid") == kingdomGUID) {
+					playersGUID.AddItem(player.PlayerUID);
+				}
+				if (cultureGUID != null && player.Entity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("culture_guid") == cultureGUID) {
+					playersGUID.AddItem(player.PlayerUID);
+				}
+			}
+			return playersGUID;
+		}
+
+		public static string[] GetEnemiesGUIDs(string kingdomGUID) {
 			return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID)?.EnemiesGUID.ToArray<string>();
 		}
 
-		public static string[] GetOnlineGUIDs(string kingdomGUID) {
-			string[] AllMembers = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID)?.PlayersGUID.ToArray<string>();
-			IPlayer[] AllPlayers = VSKingdom.serverAPI.World.AllOnlinePlayers;
-			string[] AllOnlines = Array.Empty<string>();
-			foreach (var player in AllPlayers) {
-				if (AllMembers.Contains(player.PlayerUID)) {
-					AllOnlines.AddItem(player.PlayerUID);
+		public static string[] GetOnlinesGUIDs(string kingdomGUID = null, string cultureGUID = null) {
+			string[] allOnlines = Array.Empty<string>();
+			if (kingdomGUID != null) {
+				foreach (var player in serverAPI.World.AllOnlinePlayers) {
+					if (player.Entity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdom_guid") == kingdomGUID) {
+						allOnlines.AddItem(player.PlayerUID);
+					}
 				}
 			}
-			return AllOnlines;
+			if (cultureGUID != null) {
+				foreach (var player in serverAPI.World.AllOnlinePlayers) {
+					if (player.Entity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("culture_guid") == cultureGUID) {
+						allOnlines.AddItem(player.PlayerUID);
+					}
+				}
+			}
+			return allOnlines;
 		}
 
 		public static string[] GetOfflineGUIDs(string kingdomGUID) {
@@ -275,14 +312,14 @@ namespace VSKingdom {
 		}
 
 		public static BlockEntityPost GetOutpost(BlockPos outpostPOS) {
-			if (VSKingdom.serverAPI.World.BlockAccessor.GetBlockEntity(outpostPOS) is BlockEntityPost block) {
+			if (serverAPI.World.BlockAccessor.GetBlockEntity(outpostPOS) is BlockEntityPost block) {
 				return block;
 			}
 			return null;
 		}
 
 		public static IServerPlayer GetAPlayer(string playersNAME) {
-			return VSKingdom.serverAPI.World.AllPlayers.ToList<IPlayer>().Find(playerMatch => playerMatch.PlayerName == playersNAME) as IServerPlayer ?? null;
+			return serverAPI.World.AllPlayers.ToList<IPlayer>().Find(playerMatch => playerMatch.PlayerName == playersNAME) as IServerPlayer ?? null;
 		}
 	}
 }

@@ -13,6 +13,7 @@ namespace VSKingdom {
 		public string FoundedDATE { get; set; }
 		public double FoundedHOUR { get; set; }
 		public string Predecessor { get; set; }
+		public HashSet<string> InviteGUID { get; set; } = new HashSet<string>();
 		public HashSet<string> MascFNames { get; set; } = new HashSet<string>();
 		public HashSet<string> FemmFNames { get; set; } = new HashSet<string>();
 		public HashSet<string> CommLNames { get; set; } = new HashSet<string>();

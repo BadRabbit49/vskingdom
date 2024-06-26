@@ -1,29 +1,32 @@
-﻿using HarmonyLib;
-using Newtonsoft.Json.Linq;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Vintagestory.API.Common;
 using Vintagestory.API.Util;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace VSKingdom {
 	internal static class GuidUtility {
-		public static string RandomizeGUID(string GUID) {
-			if (GUID == "00000000") {
-				return "00000000";
+		public static string RandomizeGUID(string GUID, int SIZE = 8, string[] LIST = null) {
+			if (GUID != null && GUID.Length == SIZE) {
+				return GUID;
 			}
+			bool repeating = true;
 			Random rnd = new Random();
 			StringBuilder strBuilder = new StringBuilder();
-			Enumerable
-				.Range(65, 26)
-				.Select(e => ((char)e).ToString())
-				.Concat(Enumerable.Range(97, 26).Select(e => ((char)e).ToString()))
-				.Concat(Enumerable.Range(0, 7).Select(e => e.ToString()))
-				.OrderBy(e => Guid.NewGuid())
-				.Take(8)
-				.ToList().ForEach(e => strBuilder.Append(e));
+			while (repeating) {
+				strBuilder.Clear();
+				Enumerable
+					.Range(65, 26).Select(e => ((char)e).ToString())
+					.Concat(Enumerable.Range(97, 26).Select(e => ((char)e).ToString()))
+					.Concat(Enumerable.Range(0, 7).Select(e => e.ToString()))
+					.OrderBy(e => Guid.NewGuid()).Take(SIZE)
+					.ToList().ForEach(e => strBuilder.Append(e));
+				if (LIST != null) {
+					repeating = LIST.Contains(strBuilder.ToString());
+				} else {
+					repeating = false;
+				}
+			}
 			return strBuilder.ToString();
 		}
 	}
@@ -31,13 +34,6 @@ namespace VSKingdom {
 	internal static class KingUtility {
 		private static byte[] kingdomData { get => VSKingdom.serverAPI.WorldManager.SaveGame.GetData("kingdomData"); }
 		private static List<Kingdom> kingdomList => kingdomData is null ? new List<Kingdom>() : SerializerUtil.Deserialize<List<Kingdom>>(kingdomData);
-
-		public static string CorrectedNAME(string kingdomNAME) {
-			if (kingdomNAME.ToLower().StartsWith("the_")) {
-				kingdomNAME = kingdomNAME.Remove(0, 3);
-			}
-			return kingdomNAME.Replace("_", " ").UcFirst();
-		}
 
 		public static string CorrectedTYPE(string kingdomNAME) {
 			string[] monTypes = { "kingdom", "monarchy", "dynasty", "commonwealth", "empire", "imperium", "sultanate", "fiefdom", "tribal", "tribe" };
@@ -61,16 +57,71 @@ namespace VSKingdom {
 			return "MONARCHY";
 		}
 
-		public static string CorrectedLONG(string kingdomTYPE) {
+		public static string CorrectedNAME(string kingdomTYPE, string kingdomVARS, bool getName = false, bool getLong = false) {
+			if (getName) {
+				if (kingdomVARS.ToLower().StartsWith("the ")) {
+					kingdomVARS = kingdomVARS.Remove(0, 3);
+				}
+				return kingdomVARS.Replace("_", " ").UcFirst();
+			}
+			if (getLong) {
+				switch (kingdomTYPE) {
+					case "MONARCHY": return "the " + kingdomVARS + " Kingdom";
+					case "DICTATOR": return "the " + kingdomVARS + " Federation";
+					case "REPUBLIC": return "the " + kingdomVARS + " Republic";
+					default: return kingdomVARS ?? null;
+				}
+			}
+			return null;
+		}
+
+		public static string CorrectedLEAD(string kingdomTYPE, bool getName = false, bool getLong = false, bool getDesc = false) {
+			if (getName) {
+				switch (kingdomTYPE) {
+					case "MONARCHY": return "King";
+					case "DICTATOR": return "Chairman";
+					case "REPUBLIC": return "Senator";
+					default: return null;
+				}
+			}
+			if (getLong) {
+				switch (kingdomTYPE) {
+					case "MONARCHY": return "His Excellency";
+					case "DICTATOR": return "Supreme Leader";
+					case "REPUBLIC": return "Prime Minister";
+					default: return null;
+				}
+			}
+			if (getDesc) {
+				switch (kingdomTYPE) {
+					case "MONARCHY": return "Sole monarch of the kingdom, their powers are absolute and chosen by divine right or inheritence.";
+					case "DICTATOR": return "Despotic ruler given near total power to oversee almost every aspect of society, from war to peace.";
+					case "REPUBLIC": return "Elected official given limited powers by the people, their position is fluid and often in terms.";
+					default: return null;
+				}
+			}
+			return null;
+		}
+
+		public static string CorrectedROLE(string kingdomTYPE) {
 			switch (kingdomTYPE) {
-				case "MONARCHY": return "His Excellency";
-				case "DICTATOR": return "Supreme Leader";
-				case "REPUBLIC": return "Prime Minister";
-				default: return "";
+				case "MONARCHY": return "Peasant/F/F/F/F/F/F:Soldier/T/T/T/F/T/T:Lordship/T/T/T/T/T/T";
+				case "DICTATOR": return "Subject/T/T/F/F/F/F:Trooper/T/T/F/F/T/T:Oligarch/T/T/T/T/T/T";
+				case "REPUBLIC": return "Citizen/T/T/T/T/F/T:Officer/T/T/T/F/T/T:Official/T/T/T/F/T/T";
+				default: return "Peasant/F/F/F/F/F/F:Citizen/T/T/T/F/F/T:Soldier/T/T/T/F/T/T:Royalty/T/T/T/T/T/T";
 			}
 		}
 
-		public static string GetMemberRole(HashSet<string> playersINFO, string playersGUID) {
+		public static string GetMemberINFO(HashSet<string> playersINFO, string playersGUID) {
+			foreach (string player in playersINFO) {
+				if (player.Split(':')[0] == playersGUID) {
+					return player;
+				}
+			}
+			return null;
+		}
+
+		public static string GetMemberROLE(HashSet<string> playersINFO, string playersGUID) {
 			foreach (string player in playersINFO) {
 				string[] playerCard = player.Split(':');
 				if (playerCard[0] == playersGUID) {
@@ -80,12 +131,17 @@ namespace VSKingdom {
 			return null;
 		}
 
-		public static string[] GetRoleNames(string membersROLE) {
+		public static string GetLeaderROLE(string membersROLE) {
+			string[] allRoles = membersROLE.Replace("/T", "").Replace("/F", "").Split(':');
+			return allRoles[allRoles.Length - 1];
+		}
+
+		public static string[] GetRolesNAME(string membersROLE) {
 			string[] allRoles = membersROLE.Replace("/T", "").Replace("/F", "").Split(':');
 			return allRoles;
 		}
 
-		public static bool[] GetRolePrivs(string membersROLE, string role) {
+		public static bool[] GetRolesPRIV(string membersROLE, string role) {
 			if (membersROLE == null || membersROLE == "" || role == null || role == "") {
 				return new bool[6] { false, false, false, false, false, false };
 			}
@@ -131,7 +187,7 @@ namespace VSKingdom {
 		}
 
 		public static string PlayerDetails(string playersGUID, string membersROLE = null, string specifcROLE = null) {
-			string[] allRoles = GetRoleNames(membersROLE);
+			string[] allRoles = GetRolesNAME(membersROLE);
 			string joinedRole = membersROLE.Split(':')[allRoles.IndexOf(specifcROLE)];
 			if (specifcROLE == null || !allRoles.Contains(specifcROLE)) {
 				joinedRole = membersROLE.Split(':')[0].Split('/')[0];

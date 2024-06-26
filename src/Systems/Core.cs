@@ -760,13 +760,12 @@ namespace VSKingdom {
 		}
 
 		private TextCommandResult OnCultureCommand(TextCommandCallingArgs args) {
-			string[] arguments = ((string)args[1]).Split(' ');
 			string fullargs = (string)args[1];
 			string callerID = args.Caller.Player.PlayerUID;
 			IPlayer thisPlayer = args.Caller.Player;
 			IPlayer thatPlayer = serverAPI.World.PlayerByUid(serverAPI.PlayerData.GetPlayerDataByLastKnownName(fullargs)?.PlayerUID) ?? null;
 			Culture thisCulture = cultureList.Find(cultureMatch => cultureMatch.CultureGUID == thisPlayer.Entity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("culture_guid")) ?? null;
-			Culture thatCulture = cultureList.Find(cultureMatch => cultureMatch.CultureGUID == arguments[0]) ?? null;
+			Culture thatCulture = cultureList.Find(cultureMatch => cultureMatch.CultureNAME.ToLowerInvariant() == fullargs?.ToLowerInvariant()) ?? null;
 			// Determine privillege role level and if they are allowed to make new kingdoms/cultures.
 			bool inCulture = thisCulture != null && thisCulture.CultureGUID != "00000000";
 			bool usingArgs = fullargs != null && fullargs != "" && fullargs != " ";
@@ -779,7 +778,7 @@ namespace VSKingdom {
 				case "create":
 					if (!usingArgs) {
 						return TextCommandResult.Error(LangUtility.Set("command-error-create00", LangUtility.Get("entries-keyword-culture")));
-					} else if (cultureList.Exists(cultureMatch => cultureMatch.CultureNAME.ToLowerInvariant() == string.Join(" ", arguments).ToLowerInvariant())) {
+					} else if (cultureList.Exists(cultureMatch => cultureMatch.CultureNAME.ToLowerInvariant() == fullargs?.ToLowerInvariant())) {
 						return TextCommandResult.Error(LangUtility.Set("command-error-create01", LangUtility.Get("entries-keyword-culture")));
 					} else if (!canCreate && !adminPass) {
 						return TextCommandResult.Error(LangUtility.Set("command-error-create03", LangUtility.Get("entries-keyword-culture")));
@@ -788,17 +787,17 @@ namespace VSKingdom {
 					} else if (!hoursTime && !adminPass) {
 						return TextCommandResult.Error(LangUtility.Set("command-error-create05", LangUtility.Get("entries-keyword-culture")));
 					}
-					CreateCulture(null, string.Join(" ", arguments).UcFirst(), callerID, !inCulture);
-					return TextCommandResult.Success(LangUtility.Set("command-success-create", arguments[0]));
+					CreateCulture(null, fullargs.UcFirst(), callerID, !inCulture);
+					return TextCommandResult.Success(LangUtility.Set("command-success-create", fullargs.UcFirst()));
 				// Deletes existing culture.
 				case "delete":
-					if (!cultureList.Exists(cultureMatch => cultureMatch.CultureNAME.ToLowerInvariant() == string.Join(" ", arguments).ToLowerInvariant())) {
+					if (!cultureList.Exists(cultureMatch => cultureMatch.CultureNAME.ToLowerInvariant() == fullargs?.ToLowerInvariant())) {
 						return TextCommandResult.Error(LangUtility.Set("command-error-delete00", LangUtility.Get("entries-keyword-culture")));
 					} else if (!adminPass) {
 						return TextCommandResult.Error(LangUtility.Set("command-error-delete01", LangUtility.Get("entries-keyword-culture")));
 					}
 					DeleteCulture(thatCulture.CultureGUID);
-					return TextCommandResult.Success(LangUtility.Set("command-success-delete", arguments[0]));
+					return TextCommandResult.Success(LangUtility.Set("command-success-delete", fullargs));
 				// Edits existing culture.
 				case "update":
 					if (!inCulture) {
@@ -807,7 +806,9 @@ namespace VSKingdom {
 						return TextCommandResult.Error(LangUtility.Set("command-error-update01", LangUtility.Get("entries-keyword-culture")));
 					}
 					thisPlayer.Entity.World.PlaySoundAt(new AssetLocation("game:sounds/effect/writing"), thisPlayer.Entity);
-					string results = ChangeCulture(thisCulture.CultureGUID, arguments[0]?.ToLower() ?? "", arguments[1]?.ToLower() ?? "", string.Join(" ", arguments.Skip(2)) ?? "");
+					string[] fullset = { fullargs };
+					try { fullset = fullargs.Split(' '); } catch { }
+					string results = ChangeCulture(thisCulture.CultureGUID, fullset[0], fullset[1], string.Join(' ', fullset.Skip(2)));
 					return TextCommandResult.Success(results);
 				// Invite a player into culture.
 				case "invite":

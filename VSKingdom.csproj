@@ -2,6 +2,9 @@
 	<PropertyGroup>
 		<TargetFramework>net7.0</TargetFramework>
 	</PropertyGroup>
+	<ItemGroup>
+	  <None Remove="src\Systems\Core.cs~RF1e6d5323.TMP" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<Reference Include="VintagestoryAPI">

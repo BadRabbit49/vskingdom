@@ -1,6 +1,7 @@
 ﻿using System;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
+using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 
@@ -86,13 +87,13 @@ namespace VSKingdom {
 				.AddItemSlotGrid(inventory, SendInvPacket, 1, new int[1] { InventorySentry.FoodsItemSlotId }, munitionsSlotsBounds, "otherSlotsAmmo")
 				.AddItemSlotGrid(inventory, SendInvPacket, 1, new int[1] { InventorySentry.HealthItmSlotId }, healthitmSlotsBounds, "otherSlotsHeal");
 			SingleComposer
-				.AddButton(LangUtility.Get("gui-profile-wander"), () => OnGiveCommand("command_wander"), gowanderButtonBounds, CairoFont.WhiteSmallishText(), EnumButtonStyle.Normal, "ordersWander")
-				.AddButton(LangUtility.Get("gui-profile-follow"), () => OnGiveCommand("command_follow"), gofollowButtonBounds, CairoFont.WhiteSmallishText(), EnumButtonStyle.Normal, "ordersFollow")
-				.AddButton(LangUtility.Get("gui-profile-attack"), () => OnGiveCommand("command_attack"), goattackButtonBounds, CairoFont.WhiteSmallishText(), EnumButtonStyle.Normal, "ordersAttack")
-				.AddButton(LangUtility.Get("gui-profile-pursue"), () => OnGiveCommand("command_pursue"), gopursueButtonBounds, CairoFont.WhiteSmallishText(), EnumButtonStyle.Normal, "ordersPursue")
-				.AddButton(LangUtility.Get("gui-profile-shifts"), () => OnGiveCommand("command_shifts"), doshiftsButtonBounds, CairoFont.WhiteSmallishText(), EnumButtonStyle.Normal, "ordersShifts")
-				.AddButton(LangUtility.Get("gui-profile-nights"), () => OnGiveCommand("command_nights"), donightsButtonBounds, CairoFont.WhiteSmallishText(), EnumButtonStyle.Normal, "ordersNights")
-				.AddButton(LangUtility.Get("gui-profile-return"), () => OnGiveCommand("command_return"), returntoButtonBounds, CairoFont.WhiteSmallishText(), EnumButtonStyle.Normal, "ordersReturn")
+				.AddButton(Lang.Get("vskingdom:entries-keyword-wander"), () => OnGiveCommand("command_wander"), gowanderButtonBounds, CairoFont.WhiteSmallishText(), EnumButtonStyle.Normal, "ordersWander")
+				.AddButton(Lang.Get("vskingdom:entries-keyword-follow"), () => OnGiveCommand("command_follow"), gofollowButtonBounds, CairoFont.WhiteSmallishText(), EnumButtonStyle.Normal, "ordersFollow")
+				.AddButton(Lang.Get("vskingdom:entries-keyword-firing"), () => OnGiveCommand("command_firing"), goattackButtonBounds, CairoFont.WhiteSmallishText(), EnumButtonStyle.Normal, "ordersAttack")
+				.AddButton(Lang.Get("vskingdom:entries-keyword-pursue"), () => OnGiveCommand("command_pursue"), gopursueButtonBounds, CairoFont.WhiteSmallishText(), EnumButtonStyle.Normal, "ordersPursue")
+				.AddButton(Lang.Get("vskingdom:entries-keyword-shifts"), () => OnGiveCommand("command_shifts"), doshiftsButtonBounds, CairoFont.WhiteSmallishText(), EnumButtonStyle.Normal, "ordersShifts")
+				.AddButton(Lang.Get("vskingdom:entries-keyword-nights"), () => OnGiveCommand("command_nights"), donightsButtonBounds, CairoFont.WhiteSmallishText(), EnumButtonStyle.Normal, "ordersNights")
+				.AddButton(Lang.Get("vskingdom:entries-keyword-return"), () => OnGiveCommand("command_return"), returntoButtonBounds, CairoFont.WhiteSmallishText(), EnumButtonStyle.Normal, "ordersReturn")
 			.EndChildElements();
 			SingleComposer.Compose();
 		}
@@ -145,7 +146,7 @@ namespace VSKingdom {
 			VSKingdom.serverAPI.World.GetEntityById(entity.EntityId).WatchedAttributes.GetTreeAttribute("loyalties").SetBool(orders, !loyalties.GetBool(orders));
 			VSKingdom.serverAPI.World.GetEntityById(entity.EntityId).WatchedAttributes.MarkPathDirty("loyalties");
 			// Get notification message.
-			capi.World.Logger.Chat(LangUtility.Get("gui-" + orders.Replace("_", "-") + "-" + loyalties.GetBool(orders).ToString().ToLower()));
+			capi.World.Logger.Chat(Lang.Get("vskingdom:entries-keyword-" + orders.Replace("command_", "") + "-" + loyalties.GetBool(orders).ToString().ToLower()));
 			var thisEnt = VSKingdom.serverAPI.World.GetEntityById(entity.EntityId);
 			if (loyalties.GetBool("command_wander")) {
 				thisEnt.Attributes.SetFloat("wanderRangeMul", 2f);
@@ -173,7 +174,7 @@ namespace VSKingdom {
 		}
 
 		private string GetName() {
-			return entity.WatchedAttributes.GetTreeAttribute("nametag")?.GetString("name") ?? LangUtility.Get(entity.Code.ToString());
+			return entity.WatchedAttributes.GetTreeAttribute("nametag")?.GetString("name") ?? Lang.Get(entity.Code.ToString());
 		}
 	}
 }

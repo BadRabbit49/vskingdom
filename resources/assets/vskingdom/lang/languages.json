@@ -1,0 +1,124 @@
+[
+	{
+		"code": "en",
+		"englishname": "English (100% complete)",
+		"name": "English"
+	},
+	{
+		"code": "ar",
+		"englishname": "Arabic (0% complete)",
+		"name": "عربى"
+	},
+	{
+		"code": "nl",
+		"englishname": "Dutch (0% complete)",
+		"name": "Nederlands"
+	},
+	{
+		"code": "cs",
+		"englishname": "Czech (0% complete)",
+		"name": "Čech"
+	},
+	{
+		"code": "fr",
+		"englishname": "French (0% complete)",
+		"name": "Français"
+	},
+	{
+		"code": "de",
+		"englishname": "German (0% complete)",
+		"name": "Deutsch"
+	},
+	{
+		"code": "eo",
+		"englishname": "Esperanto (0% complete)",
+		"name": "Esperanto"
+	},
+	{ 
+		"code": "it",
+		"englishname": "Italian (0% complete)",
+		"name": "Italiano"
+	},
+	{
+		"code": "ja",
+		"englishname": "Japanese (0% complete)",
+		"name": "日本語",
+		"linebreakBehavior": "AfterCharacter"
+	},
+	{
+		"code": "ko",
+		"englishname": "Korean (0% complete)",
+		"name": "한국어",
+		"linebreakBehavior": "AfterCharacter"
+	},
+	{
+		"code": "nl",
+		"englishname": "Dutch (0% complete)",
+		"name": "Nederlands"
+	},
+	{
+		"code": "pl",
+		"englishname": "Polish (0% complete)",
+		"name": "Polski"
+	},
+	{
+		"code": "pt-pt",
+		"englishname": "Portuguese (0% complete)",
+		"name": "Português"
+	},
+	{
+		"code": "pt-br",
+		"englishname": "Brazilian (0% complete)",
+		"name": "Português, brasileira"
+	},
+	{
+		"code": "ru",
+		"englishname": "Russian (0% complete)",
+		"name": "Русский"
+	},
+	{
+		"code": "sr",
+		"englishname": "Serbian (0% complete)",
+		"name": "Српски"
+	},
+	{
+		"code": "es-es",
+		"englishname": "Spanish (0% complete)",
+		"name": "Español"
+	},
+	{
+		"code": "es-419",
+		"englishname": "Amazonic (0% complete)",
+		"name": "Español, latinoamerica"
+	},	
+	{
+		"code": "sk",
+		"englishname": "Slovak (0% complete)",
+		"name": "Slovensky"
+	},
+	{
+		"code": "sv-se",
+		"englishname": "Swedish (0% complete)",
+		"name": "Svenska"
+	},
+	{
+		"code": "th",
+		"englishname": "Thai (0% complete)",
+		"name": "ภาษาไทย"
+	},
+	{
+		"code": "uk",
+		"englishname": "Ukrainian (0% complete)",
+		"name": "Українська"
+	},
+	{
+		"code": "zh-cn",
+		"englishname": "Chinese (0% complete)",
+		"name": "简体中文"
+	},
+	{
+		"code": "zh-tw",
+		"englishname": "Taiwanese (0% complete)",
+		"name": "中國傳統的"
+	}
+]

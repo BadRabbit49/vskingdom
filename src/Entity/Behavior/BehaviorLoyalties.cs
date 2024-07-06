@@ -7,6 +7,7 @@ using Vintagestory.API.Datastructures;
 using Vintagestory.API.Server;
 using Vintagestory.API.MathTools;
 using Vintagestory.GameContent;
+using Vintagestory.API.Config;
 
 namespace VSKingdom {
 	public class EntityBehaviorLoyalties : EntityBehavior {
@@ -71,9 +72,9 @@ namespace VSKingdom {
 			set => loyalties.SetBool("command_follow", value);
 		}
 
-		public bool commandATTACK {
-			get => loyalties.GetBool("command_attack");
-			set => loyalties.SetBool("command_attack", value);
+		public bool commandFIRING {
+			get => loyalties.GetBool("command_firing");
+			set => loyalties.SetBool("command_firing", value);
 		}
 
 		public bool commandPURSUE {
@@ -119,7 +120,7 @@ namespace VSKingdom {
 				if (entity is not EntityPlayer) {
 					commandWANDER = true;
 					commandFOLLOW = false;
-					commandATTACK = true;
+					commandFIRING = true;
 					commandPURSUE = true;
 					commandSHIFTS = false;
 					commandNIGHTS = false;
@@ -176,14 +177,14 @@ namespace VSKingdom {
 			// Place Kingdom (if any), Leader (if any) and Guardpost (if any), here.
 			if (kingdomGUID is not null) {
 				//infotext.AppendLine(string.Concat(LangUtility.Get("gui-kingdom-name"), DataUtility.GetKingdomName(kingdomGUID)));
-				infotext.AppendLine(string.Concat(LangUtility.Get("gui-kingdom-guid"), kingdomGUID));
+				infotext.AppendLine(string.Concat(Lang.Get("vskingdom:gui-kingdom-guid"), kingdomGUID));
 			}
 			if (leadersGUID is not null) {
 				//infotext.AppendLine(string.Concat(LangUtility.Get("gui-leaders-name"), DataUtility.GetAPlayer(leadersGUID).PlayerName));
-				infotext.AppendLine(string.Concat(LangUtility.Get("gui-leaders-guid"), leadersGUID));
+				infotext.AppendLine(string.Concat(Lang.Get("vskingdom:gui-leaders-guid"), leadersGUID));
 			}
 			if (outpostXYZD is not null) {
-				infotext.AppendLine(string.Concat(LangUtility.Get("gui-outpost-xyzd"), outpostXYZD.ToString()));
+				infotext.AppendLine(string.Concat(Lang.Get("vskingdom:gui-outpost-xyzd"), outpostXYZD.ToString()));
 			}
 			base.GetInfoText(infotext);
 		}

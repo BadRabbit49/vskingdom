@@ -17,6 +17,7 @@ namespace VSKingdom {
 		public string FoundedMETA { get; set; }
 		public double FoundedHOUR { get; set; }
 		public string MembersROLE { get; set; }
+		public string CurrentVOTE { get; set; }
 		public HashSet<string> PlayersGUID { get; set; } = new HashSet<string>();
 		public HashSet<string> PlayersINFO { get; set; } = new HashSet<string>();
 		public HashSet<string> EnemiesGUID { get; set; } = new HashSet<string>();

@@ -39,11 +39,11 @@ namespace VSKingdom {
 			return null;
 		}
 
-		public static string GetLeadersGUID(string kingdomGUID, string PlayersUID) {
+		public static string GetLeadersGUID(string kingdomGUID, string PlayersUID = null) {
 			if (kingdomGUID != null) {
 				return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID)?.LeadersGUID;
 			}
-			if (PlayersUID is not null) {
+			if (PlayersUID != null) {
 				foreach (Kingdom kingdom in kingdomList) {
 					if (kingdom.PlayersGUID.Contains(PlayersUID)) {
 						return kingdom.LeadersGUID;

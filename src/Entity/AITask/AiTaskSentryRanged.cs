@@ -7,6 +7,7 @@ using Vintagestory.API.Common.Entities;
 using System;
 using System.Collections.Generic;
 using Vintagestory.API.Config;
+using System.Linq;
 
 namespace VSKingdom {
 	public class AiTaskSentryRanged : AiTaskBaseTargetable {
@@ -37,8 +38,10 @@ namespace VSKingdom {
 		protected AssetLocation ammoLocation = null;
 
 		private ITreeAttribute loyalties;
-		private string entKingdom => loyalties?.GetString("kingdom_guid");
-		
+		private string entKingdom { get; set; }
+		private List<long> alliedEnts { get; set; }
+		private List<string> enemyKings { get; set; } 
+
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);
 			maxDist = taskConfig["maxDist"].AsFloat(20f);
@@ -88,17 +91,15 @@ namespace VSKingdom {
 		}
 
 		public override bool IsTargetableEntity(Entity ent, float range, bool ignoreEntityCode = false) {
-			if (ent == entity) {
-				return false;
-			}
-			if (!ent.Alive || ent is null) {
+			if (ent is null || !ent.Alive || ent == entity) {
 				return false;
 			}
 			if (ent is EntityProjectile projectile) {
 				targetEntity = projectile.FiredBy;
 			}
-			if (ent is EntityHumanoid) {
-				return DataUtility.IsAnEnemy(entKingdom, ent);
+			if (ent.WatchedAttributes.HasAttribute("loyalties")) {
+				GetData();
+				return IsEnemy(ent);
 			}
 			if (ignoreEntityCode) {
 				return CanSense(ent, range);
@@ -163,7 +164,8 @@ namespace VSKingdom {
 			// Start animations if not already doing so.
 			if (!animsStarted) {
 				animsStarted = true;
-				entity.AnimManager.StartAnimation(drawBowsMeta);
+				animMeta = drawBowsMeta;
+				entity.AnimManager.StartAnimation(animMeta);
 				if (drawingsound != null) {
 					entity.World.PlaySoundAt(drawingsound, entity, null, false);
 				}
@@ -189,12 +191,9 @@ namespace VSKingdom {
 		}
 
 		public override void FinishExecute(bool cancelled) {
-			base.FinishExecute(cancelled);
 			entity.RightHandItemSlot?.Itemstack?.Attributes?.SetInt("renderVariant", 0);
 			entity.RightHandItemSlot?.MarkDirty();
-			entity.CurrentControls = EnumEntityActivity.Idle;
-			entity.StopAnimation(drawBowsMeta.Code);
-			entity.ServerControls.IsAiming = false;
+			base.FinishExecute(cancelled);
 		}
 		
 		public override void OnEntityHurt(DamageSource source, float damage) {
@@ -240,8 +239,8 @@ namespace VSKingdom {
 			entity.World.SpawnEntity(projectile);
 			projectileFired = true;
 			if (!entity.Api.World.Config.GetAsBool("InfiniteAmmo")) {
-				entity.GearInventory[18].TakeOut(1);
-				entity.GearInventory[18].MarkDirty();
+				entity.GearInventory[18]?.TakeOut(1);
+				entity.GearInventory[18]?.MarkDirty();
 			}
 		}
 		
@@ -250,30 +249,24 @@ namespace VSKingdom {
 		}
 
 		private void OnGoalReached() {
-			entity.CurrentControls = EnumEntityActivity.Idle;
-			entity.Controls.Backward = false;
-			entity.ServerControls.Backward = false;
-			entity.Controls.Forward = true;
-			entity.ServerControls.Forward = true;
 			pathTraverser.Retarget();
+		}
+
+		private void GetData() {
+			entKingdom = loyalties?.GetString("kingdom_guid");
+			Kingdom thisKingdom = DataUtility.GetKingdom(entKingdom);
+			alliedEnts = thisKingdom.EntitiesALL.ToList<long>();
+			enemyKings = thisKingdom.CurrentWars.ToList<string>();
 		}
 
 		private void Retreat(bool full) {
 			Vec3d targetPos = new Vec3d();
 			updateTargetPosFleeMode(targetPos);
-			entity.ServerControls.Sprint = full;
-			entity.ServerControls.Forward = full;
-			entity.ServerControls.Backward = !full;
 			if (full) {
-				entity.CurrentControls = EnumEntityActivity.SprintMode;
 				pathTraverser.WalkTowards(targetPos, moveSpeed * (float)GlobalConstants.SprintSpeedMultiplier, targetEntity.SelectionBox.XSize + 0.2f, OnGoalReached, OnStuck);
 			} else {
-				entity.CurrentControls = EnumEntityActivity.Move;
 				pathTraverser.WalkTowards(targetPos, moveSpeed, targetEntity.SelectionBox.XSize + 0.2f, OnGoalReached, OnStuck);
 			}
-			pathTraverser.CurrentTarget.X = targetPos.X;
-			pathTraverser.CurrentTarget.Y = targetPos.Y;
-			pathTraverser.CurrentTarget.Z = targetPos.Z;
 			pathTraverser.Retarget();
 		}
 
@@ -281,10 +274,10 @@ namespace VSKingdom {
 			if (HasRanged()) {
 				float dmg1 = 0f;
 				float dmg2 = 0f;
-				if (entity.RightHandItemSlot.Itemstack.Collectible.Attributes != null) {
+				if (entity.RightHandItemSlot?.Itemstack.Collectible.Attributes != null) {
 					dmg1 += entity.RightHandItemSlot.Itemstack.Collectible.Attributes["damage"].AsFloat(0);
 				}
-				if (entity.GearInventory[18].Itemstack.Collectible.Attributes != null) {
+				if (entity.GearInventory[18]?.Itemstack.Collectible.Attributes != null) {
 					dmg2 = entity.GearInventory[18].Itemstack.Collectible.Attributes["damage"].AsFloat(0);
 				}
 				return dmg1 + dmg2;
@@ -293,14 +286,27 @@ namespace VSKingdom {
 			}
 		}
 
+		private bool IsEnemy(Entity target) {
+			if (entKingdom == null || alliedEnts.Contains(target.EntityId)) {
+				return false;
+			}
+			if (enemyKings.Contains(target.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdom_guid"))) {
+				return true;
+			}
+			if (target is EntityPlayer) {
+				return DataUtility.GetKingdom(entKingdom).EnemiesGUID.Contains((target as EntityPlayer).PlayerUID);
+			}
+			return false;
+		}
+
 		private bool HasRanged() {
 			if (entity.GearInventory[18].Empty || entity.RightHandItemSlot.Empty) {
 				return false;
 			}
-			if (entity.RightHandItemSlot.Itemstack.Item is ItemBow) {
+			if (entity.RightHandItemSlot?.Itemstack.Item is ItemBow) {
 				return entity.GearInventory[18].Itemstack.Item is ItemArrow || entity.GearInventory[18].Itemstack.Collectible.Code.PathStartsWith("arrow-");
 			}
-			if (entity.RightHandItemSlot.Itemstack.Item is ItemSling) {
+			if (entity.RightHandItemSlot?.Itemstack.Item is ItemSling) {
 				return entity.GearInventory[18].Itemstack.Item is ItemStone || entity.GearInventory[18].Itemstack.Collectible.Code.PathStartsWith("thrownstone-");
 			}
 			return false;
@@ -333,14 +339,14 @@ namespace VSKingdom {
 			entity.World.RayTraceForSelection(entity.ServerPos.XYZ.AddCopy(entity.LocalEyePos), targetEntity?.ServerPos?.XYZ.AddCopy(targetEntity?.LocalEyePos), ref blockSel, ref entitySel);
 			// Make sure the target isn't obstructed by other entities, but if it IS then make sure it's okay to hit them.
 			if (entitySel?.Entity != entity && entitySel?.Entity != targetEntity) {
-				// Fuck all drifters, locusts, and bells, a shot well placed I say. Infact, switch targets to kill IT.
+				// Kill all drifters, locusts, and bells, a shot well placed I say. Infact, switch targets to kill IT.
 				if (entitySel?.Entity is EntityDrifter || entitySel?.Entity is EntityLocust || entitySel?.Entity is EntityBell) {
 					targetEntity = entitySel.Entity;
 					return false;
 				}
 				// Determine if the entity in the way is a friend or foe, if they're an enemy then disregard and shoot anyway.
-				if (entitySel?.Entity is EntityHumanoid) {
-					return !DataUtility.IsAnEnemy(entKingdom, entitySel.Entity);
+				if (entitySel?.Entity?.WatchedAttributes.HasAttribute("loyalties") ?? false) {
+					return !IsEnemy(entitySel.Entity);
 				}
 				return true;
 			}

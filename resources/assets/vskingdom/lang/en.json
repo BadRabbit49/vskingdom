@@ -172,6 +172,7 @@
 	"command-failure-update": "[ENTRY] was not updated!",
 	"command-failure-invite": "[ENTRY] was not invited!",
 	"command-failure-remove": "[ENTRY] was not removed!",
+	"command-failure-treaty": "[ENTRY] was denied peace.",
 
 	"command-success-create": "Created [ENTRY].",
 	"command-success-delete": "Deleted [ENTRY].",
@@ -230,7 +231,10 @@
 	"command-message-rebels": "[ENTRY1] has incited a rebellion against [ENTRY2], who will you side with?",
 	"command-message-attack": "[ENTRY1] has declared war on [ENTRY2]!",
 	"command-message-treaty": "[ENTRY1] and [ENTRY2] have signed a peace treaty, hostilities have ended.",
-
+	"command-message-peaces": "[ENTRY1] has sued for peace in it's war with [ENTRY2].",
+	"command-message-peacea": "[ENTRY1] has has accepted [ENTRY2]'s offer of peace!",
+	"command-message-peacer": "[ENTRY1] has has rejected [ENTRY2]'s offer of peace!",
+	
 	"interact-revive": "Revive",
 	"interact-enlist": "Enlist",
 	"interact-unlist": "Discharge",

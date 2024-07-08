@@ -316,11 +316,13 @@ namespace VSKingdom {
 		}
 
 		public void EndWarKingdom(string kingdomGUID1, string kingdomGUID2) {
-			kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID1).CurrentWars.Remove(kingdomGUID2);
-			kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID2).CurrentWars.Remove(kingdomGUID1);
-			SaveKingdom();
 			Kingdom kingdomONE = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID1);
 			Kingdom kingdomTWO = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID2);
+			kingdomONE.CurrentWars.Remove(kingdomGUID2);
+			kingdomTWO.CurrentWars.Remove(kingdomGUID1);
+			kingdomONE.PeaceOffers.Remove(kingdomGUID2);
+			kingdomTWO.PeaceOffers.Remove(kingdomGUID1);
+			SaveKingdom();
 			foreach (var player in serverAPI.World.AllOnlinePlayers) {
 				serverAPI.SendMessage(player, 0, LangUtility.Set("command-message-treaty", kingdomONE.KingdomLONG, kingdomTWO.KingdomLONG), EnumChatType.OwnMessage);
 			}
@@ -673,6 +675,10 @@ namespace VSKingdom {
 				case "accept":
 					if (!usingArgs) {
 						return TextCommandResult.Success(KingdomInvite(callerID, canInvite));
+					} else if (thatKingdom != null && inKingdom && theLeader && thisKingdom.PeaceOffers.Contains(thatKingdom.KingdomGUID)) {
+						serverAPI.BroadcastMessageToAllGroups(LangUtility.Set("command-message-peacea", thisKingdom.KingdomLONG, thatKingdom.KingdomLONG), EnumChatType.OwnMessage);
+						EndWarKingdom(thisKingdom.KingdomGUID, thatKingdom.KingdomGUID);
+						return TextCommandResult.Success(LangUtility.Set("command-success-treaty", fullargs));
 					} else if (thatPlayer != null && inKingdom && thisKingdom.RequestGUID.Contains(thatPlayer.PlayerUID)) {
 						if (!canInvite) {
 							return TextCommandResult.Error(LangUtility.Set("command-error-badperms", string.Concat((string)args[0], thatPlayer.PlayerName)));
@@ -689,6 +695,11 @@ namespace VSKingdom {
 				case "reject":
 					if (!usingArgs) {
 						return TextCommandResult.Success(KingdomInvite(callerID, canInvite));
+					} else if (thatKingdom != null && inKingdom && theLeader && thisKingdom.PeaceOffers.Contains(thatKingdom.KingdomGUID)) {
+						serverAPI.BroadcastMessageToAllGroups(LangUtility.Set("command-message-peacer", thisKingdom.KingdomLONG, thatKingdom.KingdomLONG), EnumChatType.OwnMessage);
+						kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == thisKingdom.KingdomGUID).PeaceOffers.Remove(thatKingdom.KingdomGUID);
+						SaveKingdom();
+						return TextCommandResult.Success(LangUtility.Set("command-failure-treaty", fullargs));
 					} else if (thatPlayer != null && inKingdom && thisKingdom.RequestGUID.Contains(thatPlayer.PlayerUID)) {
 						if (!canInvite) {
 							return TextCommandResult.Error(LangUtility.Set("command-error-badperms", string.Concat((string)args[0], thatPlayer.PlayerName)));
@@ -784,7 +795,13 @@ namespace VSKingdom {
 					} else if (!thisKingdom.CurrentWars.Contains(thatKingdom.KingdomGUID)) {
 						return TextCommandResult.Error(LangUtility.Set("command-error-notatwar", thatKingdom.KingdomNAME));
 					}
-					EndWarKingdom(thisKingdom.KingdomGUID, thatKingdom.KingdomGUID);
+					if (thisKingdom.PeaceOffers.Contains(thatKingdom.KingdomGUID)) {
+						EndWarKingdom(thisKingdom.KingdomGUID, thatKingdom.KingdomGUID);
+					} else {
+						kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == thatKingdom.KingdomGUID).PeaceOffers.Add(thisKingdom.KingdomGUID);
+						SaveKingdom();
+						serverAPI.BroadcastMessageToAllGroups(LangUtility.Set("command-message-peaces", thisKingdom.KingdomLONG, thatKingdom.KingdomLONG), EnumChatType.OwnMessage);
+					}
 					return TextCommandResult.Success(LangUtility.Set("command-success-treaty", fullargs));
 				// Sets an enemy of the Kingdom.
 				case "outlaw":

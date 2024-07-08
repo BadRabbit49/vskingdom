@@ -171,6 +171,7 @@
 	"command-failure-update": "未更新 [ENTRY]！",
 	"command-failure-invite": "未受邀 [ENTRY]！",
 	"command-failure-remove": "未删除 [ENTRY]！",
+	"command-failure-treaty": "拒绝为 [ENTRY] 带来和平。",
 
 	"command-success-create": "创建了 [ENTRY]。",
 	"command-success-delete": "删除了 [ENTRY]。",
@@ -230,6 +231,9 @@
 	"command-message-rebels": "[ENTRY1]煽动了对[ENTRY2]的叛乱你会站在谁一边？",
 	"command-message-attack": "[ENTRY1]已经向[ENTRY2]宣战！",
 	"command-message-treaty": "[ENTRY1]和[ENTRY2]已经签署了和平条约，敌对行动已经结束。",
+	"command-message-peaces": "[ENTRY1] 在与 [ENTRY2] 的战争中要求和平。",
+	"command-message-peacea": "[ENTRY1] 已经接受了 [ENTRY2] 的和平提议！",
+	"command-message-peacer": "[ENTRY1] 拒绝了 [ENTRY2] 的和平提议！",
 
 	"interact-revive": "重振",
 	"interact-enlist": "征召",

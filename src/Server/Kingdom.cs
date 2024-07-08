@@ -18,12 +18,13 @@ namespace VSKingdom {
 		public double FoundedHOUR { get; set; }
 		public string MembersROLE { get; set; }
 		public string CurrentVOTE { get; set; }
-		public HashSet<string> PlayersGUID { get; set; } = new HashSet<string>();
 		public HashSet<string> PlayersINFO { get; set; } = new HashSet<string>();
+		public HashSet<string> PlayersGUID { get; set; } = new HashSet<string>();
 		public HashSet<string> EnemiesGUID { get; set; } = new HashSet<string>();
-		public HashSet<string> CurrentWars { get; set; } = new HashSet<string>();
 		public HashSet<string> InvitesGUID { get; set; } = new HashSet<string>();
 		public HashSet<string> RequestGUID { get; set; } = new HashSet<string>();
+		public HashSet<string> CurrentWars { get; set; } = new HashSet<string>();
+		public HashSet<string> PeaceOffers { get; set; } = new HashSet<string>();
 		public HashSet<long> EntitiesALL { get; set; } = new HashSet<long>();
 	}
 }

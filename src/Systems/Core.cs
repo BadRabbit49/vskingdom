@@ -8,6 +8,10 @@ using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 using Vintagestory.API.Util;
 using Vintagestory.GameContent;
+using Vintagestory.API.MathTools;
+using System.Text.RegularExpressions;
+using System.Security.Cryptography;
+using Vintagestory.API.Config;
 
 namespace VSKingdom {
 	public class VSKingdom : ModSystem {
@@ -548,10 +552,12 @@ namespace VSKingdom {
 		private void PlayerJoinsGame(IServerPlayer player) {
 			string kingdomGUID = player.Entity.WatchedAttributes.GetOrAddTreeAttribute("loyalties")?.GetString("kingdom_guid");
 			string cultureGUID = player.Entity.WatchedAttributes.GetOrAddTreeAttribute("loyalties")?.GetString("culture_guid");
-			if (kingdomGUID is null || kingdomGUID == "") {
+			if (kingdomGUID is null || kingdomGUID == "" || DataUtility.KingdomExists(kingdomGUID) == false) {
+				serverAPI.SendMessage(player, 0, LangUtility.Ref("command-error-cantfind", "entries-keyword-kingdom"), EnumChatType.Notification);
 				player.Entity.GetBehavior<EntityBehaviorLoyalties>()?.SetKingdom("00000000");
 			}
-			if (cultureGUID is null || cultureGUID == "") {
+			if (cultureGUID is null || cultureGUID == "" || DataUtility.CultureExists(cultureGUID) == false) {
+				serverAPI.SendMessage(player, 0, LangUtility.Ref("command-error-cantfind", "entries-keyword-culture"), EnumChatType.Notification);
 				player.Entity.GetBehavior<EntityBehaviorLoyalties>()?.SetCulture("00000000");
 			}
 		}
@@ -568,38 +574,16 @@ namespace VSKingdom {
 			}
 		}
 
-		public string CommandInfo(bool kingdom = false, bool culture = false, string informs = "desc") {
-			string langkey = "command-" + informs + "-";
-			if (kingdom) {
-				return "/kingdom commands"
-				+ "\n" + LangUtility.Ref(langkey + "create", "entries-keyword-kingdom", "entries-keyword-kingdom")
-				+ "\n" + LangUtility.Ref(langkey + "delete", "entries-keyword-kingdom", "entries-keyword-kingdom")
-				+ "\n" + LangUtility.Ref(langkey + "update", "entries-keyword-kingdom", "entries-keyword-kingdom")
-				+ "\n" + LangUtility.Ref(langkey + "invite", "entries-keyword-kingdom", "entries-keyword-players")
-				+ "\n" + LangUtility.Ref(langkey + "remove", "entries-keyword-kingdom", "entries-keyword-players")
-				+ "\n" + LangUtility.Ref(langkey + "become", "entries-keyword-kingdom", "entries-keyword-kingdom")
-				+ "\n" + LangUtility.Ref(langkey + "depart", "entries-keyword-kingdom", "entries-keyword-kingdom")
-				+ "\n" + LangUtility.Ref(langkey + "revolt", "entries-keyword-kingdom", "entries-keyword-kingdom")
-				+ "\n" + LangUtility.Ref(langkey + "rebels", "entries-keyword-kingdom", "entries-keyword-kingdom")
-				+ "\n" + LangUtility.Ref(langkey + "attack", "entries-keyword-kingdom", "entries-keyword-kingdom")
-				+ "\n" + LangUtility.Ref(langkey + "treaty", "entries-keyword-kingdom", "entries-keyword-kingdom")
-				+ "\n" + LangUtility.Ref(langkey + "outlaw", "entries-keyword-kingdom", "entries-keyword-players")
-				+ "\n" + LangUtility.Ref(langkey + "pardon", "entries-keyword-kingdom", "entries-keyword-players")
-				+ "\n" + LangUtility.Ref(langkey + "wanted", "entries-keyword-kingdom", "entries-keyword-players")
-				+ "\n" + LangUtility.Ref(langkey + "accept", "entries-keyword-kingdom", "entries-keyword-kingdom")
-				+ "\n" + LangUtility.Ref(langkey + "reject", "entries-keyword-kingdom", "entries-keyword-kingdom")
-				+ "\n" + LangUtility.Ref(langkey + "voting", "entries-keyword-kingdom", "entries-keyword-replies");
+		public string CommandInfo(string kindsof = "kingdom", string informs = "desc") {
+			string[] commands = { "create", "delete", "update", "invite", "remove", "become", "depart", "revolt", "rebels", "attack", "treaty", "outlaw", "pardon", "wanted", "accept", "reject", "voting" };
+			string langkeys = "command-" + informs + "-";
+			string messages = "";
+			foreach (string com in commands) {
+				if (Lang.HasTranslation("vskingdom:" + langkeys + com)) {
+					messages += "\n" + LangUtility.Ref(langkeys + com, kindsof, ("entries-keyword-" + kindsof), "entries-keyword-players", "entries-keyword-replies");
+				}
 			}
-			if (culture) {
-				return "/culture commands"
-				+ "\n" + LangUtility.Ref(langkey + "create", "entries-keyword-culture", "entries-keyword-culture")
-				+ "\n" + LangUtility.Ref(langkey + "delete", "entries-keyword-culture", "entries-keyword-culture")
-				+ "\n" + LangUtility.Ref(langkey + "update", "entries-keyword-culture", "entries-keyword-culture")
-				+ "\n" + LangUtility.Ref(langkey + "invite", "entries-keyword-culture", "entries-keyword-players")
-				+ "\n" + LangUtility.Ref(langkey + "accept", "entries-keyword-culture", "entries-keyword-culture")
-				+ "\n" + LangUtility.Ref(langkey + "reject", "entries-keyword-culture", "entries-keyword-culture");
-			}
-			return string.Empty;
+			return messages;
 		}
 
 		private TextCommandResult OnKingdomCommand(TextCommandCallingArgs args) {
@@ -834,10 +818,10 @@ namespace VSKingdom {
 					return TextCommandResult.Success(LangUtility.Set("command-success-wanted", keywords[2], thisKingdom.KingdomLONG, KingdomWanted(thisKingdom.EnemiesGUID)));
 			}
 			if ((string)args[0] == null || ((string)args[0]).Contains("help")) {
-				return TextCommandResult.Success(CommandInfo(true, false, "help"));
+				return TextCommandResult.Success(CommandInfo("kingdom", "help"));
 			}
 			if (((string)args[0]).Contains("desc")) {
-				return TextCommandResult.Success(CommandInfo(true, false, "desc"));
+				return TextCommandResult.Success(CommandInfo("kingdom", "desc"));
 			}
 			return TextCommandResult.Error(LangUtility.Get("command-help-kingdom"));
 		}
@@ -936,10 +920,10 @@ namespace VSKingdom {
 					return TextCommandResult.Error(LangUtility.Set("command-error-noinvite", keywords[0]));
 			}
 			if (((string)args[0]).Contains("help")) {
-				return TextCommandResult.Success(CommandInfo(false, true, "help"));
+				return TextCommandResult.Success(CommandInfo("culture", "help"));
 			}
 			if (((string)args[0]).Contains("desc")) {
-				return TextCommandResult.Success(CommandInfo(false, true, "desc"));
+				return TextCommandResult.Success(CommandInfo("culture", "desc"));
 			}
 			return TextCommandResult.Error(LangUtility.Get("command-help-culture"));
 		}

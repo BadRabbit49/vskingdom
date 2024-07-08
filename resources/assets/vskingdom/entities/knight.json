@@ -159,17 +159,18 @@
 			{
 				"code": "facialexpression",
 				"type": "shape",
+				"shapeTemplate": { "base": "game:entity/humanoid/seraphskinparts/face/{code}" },
 				"variants": [
-					{ "code": "angry", "shape": { "base": "game:entity/humanoid/seraphskinparts/face/angry" } },
-					{ "code": "grin", "shape": { "base": "game:entity/humanoid/seraphskinparts/face/grin" } },
-					{ "code": "smirk", "shape": { "base": "game:entity/humanoid/seraphskinparts/face/smirk" } },
-					{ "code": "kind", "shape": { "base": "game:entity/humanoid/seraphskinparts/face/kind" } },
-					{ "code": "upset", "shape": { "base": "game:entity/humanoid/seraphskinparts/face/upset" } },
-					{ "code": "neutral", "shape": { "base": "game:entity/humanoid/seraphskinparts/face/neutral" } },
-					{ "code": "sad", "shape": { "base": "game:entity/humanoid/seraphskinparts/face/sad" } },
-					{ "code": "serious", "shape": { "base": "game:entity/humanoid/seraphskinparts/face/serious" } },
-					{ "code": "tired", "shape": { "base": "game:entity/humanoid/seraphskinparts/face/tired" } },
-					{ "code": "very-sad", "shape": { "base": "game:entity/humanoid/seraphskinparts/face/very-sad" } }
+					{ "code": "angry" },
+					{ "code": "grin" },
+					{ "code": "smirk" },
+					{ "code": "kind" },
+					{ "code": "upset" },
+					{ "code": "neutral" },
+					{ "code": "sad" },
+					{ "code": "serious" },
+					{ "code": "tired" },
+					{ "code": "very-sad" }
 				]
 			},
 			{

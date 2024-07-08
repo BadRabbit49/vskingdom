@@ -139,6 +139,20 @@ namespace VSKingdom {
 			return false;
 		}
 
+		public static bool CultureExists(string cultureGUID = null, string cultureNAME = null) {
+			bool lookingForGUID = cultureGUID != null;
+			bool lookingForNAME = cultureNAME != null;
+			foreach (var culture in cultureList) {
+				if (lookingForGUID && culture.CultureGUID == cultureGUID) {
+					return true;
+				}
+				if (lookingForNAME && culture.CultureNAME == cultureNAME) {
+					return true;
+				}
+			}
+			return false;
+		}
+
 		public static bool IsAnEnemy(string thisKingdomGUID, string thatKingdomGUID) {
 			if (thisKingdomGUID == thatKingdomGUID) {
 				return false;

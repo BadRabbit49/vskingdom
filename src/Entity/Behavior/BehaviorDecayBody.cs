@@ -136,6 +136,7 @@ namespace VSKingdom {
 						entity.TeleportTo(belowSpace);
 						outpost?.UseRespawn();
 						entity.Revive();
+						entity.AnimManager.StopAnimation("die");
 						return true;
 					}
 				}

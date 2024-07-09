@@ -1,5 +1,5 @@
 {
-	"code": "post-temp",
+	"code": "post",
 	"class": "BlockPost",
 	"entityClass": "BlockEntityPost",
 	"entityBehaviors": [ { "name": "Resupply" } ],
@@ -38,7 +38,7 @@
 	},
 	"creativeinventory": {
 		"general": [ "*" ],
-		"vskingdom": [ "*-live-good" ]
+		"vskingdom": [ "*-none-good" ]
 	},
 	"blockmaterial": "Metal",
 	"replaceable": 100,

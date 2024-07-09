@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Datastructures;
-using Vintagestory.API.MathTools;
-using Vintagestory.API.Server;
 using Vintagestory.API.Util;
 
 namespace VSKingdom;
@@ -124,23 +121,23 @@ public class ItemPeople : Item {
 			entity.WatchedAttributes.GetOrAddTreeAttribute("loyalties").SetString("culture_guid", byEntity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("culture_guid") ?? "00000000");
 			entity.WatchedAttributes.GetOrAddTreeAttribute("loyalties").SetString("kingdom_guid", byEntity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdom_guid") ?? "00000000");
 		}
+		long entID = entity.EntityId;
+
+		// SPAWNING ENTITY!
+		byEntity.World.SpawnEntity(entity);
+		handHandling = EnumHandHandling.PreventDefaultAction;
 
 		// If placed on a brazier soldier post then set that to be their outpost.
 		if (api.World.BlockAccessor.GetBlock(blockSel.Position).EntityClass != null) {
 			if (api.World.ClassRegistry.GetBlockEntity(api.World.BlockAccessor.GetBlock(blockSel.Position).EntityClass) == typeof(BlockEntityPost)) {
 				BlockEntityPost outpost = api.World.BlockAccessor.GetBlockEntity(blockSel.Position) as BlockEntityPost;
-				if (outpost.IsCapacity(entity.EntityId)) {
+				if (outpost.IsCapacity(entID)) {
 					outpost.IgnitePost();
 					entity.WatchedAttributes.GetOrAddTreeAttribute("loyalties").SetDouble("outpost_size", outpost.areasize);
 					entity.WatchedAttributes.GetOrAddTreeAttribute("loyalties").SetBlockPos("outpost_xyzd", blockSel.Position);
 				}
 			}
 		}
-
-		// SPAWNING ENTITY!
-		byEntity.World.SpawnEntity(entity);
-
-		handHandling = EnumHandHandling.PreventDefaultAction;
 	}
 
 	public override string GetHeldTpIdleAnimation(ItemSlot activeHotbarSlot, Entity byEntity, EnumHand hand) {

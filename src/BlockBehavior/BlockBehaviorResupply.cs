@@ -7,45 +7,24 @@ using System;
 
 namespace VSKingdom {
 	public class BlockBehaviorResupply : BlockEntityBehavior {
-		bool fillAmmo;
-		int ammoAmnt;
-		int healRate;
-		int healAmnt;
-		public string Type => "guardPost";
-		public Vec3d Position => Blockentity.Pos.ToVec3d();
-		public BlockEntity be;
-		public BlockEntityPost bePost;
 		public BlockBehaviorResupply(BlockEntity blockentity) : base(blockentity) {
-			be = blockentity;
 			bePost = blockentity as BlockEntityPost;
 		}
-		protected ILoadedSound ambientSound;
-		public override void Initialize(ICoreAPI api, JsonObject properties) {
-			base.Initialize(api, properties);
-			// Should ammo be refilled for soldiers?
-			fillAmmo = bePost.metlTier >= 4;
-			// Ammunition regeneration value every tick.
-			ammoAmnt = bePost.metlTier;
-			// Health regeneration rate in seconds.
-			healRate = bePost.metlTier * 60000;
-			// Health regeneration value every tick.
-			healAmnt = bePost.metlTier;
-			/** TODO: SETUP LISTENER TO PASSIVELY REGEN HEALTH AND RESPAWN TOKENS OVER TIME!!! **/
-			if (Blockentity.Api.Side == EnumAppSide.Client && bePost != null) {
-				Blockentity.RegisterGameTickListener(OnTickOffset, healRate);
-			}
-		}
 
-		private bool IsNight {
-			get {
-				float str = Api.World.Calendar.GetDayLightStrength(Blockentity.Pos.X, Blockentity.Pos.Z);
-				return str < 0.4;
-			}
-		}
+		public bool fillAmmo;
+		public int ammoAmnt;
+		public int healAmnt;
+		public Vec3d Position => Blockentity.Pos.ToVec3d();
+		public BlockEntityPost bePost;
+		public ILoadedSound ambientSound;
+		
+		private bool IsSnowing { get => Api.World.BlockAccessor.GetClimateAt(Blockentity.Pos, EnumGetClimateMode.NowValues).Temperature < 10; }
+		
+		private bool IsDarkout { get => Api.World.BlockAccessor.GetLightLevel(bePost.Pos, EnumLightLevelType.TimeOfDaySunLight) < 10; }
 
 		private bool HasNearbySoldiers {
 			get {
-				for (int s = 0; s < bePost.capacity; s++) {
+				for (int s = 0; s < bePost.EntityUIDs.Count - 1; s++) {
 					if (Api.World.GetEntityById(bePost.EntityUIDs[s]).Pos.DistanceTo(Blockentity.Pos.ToVec3d().Add(0.5, 0.5, 0.5)) < bePost.areasize) {
 						return true;
 					}
@@ -53,13 +32,26 @@ namespace VSKingdom {
 				return false;
 			}
 		}
+		public override void Initialize(ICoreAPI api, JsonObject properties) {
+			base.Initialize(api, properties);
+			fillAmmo = bePost.metlTier >= 4;
+			ammoAmnt = bePost.metlTier;
+			healAmnt = bePost.metlTier;
+			/** TODO: SETUP LISTENER TO PASSIVELY REGEN HEALTH AND RESPAWN TOKENS OVER TIME!!! **/
+			if (Blockentity.Api.Side == EnumAppSide.Universal && bePost != null) {
+				Blockentity.RegisterGameTickListener(OnTickOffset, 60000);
+			}
+		}
 
 		private void OnTickOffset(float dt) {
 			if (!bePost.fireLive) {
 				return;
 			}
+			if (bePost.EntityUIDs.Count == 0) {
+				return;
+			}
 			// Try to heal, revive, and resupply all soldiers in the list if in nearby range.
-			if (HasNearbySoldiers && bePost.EntityUIDs.Count != 0) {
+			if (HasNearbySoldiers) {
 				List<long> soldierList = bePost.EntityUIDs;
 				foreach (long soldierID in soldierList) {
 					var soldier = Api.World.GetEntityById(soldierID) as EntitySentry;
@@ -93,7 +85,7 @@ namespace VSKingdom {
 					ambientSound = ((IClientWorldAccessor)Api.World).LoadSound(new SoundParams() {
 						Location = new AssetLocation("game:sounds/environment/fireplace"),
 						ShouldLoop = true,
-						Position = be.Pos.ToVec3f().Add(0.5f, 0.25f, 0.5f),
+						Position = bePost.Pos.ToVec3f().Add(0.5f, 0.25f, 0.5f),
 						DisposeOnFinish = false,
 						Volume = SoundLevel
 					});

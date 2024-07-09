@@ -1,5 +1,5 @@
 {
-	"code": "post-aged",
+	"code": "post",
 	"class": "BlockPost",
 	"entityClass": "BlockEntityPost",
 	"entityBehaviors": [ { "name": "Resupply" } ],
@@ -24,7 +24,7 @@
 	},
 	"creativeinventory": {
 		"general": [ "*" ],
-		"vskingdom": [ "*-live-good" ]
+		"vskingdom": [ "*-none-good" ]
 	},
 	"blockmaterial": "Metal",
 	"replaceable": 100,

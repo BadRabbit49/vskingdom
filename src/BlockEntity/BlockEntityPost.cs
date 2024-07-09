@@ -9,9 +9,16 @@ using System.Text;
 using System.Linq;
 using System.IO;
 using System.Collections.Generic;
+using HarmonyLib;
+using System;
 
 namespace VSKingdom {
 	public class BlockEntityPost : BlockEntityOpenableContainer, IHeatSource, IPointOfInterest {
+		public BlockEntityPost() {
+			inventory = new InventorySmelting(null, null);
+			inventory.SlotModified += OnSlotModifid;
+		}
+
 		public bool fireLive { get; set; }
 		public bool hasSmoke { get; set; }
 		public bool doRedraw { get; set; }
@@ -25,44 +32,41 @@ namespace VSKingdom {
 		public double maxBTime { get; set; }
 		public double burnFuel { get; set; }
 		public string Type => "downtime";
-		public virtual string DialogTitle { get { return Lang.Get("Brazier"); } }
+		public string DialogTitle { get => Lang.Get("Brazier"); }
 		public enum EnumBlockContainerPacketId { OpenInventory = 5000 }
 		public Vec3d Position => Pos.ToVec3d();
 		public GuiDialogBlockEntityFirepit clientDialog;
-		internal InventorySmelting inventory;
-		public override InventoryBase Inventory { get { return inventory; } }
-		public override string InventoryClassName { get { return "Fuels"; } }
-		public ItemSlot fuelSlot { get { return inventory[0]; } }
+		public InventorySmelting inventory;
+		public override InventoryBase Inventory { get => inventory; }
+		public override string InventoryClassName { get => "Fuels"; }
+		public ItemSlot fuelSlot { get => inventory[0]; }
+
 		public FirepitContentsRenderer renderer;
-		public List<long> EntityUIDs { get; set; }
-		
-		public BlockEntityPost() {
-			inventory = new InventorySmelting(null, null);
-			inventory.SlotModified += OnSlotModifid;
-		}
+		public List<long> EntityUIDs { get; set; } = new List<long>();
+
+		public static Dictionary<string, int> tiers = new Dictionary<string, int> {
+			{ "lead", 2 },
+			{ "copper", 2 },
+			{ "oxidizedcopper", 2 },
+			{ "tinbronze", 3 },
+			{ "bismuthbronze",  3 },
+			{ "blackbronze",  3 },
+			{ "brass", 4 },
+			{ "silver", 4 },
+			{ "gold", 4 },
+			{ "iron", 5 },
+			{ "rust", 5 },
+			{ "meteoriciron", 6 },
+			{ "steel", 7 },
+			{ "stainlesssteel", 8 },
+			{ "titanium", 9 },
+			{ "electrum", 9 },
+		};
 
 		public override void Initialize(ICoreAPI api) {
 			base.Initialize(api);
-			metlTier = 1;
-			string metalType = Block.Variant["metal"];
-			switch (metalType) {
-				case "lead": metlTier = 2; break;
-				case "copper": metlTier = 2; break;
-				case "oxidizedcopper": metlTier = 2; break;
-				case "tinbronze": metlTier = 3;  break;
-				case "bismuthbronze":  metlTier = 3;  break;
-				case "blackbronze":  metlTier = 3;  break;
-				case "brass": metlTier = 4;  break;
-				case "silver": metlTier = 4;  break;
-				case "gold": metlTier = 4;  break;
-				case "iron": metlTier = 5;  break;
-				case "rust": metlTier = 5;  break;
-				case "meteoriciron": metlTier = 6;  break;
-				case "steel": metlTier = 7;  break;
-				case "stainlesssteel": metlTier = 8;  break;
-				case "titanium": metlTier = 9;  break;
-				case "electrum": metlTier = 9;  break;
-			}
+			// Establish metal tier values and their effects.
+			metlTier = tiers.GetValueSafe(Block.Variant["metal"]);
 			capacity = 1 * metlTier;
 			maxpawns = 2 * metlTier;
 			respawns = 2 * metlTier;
@@ -96,7 +100,6 @@ namespace VSKingdom {
 
 		public override void OnBlockRemoved() {
 			base.OnBlockRemoved();
-
 			if (Api is ICoreServerAPI sapi) {
 				sapi.ModLoader.GetModSystem<POIRegistry>().RemovePOI(this);
 			}
@@ -125,25 +128,29 @@ namespace VSKingdom {
 		}
 
 		public override void GetBlockInfo(IPlayer forPlayer, StringBuilder dsc) {
-			base.GetBlockInfo(forPlayer, dsc);
-			string str = "Respawns: " + respawns + "/" + maxpawns + "\nAreaSize: " + areasize;
+			dsc.AppendLine("Respawns: " + respawns + "/" + maxpawns + "\nAreaSize: " + areasize);
 			if (EntityUIDs != null) {
-				str = "\nCapacity: " + EntityUIDs.Count + "/" + capacity + str;
+				dsc.AppendLine("\nCapacity: " + EntityUIDs.Count + "/" + capacity);
 			}
 			if (maxBTime != 0) {
-				str = str + "\nFuelLeft: " + maxBTime + "/" + burnTime;
+				dsc.AppendLine("\nFuelLeft: " + maxBTime + "/" + burnTime);
 			}
-			dsc.AppendLine(str);
-			return;
+			base.GetBlockInfo(forPlayer, dsc);
 		}
 
 		public override void FromTreeAttributes(ITreeAttribute tree, IWorldAccessor worldAccessForResolve) {
 			base.FromTreeAttributes(tree, worldAccessForResolve);
-			for (int n = 0; n < capacity; n++) {
-				string strL = "NUM" + n;
-				EntityUIDs.Insert(n, tree.GetLong(strL));
-			}
 			Inventory.FromTreeAttributes(tree.GetTreeAttribute("inventory"));
+			EntityUIDs = GetListFromString(tree.GetString("entities"));
+			fireLive = tree.GetBool  ("fireLive");
+			hasSmoke = tree.GetBool("hasSmoke");
+			doRedraw = tree.GetBool("doRedraw");
+			cPrvBurn = tree.GetBool("cPrvBurn");
+			metlTier = tree.GetInt("metlTier");
+			capacity = tree.GetInt("capacity");
+			maxpawns = tree.GetInt("maxpawns");
+			respawns = tree.GetInt("respawns");
+			areasize = tree.GetDouble("areasize");
 			burnTime = tree.GetDouble("burnTime");
 			maxBTime = tree.GetDouble("maxBTime");
 			burnFuel = tree.GetDouble("burnFuel");
@@ -160,14 +167,20 @@ namespace VSKingdom {
 
 		public override void ToTreeAttributes(ITreeAttribute tree) {
 			base.ToTreeAttributes(tree);
-			for (int n = 0; n < capacity; n++) {
-				string strL = "NUM" + n;
-				tree.SetLong(strL, EntityUIDs.ElementAt(n));
-			}
 			// Retrieve inventory values.
 			ITreeAttribute invtree = new TreeAttribute();
 			Inventory.ToTreeAttributes(invtree);
 			tree["inventory"] = invtree;
+			tree.SetString("entities", GetStringFromList(EntityUIDs));
+			tree.SetBool("fireLive", fireLive);
+			tree.SetBool("hasSmoke", hasSmoke);
+			tree.SetBool("doRedraw", doRedraw);
+			tree.SetBool("cPrvBurn", cPrvBurn);
+			tree.SetInt("metlTier", metlTier);
+			tree.SetInt("capacity", capacity);
+			tree.SetInt("maxpawns", maxpawns);
+			tree.SetInt("respawns", respawns);
+			tree.SetDouble("areasize", areasize);
 			tree.SetDouble("burnTime", burnTime);
 			tree.SetDouble("maxBTime", maxBTime);
 			tree.SetDouble("burnFuel", burnFuel);
@@ -224,13 +237,14 @@ namespace VSKingdom {
 		}
 
 		public bool IsCapacity(long entityId) {
+			Api.Logger.Notification("ENTITYID: " + entityId);
+			Api.Logger.Notification("CAPACITY: " + capacity);
+			Api.Logger.Notification("LISTEDID: " + EntityUIDs.Count);
 			// Check if there is capacity left for another soldier.
 			if (EntityUIDs.Count < capacity) {
 				EntityUIDs.Add(entityId);
-				return true;
-			} else {
-				return false;
 			}
+			return EntityUIDs.Count < capacity;
 		}
 
 		public void UseRespawn() {
@@ -310,6 +324,23 @@ namespace VSKingdom {
 			MarkDirty(Api.Side == EnumAppSide.Server);
 			doRedraw = true;
 			Api.World.BlockAccessor.GetChunkAtBlockPos(Pos)?.MarkModified();
+		}
+
+		private static string GetStringFromList(List<long> input) {
+			string output = string.Empty;
+			foreach (long num in input) {
+				output += num + ',';
+			}
+			return output.TrimEnd(',');
+		}
+
+		private static List<long> GetListFromString(string input) {
+			string[] strArray = input.Split(',');
+			List<long> output = new List<long>();
+			foreach (string num in strArray) {
+				output.Add(Int64.Parse(num));
+			}
+			return output;
 		}
 	}
 

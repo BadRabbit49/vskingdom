@@ -28,7 +28,7 @@
 	},
 	"creativeinventory": {
 		"general": [ "*" ],
-		"vskingdom": [ "*-live-good" ]
+		"vskingdom": [ "*-none-good" ]
 	},
 	"blockmaterial": "Metal",
 	"replaceable": 100,

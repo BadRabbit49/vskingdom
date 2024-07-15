@@ -7,10 +7,12 @@ using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Util;
 using Vintagestory.API.Server;
 using Vintagestory.API.MathTools;
+using Vintagestory.GameContent;
 
 namespace VSKingdom {
 	internal static class DataUtility {
-		private static ICoreServerAPI serverAPI { get => VSKingdom.serverAPI; }
+		/** THIS ENTIRE THING IS OBSOLETE UNTIL C# 12.0 ALLOWS CONSTRUCTOR METHODS **/
+		/**private static ICoreServerAPI serverAPI { get => VSKingdom.serverAPI; }
 		private static byte[] kingdomData { get => VSKingdom.serverAPI.WorldManager.SaveGame.GetData("kingdomData"); }
 		private static byte[] cultureData { get => VSKingdom.serverAPI.WorldManager.SaveGame.GetData("cultureData"); }
 		private static List<Kingdom> kingdomList => kingdomData is null ? new List<Kingdom>() : SerializerUtil.Deserialize<List<Kingdom>>(kingdomData);
@@ -86,8 +88,16 @@ namespace VSKingdom {
 			return playersGUID;
 		}
 
+		public static string[] GetOutlawsGUIDs(string kingdomGUID) {
+			return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID)?.OutlawsGUID.ToArray<string>();
+		}
+
 		public static string[] GetEnemiesGUIDs(string kingdomGUID) {
 			return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID)?.EnemiesGUID.ToArray<string>();
+		}
+
+		public static string[] GetFriendsGUIDs(string kingdomGUID) {
+			return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID)?.FriendsGUID.ToArray<string>();
 		}
 
 		public static string[] GetOnlinesGUIDs(string kingdomGUID = null, string cultureGUID = null) {
@@ -160,9 +170,13 @@ namespace VSKingdom {
 			return AtWarWith(thisKingdomGUID, thatKingdomGUID);
 		}
 
+		public static bool IsAnEnemy(string thatKingdomGUID, string[] thisEnemyList) {
+			return thisEnemyList.Contains(thatKingdomGUID);
+		}
+
 		public static bool IsAnEnemy(string thisKingdomGUID, Entity target) {
 			if (target is not EntityPlayer && target is not EntitySentry) {
-				return true;
+				return target is not EntityTrader;
 			}
 			if (thisKingdomGUID is null) {
 				return false;
@@ -177,12 +191,12 @@ namespace VSKingdom {
 				return false;
 			}
 			if (target is EntityPlayer) {
-				return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == thisKingdomGUID).EnemiesGUID.Contains((target as EntityPlayer).PlayerUID);
+				return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == thisKingdomGUID).OutlawsGUID.Contains((target as EntityPlayer).PlayerUID);
 			}
-			if (kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == thisKingdomGUID).CurrentWars.Contains(thatKingdomGUID)) {
+			if (kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == thisKingdomGUID).EnemiesGUID.Contains(thatKingdomGUID)) {
 				return true;
 			}
-			if (kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == thatKingdomGUID).CurrentWars.Contains(thisKingdomGUID)) {
+			if (kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == thatKingdomGUID).EnemiesGUID.Contains(thisKingdomGUID)) {
 				return true;
 			}
 			return false;
@@ -206,7 +220,7 @@ namespace VSKingdom {
 				if (entity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("leaders_guid") == playerTarget.PlayerUID) {
 					return false;
 				}
-				return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == thisKingdomGUID).EnemiesGUID.Contains(playerTarget.PlayerUID);
+				return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == thisKingdomGUID).OutlawsGUID.Contains(playerTarget.PlayerUID);
 			}
 			return AtWarWith(thisKingdomGUID, thatKingdomGUID);
 		}
@@ -286,10 +300,10 @@ namespace VSKingdom {
 		}
 
 		public static bool AtWarWith(string thisKingdomGUID, string thatKingdomGUID) {
-			if (kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == thisKingdomGUID).CurrentWars.Contains(thatKingdomGUID)) {
+			if (kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == thisKingdomGUID).EnemiesGUID.Contains(thatKingdomGUID)) {
 				return true;
 			}
-			if (kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == thatKingdomGUID).CurrentWars.Contains(thisKingdomGUID)) {
+			if (kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == thatKingdomGUID).EnemiesGUID.Contains(thisKingdomGUID)) {
 				return true;
 			}
 			return false;
@@ -334,6 +348,6 @@ namespace VSKingdom {
 
 		public static IServerPlayer GetAPlayer(string playersNAME) {
 			return serverAPI.World.AllPlayers.ToList<IPlayer>().Find(playerMatch => playerMatch.PlayerName == playersNAME) as IServerPlayer ?? null;
-		}
+		}**/
 	}
 }

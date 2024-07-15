@@ -1,14 +1,20 @@
 {
 	"item-creature-archer-masc": "Archer",
 	"item-creature-archer-femm": "Archer",
+	"item-creature-bandit-masc": "Bandit",
+	"item-creature-bandit-femm": "Bandit",
 	"item-creature-knight-masc": "Knight",
 	"item-creature-knight-femm": "Knight",
 	"item-people-archer-masc": "Male Archer",
 	"item-people-archer-femm": "Female Archer",
+	"item-people-bandit-masc": "Male Bandit",
+	"item-people-bandit-femm": "Female Bandit",
 	"item-people-knight-masc": "Male Knight",
 	"item-people-knight-femm": "Female Knight",
 	"item-dead-creature-archer-masc": "Dead Archer",
 	"item-dead-creature-archer-femm": "Dead Archer",
+	"item-dead-creature-bandit-masc": "Dead Bandit",
+	"item-dead-creature-bandit-femm": "Dead Bandit",
 	"item-dead-creature-knight-masc": "Dead Knight",
 	"item-dead-creature-knight-femm": "Dead Knight",
 
@@ -89,7 +95,7 @@
 	"command-help-update-kingdom-rename": "/kingdom update rename [ roles | title | longs | descs | ruler | names | short ] 'arguments'",
 	"command-help-update-kingdom-player": "/kingdom update player [ roles ] 'arguments'",
 	"command-help-update-kingdom-elects": "/kingdom update elects [ roles | cycle | times ] 'arguments'",
-	"command-help-update-kingdom-getall": "/kingdom update getall [ basic | mascs | femms | names | skins | pupil | hairs | style | extra | beard ] 'arguments'",
+	"command-help-update-kingdom-getall": "/kingdom update getall [ basic ] 'arguments'",
 	
 	"command-desc-kingdom": "Handles creation, deletion, updating, invitation, departure, and war of/between kingdoms.",
 	"command-desc-culture": "Handles creation, deletion, updating, invitation, and departure of player cultures.",
@@ -175,6 +181,7 @@
 
 	"entries-keyword-player": "Player",
 	"entries-keyword-common": "Common",
+	"entries-keyword-bandit": "Bandit",
 	"entries-keyword-seraph": "Seraph",
 	"entries-keyword-create": "create",
 	"entries-keyword-delete": "delete",
@@ -193,6 +200,9 @@
 	"entries-keyword-shifts": "Shifts",
 	"entries-keyword-nights": "Nights",
 	"entries-keyword-return": "Return",
+	"entries-keyword-revive": "Revive",
+	"entries-keyword-enlist": "Enlist",
+	"entries-keyword-unlist": "Unlist",
 	"entries-keyword-govmon": "Monarchy",
 	"entries-keyword-govdic": "Dictator",
 	"entries-keyword-govrep": "Republic",
@@ -208,10 +218,6 @@
 	"command-message-peaces": "[ENTRY1] has sued for peace in it's war with [ENTRY2].",
 	"command-message-peacea": "[ENTRY1] has has accepted [ENTRY2]'s offer of peace!",
 	"command-message-peacer": "[ENTRY1] has has rejected [ENTRY2]'s offer of peace!",
-	
-	"interact-revive": "Revive",
-	"interact-enlist": "Enlist",
-	"interact-unlist": "Discharge",
 
 	"gui-command-wander-true": "Allowed wandering around...",
 	"gui-command-wander-false": "Prohibited wandering around...",

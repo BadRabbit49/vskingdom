@@ -1,8 +1,6 @@
 ﻿using Vintagestory.API.MathTools;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
-using System.Linq;
-using System.Text;
 using System;
 using System.Diagnostics;
 
@@ -30,6 +28,16 @@ namespace VSKingdom {
 				}
 			}
 			return closest;
+		}
+
+		public static int GetRandom(int num, int low = 0) {
+			Random rnd = new Random();
+			return rnd.Next(low, num);
+		}
+
+		public static string GetRandom(string[] strings) {
+			Random rnd = new Random();
+			return strings[rnd.Next(0, strings.Length - 1)];
 		}
 
 		public static TimeSpan Time(Action action) {

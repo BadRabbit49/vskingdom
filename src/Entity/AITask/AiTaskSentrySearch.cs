@@ -1,11 +1,14 @@
 using Vintagestory.GameContent;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
+using System.Linq;
 
 namespace VSKingdom {
 	public class AiTaskSentrySearch : AiTaskSeekEntity {
-		public AiTaskSentrySearch(EntityAgent entity) : base(entity) { }
-
+		public AiTaskSentrySearch(EntitySentry entity) : base(entity) { this.entity = entity; }
+		#pragma warning disable CS0108
+		public EntitySentry entity;
+		#pragma warning restore CS0108
 		protected long lastCheckTotalMs;
 		protected long lastCheckForHelp;
 		protected long lastCheckCooldown = 500L;
@@ -43,8 +46,11 @@ namespace VSKingdom {
 			if (ent is null) {
 				return false;
 			}
-			if (ent is EntityHumanoid) {
-				return DataUtility.IsAnEnemy(entity, ent);
+			if (ent.WatchedAttributes.HasAttribute("loyalties")) {
+				if (ent is EntitySentry sent) {
+					return entity.enemiesID.Contains(sent.kingdomID);
+				}
+				return entity.enemiesID.Contains(ent.WatchedAttributes.GetTreeAttribute("loyalties").GetString("kingdom_guid"));
 			}
 			if (ent == attackedByEntity && ent != null && ent.Alive) {
 				return true;

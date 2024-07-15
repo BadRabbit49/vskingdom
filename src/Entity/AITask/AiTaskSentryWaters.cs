@@ -1,23 +1,18 @@
 ﻿using System.Linq;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
-using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.GameContent;
 
 namespace VSKingdom {
 	public class AiTaskSentryWaters : AiTaskBase {
-		public AiTaskSentryWaters(EntityAgent entity) : base(entity) { }
-
-		protected bool finished;
-		protected float moveSpeed = 0.035f;
+		public AiTaskSentryWaters(EntitySentry entity) : base(entity) { this.entity = entity; }
+		#pragma warning disable CS0108
+		public EntitySentry entity;
+		#pragma warning restore CS0108
+		protected bool cancelWaters;
 		protected Vec3d target = new Vec3d();
 		protected BlockPos pos = new BlockPos(Dimensions.NormalWorld);
-		
-		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
-			base.LoadConfig(taskConfig, aiConfig);
-			moveSpeed = taskConfig["movespeed"].AsFloat(0.035f);
-		}
 
 		public override void AfterInitialize() {
 			base.AfterInitialize();
@@ -50,8 +45,8 @@ namespace VSKingdom {
 
 		public override void StartExecute() {
 			base.StartExecute();
-			finished = false;
-			pathTraverser.WalkTowards(target, moveSpeed, 0.5f, OnGoalReached, OnStuck);
+			cancelWaters = false;
+			pathTraverser.WalkTowards(target, (float)entity.moveSpeed, 0.5f, OnGoalReached, OnStuck);
 		}
 
 		public override bool ContinueExecute(float dt) {
@@ -60,7 +55,7 @@ namespace VSKingdom {
 					return false;
 				}
 			}
-			return !finished;
+			return !cancelWaters;
 		}
 
 		public override void FinishExecute(bool cancelled) {
@@ -69,11 +64,11 @@ namespace VSKingdom {
 		}
 
 		private void OnStuck() {
-			finished = true;
+			cancelWaters = true;
 		}
 
 		private void OnGoalReached() {
-			finished = true;
+			cancelWaters = true;
 		}
 	}
 }

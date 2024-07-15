@@ -8,9 +8,9 @@
 	"textureSizes": {
 	},
 	"textures": {
-		"flag": "C:/Users/foxel/source/repos/vskingdom/vskingdom/resources/assets/vskingdom/textures/item/banner/osivalya",
-		"grip": "iron",
-		"pole": "wood"
+		"pole": "",
+		"hilt": "",
+		"flag": ""
 	},
 	"elements": [
 		{
@@ -136,8 +136,8 @@
 													"uv": [ 0.0, 0.0 ],
 													"rotationOrigin": [ 4.0, 0.0, 4.0 ],
 													"faces": {
-														"up": { "texture": "#flag", "uv": [ 8.0, 8.0, 16.0, 12.0 ], "rotation": 270, "autoUv": false, "windMode": [-1,-1,-1,-1] },
-														"down": { "texture": "#flag", "uv": [ 8.0, 8.0, 16.0, 12.0 ], "rotation": 270, "autoUv": false, "windMode": [-1,-1,-1,-1] }
+														"up": { "texture": "#flag", "uv": [ 8.0, 8.0, 16.0, 12.0 ], "rotation": 270, "autoUv": false, "windMode": [0,0,0,0] },
+														"down": { "texture": "#flag", "uv": [ 8.0, 8.0, 16.0, 12.0 ], "rotation": 270, "autoUv": false, "windMode": [0,0,0,0] }
 													},
 													"children": [
 														{
@@ -147,8 +147,8 @@
 															"uv": [ 0.0, 0.0 ],
 															"rotationOrigin": [ 4.0, 0.0, 4.0 ],
 															"faces": {
-																"up": { "texture": "#flag", "uv": [ 8.0, 12.0, 16.0, 16.0 ], "rotation": 270, "autoUv": false, "windMode": [-1,-1,-1,-1] },
-																"down": { "texture": "#flag", "uv": [ 8.0, 12.0, 16.0, 16.0 ], "rotation": 270, "autoUv": false, "windMode": [-1,-1,-1,-1] }
+																"up": { "texture": "#flag", "uv": [ 8.0, 12.0, 16.0, 16.0 ], "rotation": 270, "autoUv": false, "windMode": [0,0,0,0] },
+																"down": { "texture": "#flag", "uv": [ 8.0, 12.0, 16.0, 16.0 ], "rotation": 270, "autoUv": false, "windMode": [0,0,0,0] }
 															}
 														}
 													]
@@ -259,8 +259,8 @@
 		{
 			"name": "MoveForward",
 			"code": "moveforward",
-			"quantityframes": 7,
-			"onActivityStopped": "EaseOut",
+			"quantityframes": 8,
+			"onActivityStopped": "Rewind",
 			"onAnimationEnd": "Hold",
 			"keyframes": [
 				{

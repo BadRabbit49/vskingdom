@@ -4,6 +4,7 @@ using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
+using Vintagestory.API.Server;
 
 namespace VSKingdom {
 	public class InvSentryDialog : GuiDialog {
@@ -22,11 +23,14 @@ namespace VSKingdom {
 		protected InventorySentry inventory;
 		protected EntitySentry entity;
 		protected EntityPlayer player;
-		protected ITreeAttribute loyalties => entity.GetBehavior<EntityBehaviorLoyalties>()?.loyalties;
+		protected ICoreServerAPI sapi;
+		protected ITreeAttribute loyalties => entity.WatchedAttributes.GetTreeAttribute("loyalties");
 		public InvSentryDialog(InventorySentry inventory, EntitySentry entity, ICoreClientAPI capi) : base(capi) {
 			this.inventory = inventory;
 			this.entity = entity;
 			this.player = capi.World.Player.Entity;
+			this.capi = capi;
+			this.sapi = capi.World.Player.Entity.Api as ICoreServerAPI;
 
 			ElementBounds bgBounds = ElementBounds.Fill.WithFixedPadding(GuiStyle.ElementToDialogPadding);
 			bgBounds.BothSizing = ElementSizing.FitToChildren;
@@ -143,21 +147,31 @@ namespace VSKingdom {
 
 		protected bool OnGiveCommand(string orders) {
 			// This is a brute-force way of doing this. I didn't want it to come to this but here it is.
-			VSKingdom.serverAPI.World.GetEntityById(entity.EntityId).WatchedAttributes.GetTreeAttribute("loyalties").SetBool(orders, !loyalties.GetBool(orders));
-			VSKingdom.serverAPI.World.GetEntityById(entity.EntityId).WatchedAttributes.MarkPathDirty("loyalties");
-			// Get notification message.
-			capi.World.Logger.Chat(Lang.Get("vskingdom:entries-keyword-" + orders.Replace("command_", "") + "-" + loyalties.GetBool(orders).ToString().ToLower()));
-			var thisEnt = VSKingdom.serverAPI.World.GetEntityById(entity.EntityId);
-			if (loyalties.GetBool("command_wander")) {
-				thisEnt.Attributes.SetFloat("wanderRangeMul", 2f);
-			} else {
-				thisEnt.Attributes.SetFloat("wanderRangeMul", 0f);
+			entity.WatchedAttributes.GetTreeAttribute("loyalties").SetBool(orders, !loyalties.GetBool(orders));
+			SentryOrders newOrders = new SentryOrders();
+			newOrders.entityUID = entity.EntityId;
+			switch (orders) {
+				case "command_wander": newOrders.wandering = !loyalties.GetBool(orders); break;
+				case "command_follow": newOrders.following = !loyalties.GetBool(orders); break;
+				case "command_firing": newOrders.attacking = !loyalties.GetBool(orders); break;
+				case "command_pursue": newOrders.pursueing = !loyalties.GetBool(orders); break;
+				case "command_shifts": newOrders.shifttime = !loyalties.GetBool(orders); break;
+				case "command_nights": newOrders.nighttime = !loyalties.GetBool(orders); break;
+				case "command_return": newOrders.returning = !loyalties.GetBool(orders); break;
 			}
-			if (loyalties.GetBool("command_follow")) {
-				thisEnt.WatchedAttributes.SetString("guardedPlayerUid", player.PlayerUID);
-				thisEnt.WatchedAttributes.SetLong("guardedEntityId", player.EntityId);
-			}
+
+			sapi.Network.GetChannel("sentrynetwork").SendPacket<SentryOrders>(newOrders, player as IServerPlayer);
+			capi.ShowChatMessage(Lang.Get($"vskingdom:entries-keyword-{orders.Replace("command_", "")}-{loyalties.GetBool(orders).ToString().ToLower()}"));
 			TryClose();
+			if (entity.ruleOrder[0]) {
+				entity.WatchedAttributes.SetFloat("wanderRangeMul", 2f);
+			} else {
+				entity.WatchedAttributes.SetFloat("wanderRangeMul", 1f);
+			}
+			if (entity.ruleOrder[1]) {
+				entity.WatchedAttributes.SetString("guardedPlayerUid", player.PlayerUID);
+				entity.WatchedAttributes.SetLong("guardedEntityId", player.EntityId);
+			}
 			return true;
 		}
 

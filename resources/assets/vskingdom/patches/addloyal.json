@@ -1,12 +1,6 @@
 [
 	{
 		"file": "game:entities/humanoid/player",
-		"path": "/client/behaviors/-",
-		"op": "add",
-		"value": { "code": "KingdomLoyalties" }
-	},
-	{
-		"file": "game:entities/humanoid/player",
 		"path": "/server/behaviors/-",
 		"op": "add",
 		"value": { "code": "KingdomLoyalties" }

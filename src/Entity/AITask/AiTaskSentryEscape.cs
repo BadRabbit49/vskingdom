@@ -10,11 +10,13 @@ using Vintagestory.GameContent;
 
 namespace VSKingdom {
 	public class AiTaskSentryEscape : AiTaskFleeEntity {
-		public AiTaskSentryEscape(EntityAgent entity) : base(entity) { }
-
+		public AiTaskSentryEscape(EntitySentry entity) : base(entity) { this.entity = entity; }
+		#pragma warning disable CS0108
+		public EntitySentry entity;
+		#pragma warning restore CS0108
 		public override bool AggressiveTargeting => false;
 
-		protected bool finished;
+		protected bool cancelEscape;
 		protected long fleeingStartMs;
 		protected long fleeDurationMs = 5000L;
 		protected float moveSpeed = 0.035f;
@@ -69,15 +71,18 @@ namespace VSKingdom {
 			} else {
 				updateTargetPosFleeMode(targetEntity.Pos.XYZ);
 			}
-			if (DataUtility.IsAnEnemy(entity, targetEntity)) {
-				return ShouldFleeTarget();
+			if (targetEntity.WatchedAttributes.HasAttribute("loyalties")) {
+				if (targetEntity is EntitySentry sent) {
+					return entity.enemiesID.Contains(sent.kingdomID);
+				}
+				return entity.enemiesID.Contains(targetEntity.WatchedAttributes.GetTreeAttribute("loyalties").GetString("kingdom_guid"));
 			}
 			return false;
 		}
 
 		public override void StartExecute() {
 			base.StartExecute();
-			finished = false;
+			cancelEscape = false;
 			soundChance = Math.Max(0.025f, soundChance - 0.2f);
 			pathTraverser.WalkTowards(targetPos, moveSpeed * (float)GlobalConstants.SprintSpeedMultiplier, targetEntity.SelectionBox.XSize + 0.2f, OnGoalReached, OnStuck);
 			fleeingStartMs = entity.World.ElapsedMilliseconds;
@@ -95,17 +100,17 @@ namespace VSKingdom {
 			if (entity.ServerPos.SquareDistanceTo(targetEntity.ServerPos) > fleeRange * fleeRange) {
 				return false;
 			}
-			return !finished && targetEntity.Alive && (entity.World.ElapsedMilliseconds - fleeingStartMs < fleeDurationMs) && !finished && pathTraverser.Active;
+			return !cancelEscape && targetEntity.Alive && (entity.World.ElapsedMilliseconds - fleeingStartMs < fleeDurationMs) && !cancelEscape && pathTraverser.Active;
 		}
 
 		public override void OnEntityHurt(DamageSource source, float damage) {
 			base.OnEntityHurt(source, damage);
-			finished = ShouldFleeTarget();
+			cancelEscape = ShouldFleeTarget();
 		}
 
 		public override void FinishExecute(bool cancelled) {
 			pathTraverser.Stop();
-			finished = true;
+			cancelEscape = true;
 			base.FinishExecute(cancelled);
 		}
 
@@ -128,11 +133,11 @@ namespace VSKingdom {
 		}
 
 		private void OnStuck() {
-			finished = true;
+			cancelEscape = true;
 		}
 
 		private void OnGoalReached() {
-			finished = true;
+			cancelEscape = true;
 			pathTraverser.Retarget();
 		}
 

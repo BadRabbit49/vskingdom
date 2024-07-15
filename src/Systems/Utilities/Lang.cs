@@ -12,7 +12,12 @@ internal static class LangUtility {
 	}
 
 	public static string Set(string langKeys, string entryKey1, string entryKey2 = null, string entryKey3 = null, string entryKey4 = null) {
-		return Lang.Get("vskingdom:" + langKeys).Replace("[ENTRY1]", entryKey1).Replace("[ENTRY2]", entryKey2).Replace("[ENTRY3]", entryKey3).Replace("[ENTRY4]", entryKey4);
+		return Lang.Get("vskingdom:" + langKeys)
+			.Replace("[ENTRY]", entryKey1)
+			.Replace("[ENTRY1]", entryKey1)
+			.Replace("[ENTRY2]", entryKey2)
+			.Replace("[ENTRY3]", entryKey3)
+			.Replace("[ENTRY4]", entryKey4);
 	}
 
 	public static string Set(string langKeys, string[] entryKeys) {

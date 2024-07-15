@@ -7,7 +7,9 @@
 	"deadHitboxSize": {"x": 0.75, "y": 0.5},
 	"eyeHeight": 1.7,
 	"attributes": {
-		"kingdomClass": "range",
+		"moveSpeed": 0.035,
+		"walkSpeed": 0.018,
+		"weapClass": "range",
 		"skinnableParts": [
 			{
 				"code": "baseskin",
@@ -281,56 +283,37 @@
 				"code": "idle",
 				"animation": "idle",
 				"blendMode": "Average",
-				"triggeredBy": { "onControls": [ "Idle" ], "matchExact": true }
+				"triggeredBy": { "onControls": [ "Idle" ], "matchExact": true, "defaultAnim": true }
 			},
 			{
 				"code": "walk",
 				"animation": "walk",
 				"blendMode": "Average",
 				"mulWithWalkSpeed": true,
-				"triggeredBy": { "onControls": [ "Move" ], "matchExact": true }
+				"triggeredBy": { "onControls": [ "Move" ] }
 			},
 			{
-				"code": "sprint",
-				"animation": "sprint",
+				"code": "move",
+				"animation": "move",
 				"blendMode": "Average",
 				"mulWithWalkSpeed": true,
-				"triggeredBy": { "onControls": [ "Move", "SprintMode" ], "matchExact": true }
+				"triggeredBy": { "onControls": [ "SprintMode" ] }
 			},
 			{
 				"code": "jump",
-				"animation": "newjump",
+				"animation": "jump",
 				"blendMode": "Average",
-				"triggeredBy": { "onControls": [ "Idle", "Jump" ], "matchExact": true }
-			},
-			{
-				"code": "swimidle",
-				"animation": "swimidle",
-				"blendMode": "Average",
-				"animationSpeed": 0.5,
-				"triggeredBy": { "onControls": [ "Idle", "Swim" ], "matchExact": true }
+				"triggeredBy": { "onControls": [ "Jump" ] }
 			},
 			{
 				"code": "swim",
 				"animation": "swim",
 				"blendMode": "Average",
-				"triggeredBy": { "onControls": [ "Move", "Swim" ], "matchExact": true }
+				"triggeredBy": { "onControls": [ "Swim" ] }
 			},
 			{
-				"code": "climbidle",
-				"animation": "climbidle",
-				"blendMode": "Average",
-				"triggeredBy": { "onControls": [ "Idle", "Climb" ], "matchExact": true }
-			},
-			{
-				"code": "climb",
-				"animation": "ladderup",
-				"blendMode": "Average",
-				"triggeredBy": { "onControls": [ "Move", "Climb" ], "matchExact": true }
-			},
-			{
-				"code": "die",
-				"animation": "die",
+				"code": "dies",
+				"animation": "die0",
 				"blendMode": "AddAverage",
 				"animationSpeed": 1.75,
 				"weight": 10,
@@ -356,7 +339,7 @@
 			{ "code": "bodytemperature" },
 			{ "code": "KingdomFullNames" },
 			{ "code": "KingdomLoyalties" },
-			{ "code": "SoldierDecayBody", "hoursToDecay": 0, "skeletonBody": ["humanoid1", "humanoid2"] },
+			{ "code": "SoldierDecayBody", "hoursToDecay": 0.01, "skeletonBody": [ "humanoid1", "humanoid2" ] },
 			{
 				"code": "taskai",
 				"aitasks": [
@@ -367,49 +350,42 @@
 						"seekingRange": 15,
 						"mincooldown": 500,
 						"maxcooldown": 1500,
-						"animation": "sprint",
-						"movespeed": 0.035,
 						"damageTier": 3
 					},
 					{
 						"code": "SentryEscape",
 						"entityCodes": [ "player", "archer-*", "knight-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "looter", "bandit-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
 						"priority": 1.8,
-						"animation": "sprint",
-						"movespeed": 0.035,
+						"animation": "move",
 						"animationSpeed": 1.75
 					},
 					{
 						"code": "SentryHealth",
 						"priority": 1.2,
-						"animation": "sprint",
 						"mincooldown": 1000,
 						"maxcooldown": 1500,
 						"seekingRange": 20
 					},
 					{
 						"code": "SentryWaters",
-						"priority": 1.2,
-						"animation": "walk"
+						"priority": 1.2
 					},
 					{
 						"code": "SentryFollow",
-						"priority": 1.0,
-						"animation": "walk"
+						"priority": 1.0
 					},
 					{
 						"code": "SentryReturn",
-						"priority": 1.0,
-						"animation": "sprint"
+						"priority": 1.0
 					},
 					{
 						"code": "SentryWander",
-						"priority": 1.0,
-						"animation": "walk"
+						"priority": 1.0
 					},
 					{
 						"code": "lookaround",
-						"priority": 0.5
+						"priority": 0.5,
+						"animation": "idle1"
 					}
 				]
 			}

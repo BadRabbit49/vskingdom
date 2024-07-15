@@ -5,24 +5,17 @@ using Vintagestory.GameContent;
 
 namespace VSKingdom {
 	public class AiTaskSentryFollow : AiTaskStayCloseToEntity {
-		public AiTaskSentryFollow(EntityAgent entity) : base(entity) { }
-
-		private ITreeAttribute loyalties;
-		private bool following { get => loyalties.GetBool("command_follow"); }
-
+		public AiTaskSentryFollow(EntitySentry entity) : base(entity) { this.entity = entity; }
+		#pragma warning disable CS0108
+		public EntitySentry entity;
+		#pragma warning restore CS0108
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);
 			allowTeleport &= entity.Api.World.Config.GetAsBool("AllowTeleport");
 		}
 
-		public override void AfterInitialize() {
-			base.AfterInitialize();
-			loyalties = entity.WatchedAttributes.GetTreeAttribute("loyalties");
-			pathTraverser = entity.GetBehavior<EntityBehaviorTaskAI>().PathTraverser;
-		}
-
 		public override bool ShouldExecute() {
-			if (!following) {
+			if (!entity.ruleOrder[1]) {
 				return false;
 			}
 			targetEntity = GetGuardedEntity();

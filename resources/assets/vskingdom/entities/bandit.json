@@ -1,5 +1,5 @@
 {
-	"code": "knight",
+	"code": "bandit",
 	"class": "EntitySentry",
 	"variantGroups": [ { "code": "gender", "states": [ "masc", "femm" ] } ],
 	"canClimb": true,
@@ -10,6 +10,16 @@
 		"moveSpeed": 0.035,
 		"walkSpeed": 0.018,
 		"weapClass": "melee",
+		"baseGroup": "xxxxxxxx",
+		"weapSpawn": [ "game:blade-scrap-scrap", "game:blade-arming-ruined", "game:blade-claymore-ruined", "game:spear-scrap-scrap", "game:club-scrap-scrap", "game:club-generic-wood" ],
+		"headSpawn": [ "game:clothes-head-peasent-head-scarf", "", "", "", "" ],
+		"handSpawn": [ "game:clothes-hand-survivor", "game:clothes-hand-commoner-gloves", "game:clothes-hand-heavy-leather-gloves", "", "", "", "" ],
+		"gearSpawn": [ "game:clothes-upperbody-tattered-linen-shirt", "game:clothes-upperbody-tattered-crimson-tunic" ],
+		"pantSpawn": [ "game:clothes-lowerbody-commoner-trousers", "game:clothes-lowerbody-survivor", "game:clothes-lowerbody-raw-hide-trousers" ],
+		"shoeSpawn": [ "game:clothes-foot-survivor", "game:clothes-foot-commoner-boots", "game:clothes-foot-peasent-slippers" ],
+		"helmSpawn": [ "game:clothes-armor-head-brigandine-iron", "game:armor-head-sewn-leather", "", "" ],
+		"bodySpawn": [ "game:clothes-armor-body-brigandine-iron", "game:armor-body-jerkin-leather", "", "" ],
+		"legsSpawn": [ "game:clothes-armor-body-brigandine-iron", "game:armor-legs-jerkin-leather", "", "" ],
 		"skinnableParts": [
 			{
 				"code": "baseskin",
@@ -335,11 +345,11 @@
 			{ "code": "repulseagents" },
 			{ "code": "controlledphysics", "stepHeight": 1.2 },
 			{ "code": "health", "currenthealth": 20, "maxhealth": 20 },
-			{ "code": "bodytemperature" },
 			{ "code": "extraskinnable" },
+			{ "code": "bodytemperature" },
 			{ "code": "KingdomFullNames" },
 			{ "code": "KingdomLoyalties" },
-			{ "code": "SoldierDecayBody", "hoursToDecay": 96, "skeletonBody": [ "humanoid1", "humanoid2" ] },
+			{ "code": "SoldierDecayBody", "hoursToDecay": 24, "skeletonBody": [ "humanoid1", "humanoid2" ] },
 			{
 				"code": "taskai",
 				"aitasks": [
@@ -360,7 +370,6 @@
 						"mincooldown": 1000,
 						"maxcooldown": 1500,
 						"seekingRange": 20,
-						"movespeed": 0.035,
 						"animationSpeed": 1.75
 					},
 					{
@@ -373,24 +382,15 @@
 					},
 					{
 						"code": "SentryWaters",
-						"priority": 1.2,
-						"moveSpeed": 0.035
-					},
-					{
-						"code": "SentryFollow",
-						"priority": 1.0,
-						"moveSpeed": 0.035
+						"priority": 1.2
 					},
 					{
 						"code": "SentryReturn",
-						"priority": 1.0,
-						"moveSpeed": 0.035
+						"priority": 1.0
 					},
 					{
 						"code": "SentryWander",
-						"priority": 1.0,
-						"animation": "walk",
-						"moveSpeed": 0.035
+						"priority": 1.0
 					},
 					{
 						"code": "idle",

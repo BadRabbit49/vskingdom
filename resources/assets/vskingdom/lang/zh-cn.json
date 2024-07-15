@@ -1,14 +1,20 @@
 {
 	"item-creature-archer-masc": "弓箭手",
 	"item-creature-archer-femm": "弓箭手",
+	"item-creature-bandit-masc": "强盗",
+	"item-creature-bandit-femm": "强盗",
 	"item-creature-knight-masc": "骑士",
 	"item-creature-knight-femm": "骑士",
 	"item-people-archer-masc": "男射手",
 	"item-people-archer-femm": "女射手",
+	"item-people-bandit-masc": "男性强盗",
+	"item-people-bandit-femm": "女性强盗",
 	"item-people-knight-masc": "男性骑士",
 	"item-people-knight-femm": "女性骑士",
 	"item-dead-creature-archer-masc": "死去的弓箭手",
 	"item-dead-creature-archer-femm": "死去的弓箭手",
+	"item-dead-creature-bandit-masc": "死去的强盗",
+	"item-dead-creature-bandit-femm": "死去的强盗",
 	"item-dead-creature-knight-masc": "死去的骑士",
 	"item-dead-creature-knight-femm": "死去的骑士",
 
@@ -89,7 +95,7 @@
 	"command-help-update-kingdom-rename": "/kingdom update rename [ roles (种姓) | title (国名) | longs (王国全名) | descs (完整王国描述) | ruler (统治者称号) | names (姓氏) | short ] '输入参数'",
 	"command-help-update-kingdom-player": "/kingdom update player [ roles (种姓) ] '输入参数'",
 	"command-help-update-kingdom-elects": "/kingdom update elects [ roles (有选举权的种姓) | cycle (选举间隔时间) | times (选举期限) ] '选举信息'",
-	"command-help-update-kingdom-getall": "/kingdom update getall [ basic | mascs (男名) | femms (女名) | names (姓氏) | skins (皮肤) | pupil (瞳孔) | hairs (发色) | style (发型) | extra (胡须) | beard (髯须) ] '输入参数'",
+	"command-help-update-kingdom-getall": "/kingdom update getall [ basic (获取基本信息) ] '输入参数'",
 
 	"command-desc-kingdom": "处理王国的创建、删除、更新、邀请、离开和战争/王国之间的战争。",
 	"command-desc-culture": "处理玩家文化的创建、删除、更新、邀请和离开。",
@@ -174,6 +180,7 @@
 
 	"entries-keyword-player": "玩家",
 	"entries-keyword-common": "平民",
+	"entries-keyword-bandit": "匪国",
 	"entries-keyword-seraph": "天使",
 	"entries-keyword-create": "创作",
 	"entries-keyword-delete": "删去",
@@ -193,6 +200,9 @@
 	"entries-keyword-shifts": "輪班",
 	"entries-keyword-nights": "夜間",
 	"entries-keyword-return": "返回",
+	"entries-keyword-revive": "重振",
+	"entries-keyword-enlist": "征召",
+	"entries-keyword-unlist": "卸货",
 	"entries-keyword-govmon": "君主制",
 	"entries-keyword-govdic": "独裁",
 	"entries-keyword-govrep": "共和国",
@@ -208,10 +218,6 @@
 	"command-message-peaces": "[ENTRY1] 在与 [ENTRY2] 的战争中要求和平。",
 	"command-message-peacea": "[ENTRY1] 已经接受了 [ENTRY2] 的和平提议！",
 	"command-message-peacer": "[ENTRY1] 拒绝了 [ENTRY2] 的和平提议！",
-
-	"interact-revive": "重振",
-	"interact-enlist": "征召",
-	"interact-unlist": "卸货",
 
 	"gui-command-wander-true": "允许四处游荡...",
 	"gui-command-wander-false": "禁止四处游荡...",

@@ -1,26 +1,25 @@
-﻿﻿using Vintagestory.GameContent;
+﻿using System;
+using System.IO;
+using System.Text;
+using System.Collections.Generic;
+using HarmonyLib;
+using Vintagestory.GameContent;
 using Vintagestory.API.Server;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.Config;
 using Vintagestory.API.Common;
 using Vintagestory.API.Client;
-using System.Text;
-using System.Linq;
-using System.IO;
-using System.Collections.Generic;
-using HarmonyLib;
-using System;
 
 namespace VSKingdom {
-	public class BlockEntityPost : BlockEntityOpenableContainer, IHeatSource, IPointOfInterest {
+	public class BlockEntityPost : BlockEntityContainer, IHeatSource, IPointOfInterest {
 		public BlockEntityPost() {
 			inventory = new InventorySmelting(null, null);
 			inventory.SlotModified += OnSlotModifid;
 		}
 
-		public bool fireLive { get; set; }
-		public bool hasSmoke { get; set; }
+		public bool fireLive { get => Block.Variant["state"] == "live"; }
+		public bool hasSmoke { get => Block.Variant["fuels"] != "temp" && fireLive; }
 		public bool doRedraw { get; set; }
 		public bool cPrvBurn { get; set; }
 		public int metlTier { get; set; }
@@ -31,6 +30,7 @@ namespace VSKingdom {
 		public double burnTime { get; set; }
 		public double maxBTime { get; set; }
 		public double burnFuel { get; set; }
+		public string ownerUID { get; set; }
 		public string Type => "downtime";
 		public string DialogTitle { get => Lang.Get("Brazier"); }
 		public enum EnumBlockContainerPacketId { OpenInventory = 5000 }
@@ -40,10 +40,11 @@ namespace VSKingdom {
 		public override InventoryBase Inventory { get => inventory; }
 		public override string InventoryClassName { get => "Fuels"; }
 		public ItemSlot fuelSlot { get => inventory[0]; }
+		public ItemSlot ammoSlot { get => inventory[1]; }
 
 		public FirepitContentsRenderer renderer;
 		public List<long> EntityUIDs { get; set; } = new List<long>();
-
+		
 		public static Dictionary<string, int> tiers = new Dictionary<string, int> {
 			{ "lead", 2 },
 			{ "copper", 2 },
@@ -77,73 +78,49 @@ namespace VSKingdom {
 			}
 		}
 
+		public override void OnBlockPlaced(ItemStack byItemStack = null) {
+			base.OnBlockPlaced(byItemStack);
+			if (Block.Variant["fuels"] != "null") {
+				if (Block.Variant["fuels"] == "temp") {
+					maxBTime = burnTime = 60 * Api.World.Calendar.HoursPerDay * Api.World.Calendar.DaysPerMonth;
+				} else {
+					maxBTime = burnTime = 60 * Api.World.Calendar.HoursPerDay;
+				}
+			}
+		}
+
 		public override void OnBlockBroken(IPlayer byPlayer = null) {
-			base.OnBlockBroken(byPlayer);
+			if (byPlayer.PlayerUID != ownerUID) {
+				switch (Block.LastCodePart()) {
+					case "good": Api.World.BlockAccessor.ExchangeBlock(Api.World.GetBlock(Block.CodeWithVariant("level", "hurt")).Id, Pos); return;
+					case "hurt": Api.World.BlockAccessor.ExchangeBlock(Api.World.GetBlock(Block.CodeWithVariant("level", "dead")).Id, Pos); return;
+					case "dead": break;
+				}
+			}
 			if (Api is ICoreServerAPI sapi) {
 				sapi.ModLoader.GetModSystem<POIRegistry>().RemovePOI(this);
 			}
-			base.OnBlockRemoved();
-			if (invDialog?.IsOpened() == true) {
-				invDialog?.TryClose();
-			}
-			invDialog?.Dispose();
-			Inventory.DropAll(Position);
-		}
-
-		public override void OnBlockUnloaded() {
-			base.OnBlockRemoved();
-			if (invDialog?.IsOpened() == true) {
-				invDialog?.TryClose();
-			}
-			invDialog?.Dispose();
+			base.OnBlockBroken(byPlayer);
 		}
 
 		public override void OnBlockRemoved() {
-			base.OnBlockRemoved();
 			if (Api is ICoreServerAPI sapi) {
 				sapi.ModLoader.GetModSystem<POIRegistry>().RemovePOI(this);
 			}
-			if (invDialog?.IsOpened() == true) {
-				invDialog?.TryClose();
-			}
-			invDialog?.Dispose();
-			if (EntityUIDs is null || EntityUIDs.Count == 0) {
-				return;
-			}
-			for (int n = 0; n < EntityUIDs.Count; n++) {
-				Api.World.GetEntityById(EntityUIDs[n]).GetBehavior<EntityBehaviorLoyalties>()?.SetOutpost(new BlockPos(0, 0, 0, 0));
-			}
-		}
-
-		public override bool OnPlayerRightClick(IPlayer byPlayer, BlockSelection blockSel) {
-			if (Api.Side == EnumAppSide.Client) {
-				toggleInventoryDialogClient(byPlayer, () => {
-					SyncedTreeAttribute dtree = new SyncedTreeAttribute();
-					ToTreeAttributes(dtree);
-					clientDialog = new GuiDialogBlockEntityFirepit(DialogTitle, Inventory, Pos, dtree, Api as ICoreClientAPI);
-					return clientDialog;
-				});
-			}
-			return true;
+			base.OnBlockRemoved();
 		}
 
 		public override void GetBlockInfo(IPlayer forPlayer, StringBuilder dsc) {
-			dsc.AppendLine("Respawns: " + respawns + "/" + maxpawns + "\nAreaSize: " + areasize);
-			if (EntityUIDs != null) {
-				dsc.AppendLine("\nCapacity: " + EntityUIDs.Count + "/" + capacity);
-			}
-			if (maxBTime != 0) {
-				dsc.AppendLine("\nFuelLeft: " + maxBTime + "/" + burnTime);
-			}
+			dsc.AppendLine("Respawns: " + respawns + "/" + maxpawns);
+			dsc.AppendLine("AreaSize: " + areasize);
+			dsc.AppendLine("FuelLeft: " + maxBTime + "/" + burnTime);
+			dsc.AppendLine("Capacity: " + EntityUIDs.Count + "/" + capacity);
 			base.GetBlockInfo(forPlayer, dsc);
 		}
 
 		public override void FromTreeAttributes(ITreeAttribute tree, IWorldAccessor worldAccessForResolve) {
 			base.FromTreeAttributes(tree, worldAccessForResolve);
 			Inventory.FromTreeAttributes(tree.GetTreeAttribute("inventory"));
-			EntityUIDs = GetListFromString(tree.GetString("entities"));
-			fireLive = tree.GetBool  ("fireLive");
-			hasSmoke = tree.GetBool("hasSmoke");
 			doRedraw = tree.GetBool("doRedraw");
 			cPrvBurn = tree.GetBool("cPrvBurn");
 			metlTier = tree.GetInt("metlTier");
@@ -154,6 +131,8 @@ namespace VSKingdom {
 			burnTime = tree.GetDouble("burnTime");
 			maxBTime = tree.GetDouble("maxBTime");
 			burnFuel = tree.GetDouble("burnFuel");
+			ownerUID = tree.GetString("ownerUID");
+			EntityUIDs = GetListFromString(tree.GetString("entities"));
 			if (Api?.Side == EnumAppSide.Client) {
 				UpdateRenderer();
 			}
@@ -171,9 +150,6 @@ namespace VSKingdom {
 			ITreeAttribute invtree = new TreeAttribute();
 			Inventory.ToTreeAttributes(invtree);
 			tree["inventory"] = invtree;
-			tree.SetString("entities", GetStringFromList(EntityUIDs));
-			tree.SetBool("fireLive", fireLive);
-			tree.SetBool("hasSmoke", hasSmoke);
 			tree.SetBool("doRedraw", doRedraw);
 			tree.SetBool("cPrvBurn", cPrvBurn);
 			tree.SetInt("metlTier", metlTier);
@@ -184,9 +160,12 @@ namespace VSKingdom {
 			tree.SetDouble("burnTime", burnTime);
 			tree.SetDouble("maxBTime", maxBTime);
 			tree.SetDouble("burnFuel", burnFuel);
+			tree.SetString("ownerUID", ownerUID);
+			tree.SetString("entities", GetStringFromList(EntityUIDs));
 		}
 		
 		public override void OnReceivedClientPacket(IPlayer player, int packetid, byte[] data) {
+			base.OnReceivedClientPacket(player, packetid, data);
 			if (packetid < 1000) {
 				Inventory.InvNetworkUtil.HandleClientPacket(player, packetid, data);
 				// Tell server to save this chunk to disk again.
@@ -202,15 +181,8 @@ namespace VSKingdom {
 		}
 
 		public override void OnReceivedServerPacket(int packetid, byte[] data) {
-			IClientWorldAccessor clientWorld = (IClientWorldAccessor)Api.World;
+			base.OnReceivedServerPacket(packetid, data);
 			if (packetid == (int)EnumBlockContainerPacketId.OpenInventory) {
-				if (invDialog != null) {
-					if (invDialog?.IsOpened() == true)
-						invDialog.TryClose();
-					invDialog?.Dispose();
-					invDialog = null;
-					return;
-				}
 				string dialogClassName;
 				string dialogTitle;
 				int cols;
@@ -224,22 +196,10 @@ namespace VSKingdom {
 				}
 				Inventory.FromTreeAttributes(tree);
 				Inventory.ResolveBlocksOrItems();
-				invDialog = new GuiDialogBlockEntityInventory(dialogTitle, Inventory, Pos, cols, Api as ICoreClientAPI);
-				invDialog.TryOpen();
-			}
-			if (packetid == (int)EnumBlockEntityPacketId.Close) {
-				clientWorld.Player.InventoryManager.CloseInventory(Inventory);
-				if (invDialog?.IsOpened() == true)
-					invDialog?.TryClose();
-				invDialog?.Dispose();
-				invDialog = null;
 			}
 		}
 
 		public bool IsCapacity(long entityId) {
-			Api.Logger.Notification("ENTITYID: " + entityId);
-			Api.Logger.Notification("CAPACITY: " + capacity);
-			Api.Logger.Notification("LISTEDID: " + EntityUIDs.Count);
 			// Check if there is capacity left for another soldier.
 			if (EntityUIDs.Count < capacity) {
 				EntityUIDs.Add(entityId);
@@ -248,51 +208,32 @@ namespace VSKingdom {
 		}
 
 		public void UseRespawn() {
+			respawns--;
 			// Change the block if at a quarter health.
 			if (Block.Variant["level"] != "hurt" && respawns <= (maxpawns / 4)) {
-				var brazierHurt = Api.World.GetBlock(Block.CodeWithVariant("level", "hurt"));
-				Api.World.BlockAccessor.ExchangeBlock(brazierHurt.Id, Pos);
-				Block = brazierHurt;
+				(Api as ICoreServerAPI)?.World.BlockAccessor.ExchangeBlock(Api.World.GetBlock(Block.CodeWithVariant("level", "hurt")).Id, Pos);
 			}
 			// Kill the block if no more respawns left.
 			if (respawns <= 0) {
-				var brazierGone = Api.World.GetBlock(Block.CodeWithVariant("level", "dead"));
-				Api.World.BlockAccessor.ExchangeBlock(brazierGone.Id, Pos);
-				Block = brazierGone;
-				for (int n = 0; n < EntityUIDs.Count; n++) {
-					Api.World.GetEntityById(EntityUIDs[n]).GetBehavior<EntityBehaviorLoyalties>()?.SetOutpost(new BlockPos(0, 0, 0, 0));
-				}
+				(Api as ICoreServerAPI)?.World.BlockAccessor.ExchangeBlock(Api.World.GetBlock(Block.CodeWithVariant("level", "dead")).Id, Pos);
 			}
-		}
-
-		public EnumIgniteState GetIgnitableState(float secondsIgniting) {
-			if (fuelSlot.Empty || fireLive) {
-				return EnumIgniteState.NotIgnitablePreventDefault;
-			}
-			return secondsIgniting > 3 ? EnumIgniteState.IgniteNow : EnumIgniteState.Ignitable;
 		}
 
 		public void Extinguish() {
 			if (Block.Variant["state"] == "live") {
-				var brazierDead = Api.World.GetBlock(Block.CodeWithVariant("state", "done"));
-				Api.World.BlockAccessor.ExchangeBlock(brazierDead.Id, Pos);
-				Block = brazierDead;
-				fireLive = false;
-				hasSmoke = false;
+				(Api as ICoreServerAPI)?.World.BlockAccessor.ExchangeBlock(Api.World.GetBlock(Block.CodeWithVariant("state", "done")).Id, Pos);
+				MarkDirty(true);
 			}
 		}
 
 		public void IgnitePost() {
 			if (Block.Variant["state"] != "live") {
-				var brazierLive = Api.World.GetBlock(Block.CodeWithVariant("state", "live"));
-				Api.World.BlockAccessor.ExchangeBlock(brazierLive.Id, Pos);
-				Block = brazierLive;
-				fireLive = true;
-				hasSmoke = true;
+				Api.World.BlockAccessor.ExchangeBlock(Api.World.GetBlock(Block.CodeWithVariant("state", "live")).Id, Pos);
+				MarkDirty(true);
 			}
 		}
 
-		public void igniteWithFuel(IItemStack stack) {
+		public void IgniteWithFuel(IItemStack stack) {
 			IGameCalendar calendar = Api.World.Calendar;
 			// Special case for temporal gear! Resets all respawns and lasts an entire month!
 			if (stack.Item is ItemTemporalGear) {
@@ -302,7 +243,6 @@ namespace VSKingdom {
 				CombustibleProperties fuelCopts = stack.Collectible.CombustibleProps;
 				maxBTime = burnTime = fuelCopts.BurnDuration * 60 + (fuelCopts.BurnDuration * 60 * calendar.CalendarSpeedMul);
 			}
-			Api.World.Logger.Notification("Total burn time is set to: " + maxBTime);
 			MarkDirty(true);
 		}
 
@@ -338,7 +278,7 @@ namespace VSKingdom {
 			string[] strArray = input.Split(',');
 			List<long> output = new List<long>();
 			foreach (string num in strArray) {
-				output.Add(Int64.Parse(num));
+				try { output.Add(Int64.Parse(num)); } catch { continue; }
 			}
 			return output;
 		}
@@ -347,36 +287,70 @@ namespace VSKingdom {
 	public class BlockPost : Block, IIgnitable {
 		public BlockPost() { }
 
-		public EnumIgniteState OnTryIgniteBlock(EntityAgent byEntity, BlockPos pos, float secondsIgniting) {
-			BlockEntityCharcoalPit becp = api.World.BlockAccessor.GetBlockEntity(pos) as BlockEntityCharcoalPit;
-			if (becp == null || becp.Lit) {
-				return EnumIgniteState.NotIgnitablePreventDefault;
-			}
-			return secondsIgniting > 3 ? EnumIgniteState.IgniteNow : EnumIgniteState.Ignitable;
+		public override void OnBlockPlaced(IWorldAccessor world, BlockPos blockPos, ItemStack byItemStack = null) {
+			base.OnBlockPlaced(world, blockPos, byItemStack);
+			(api.World.BlockAccessor.GetBlockEntity(blockPos) as BlockEntityPost).ownerUID = world.NearestPlayer(blockPos.X, blockPos.Y, blockPos.Z).PlayerUID;
 		}
 
-		EnumIgniteState IIgnitable.OnTryIgniteStack(EntityAgent byEntity, BlockPos pos, ItemSlot slot, float secondsIgniting) {
-			BlockEntityCharcoalPit becp = api.World.BlockAccessor.GetBlockEntity(pos) as BlockEntityCharcoalPit;
-			if (becp.Lit) {
-				return secondsIgniting > 2 ? EnumIgniteState.IgniteNow : EnumIgniteState.Ignitable;
+		public override void OnBlockBroken(IWorldAccessor world, BlockPos pos, IPlayer byPlayer, float dropQuantityMultiplier = 1) {
+			if ((api.World.BlockAccessor.GetBlockEntity(pos) as BlockEntityPost).ownerUID == byPlayer.PlayerUID || LastCodePart(0) == "dead") {
+				base.OnBlockBroken(world, pos, byPlayer, dropQuantityMultiplier);
 			}
-			return EnumIgniteState.NotIgnitable;
 		}
 
-		public void OnTryIgniteBlockOver(EntityAgent byEntity, BlockPos pos, float secondsIgniting, ref EnumHandling handling) {
-			BlockEntityCharcoalPit becp = api.World.BlockAccessor.GetBlockEntity(pos) as BlockEntityCharcoalPit;
-			if (becp != null && !becp.Lit) {
-				becp.IgniteNow();
+		public override void OnHeldInteractStart(ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel, bool firstEvent, ref EnumHandHandling handling) {
+			if (slot.Empty) {
+				return;
 			}
-			handling = EnumHandling.PreventDefault;
+			BlockEntityPost thisPost = this.GetBlockEntity<BlockEntityPost>(blockSel);
+			Item itemType = slot.Itemstack.Item;
+			bool takesTemporal = Variant["metal"] == "electrum";
+			if ((!takesTemporal && itemType is ItemFirewood) || (!takesTemporal && itemType is ItemCoal) || (takesTemporal && itemType is ItemTemporalGear)) {
+				thisPost.IgniteWithFuel(slot.Itemstack);
+				slot.TakeOut(1);
+				slot.MarkDirty();
+			}
+			base.OnHeldInteractStart(slot, byEntity, blockSel, entitySel, firstEvent, ref handling);
+		}
+
+		public override bool AllowSnowCoverage(IWorldAccessor world, BlockPos blockPos) {
+			return Variant["state"] != "live";
 		}
 
 		public override ItemStack[] GetDrops(IWorldAccessor world, BlockPos pos, IPlayer byPlayer, float dropQuantityMultiplier = 1) {
 			return null;
 		}
+		
+		public override bool ShouldPlayAmbientSound(IWorldAccessor world, BlockPos pos) {
+			return Variant["state"] == "live" && base.ShouldPlayAmbientSound(world, pos);
+		}
 
 		public override BlockDropItemStack[] GetDropsForHandbook(ItemStack handbookStack, IPlayer forPlayer) {
 			return new BlockDropItemStack[0];
+		}
+
+		public void OnTryIgniteBlockOver(EntityAgent byEntity, BlockPos pos, float secondsIgniting, ref EnumHandling handling) {
+			BlockEntityPost post = api.World.BlockAccessor.GetBlockEntity(pos) as BlockEntityPost;
+			if (post != null && !post.fireLive) {
+				post.IgnitePost();
+			}
+			handling = EnumHandling.PreventDefault;
+		}
+
+		EnumIgniteState IIgnitable.OnTryIgniteStack(EntityAgent byEntity, BlockPos pos, ItemSlot slot, float secondsIgniting) {
+			BlockEntityPost post = api.World.BlockAccessor.GetBlockEntity(pos) as BlockEntityPost;
+			if (post.fireLive) {
+				return secondsIgniting > 2 ? EnumIgniteState.IgniteNow : EnumIgniteState.Ignitable;
+			}
+			return EnumIgniteState.NotIgnitable;
+		}
+
+		public EnumIgniteState OnTryIgniteBlock(EntityAgent byEntity, BlockPos pos, float secondsIgniting) {
+			BlockEntityPost post = api.World.BlockAccessor.GetBlockEntity(pos) as BlockEntityPost;
+			if (post == null || post.fuelSlot.Empty || post.fireLive) {
+				return EnumIgniteState.NotIgnitablePreventDefault;
+			}
+			return secondsIgniting > 3 ? EnumIgniteState.IgniteNow : EnumIgniteState.Ignitable;
 		}
 	}
 }

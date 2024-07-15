@@ -4,82 +4,74 @@ using Vintagestory.API.MathTools;
 
 namespace VSKingdom {
 	public class AiTaskSentryReturn : AiTaskBase {
-		public AiTaskSentryReturn(EntityAgent entity) : base(entity) { }
-
-		protected bool finished = false;
+		public AiTaskSentryReturn(EntitySentry entity) : base(entity) { this.entity = entity; }
+		#pragma warning disable CS0108
+		public EntitySentry entity;
+		#pragma warning restore CS0108
+		protected bool cancelReturn = false;
 		protected long lastCheckTotalMs;
 		protected long lastCheckCooldown = 500L;
-		protected BlockPos defaultPos = new BlockPos(0, 0, 0, 0);
+		private BlockPos outpostXYZD { get => entity.Loyalties.GetBlockPos("outpost_xyzd"); }
 
-		private ITreeAttribute loyalties;
-		private bool returning { get => loyalties.GetBool("command_return"); }
-		private bool following { get => loyalties.GetBool("command_follow"); }
-		private double outpostSize { get => loyalties.GetDouble("outpost_size"); }
-		private BlockPos outpostXYZD { get => loyalties.GetBlockPos("outpost_xyzd"); }
-		
-		public override void AfterInitialize() {
-			base.AfterInitialize();
-			loyalties = entity.WatchedAttributes.GetTreeAttribute("loyalties");
-		}
 
 		public override bool ShouldExecute() {
-			if (!returning) {
-				CheckDistance();
-				return false;
-			}
 			if (lastCheckTotalMs + lastCheckCooldown > entity.World.ElapsedMilliseconds) {
 				return false;
 			}
 			lastCheckTotalMs = entity.World.ElapsedMilliseconds;
-			return entity.ServerPos.SquareDistanceTo(outpostXYZD.ToVec3d()) > outpostSize;
+			return CheckDistance();
 		}
 
 		public override void StartExecute() {
 			if (outpostXYZD is null) {
-				finished = true;
+				cancelReturn = true;
 				return;
 			}
-			finished = !pathTraverser.NavigateTo(outpostXYZD.ToVec3d(), 0.035f, 0.5f, ArrivedAtPost, ArrivedAtPost, true, 10000);
-			if (finished) {
-				ArrivedAtPost();
-			} else {
-				base.StartExecute();
-			}
+			cancelReturn = !pathTraverser.NavigateTo(outpostXYZD.ToVec3d(), (float)entity.moveSpeed, (float)entity.postRange, OnStuck, OnGoals, true, 10000);
+			base.StartExecute();
 		}
 
 		public override bool ContinueExecute(float dt) {
-			if (following || !returning) {
-				finished = true;
+			if (entity.ruleOrder[1] || CheckDistance()) {
+				cancelReturn = true;
 			}
 			if (lastCheckCooldown + 500 < entity.World.ElapsedMilliseconds && outpostXYZD is not null && entity.MountedOn is null) {
 				lastCheckCooldown = entity.World.ElapsedMilliseconds;
-				if (entity.ServerPos.SquareDistanceTo(outpostXYZD.ToVec3d()) < 2) {
-					ArrivedAtPost();
-				}
 			}
-			return finished;
+			return cancelReturn;
 		}
 
 		public override void FinishExecute(bool cancelled) {
-			pathTraverser.Stop();
-			entity.GetBehavior<EntityBehaviorLoyalties>()?.SetCommand("command_return", false);
 			base.FinishExecute(cancelled);
-		}
-
-		private void CheckDistance() {
-			if (outpostXYZD is not null && outpostXYZD != defaultPos) {
-				if (entity.ServerPos.SquareDistanceTo(outpostXYZD.ToVec3d()) < outpostSize && !following) {
-					entity.GetBehavior<EntityBehaviorLoyalties>()?.SetCommand("command_return", true);
-				}
+			pathTraverser.Stop();
+			if (cancelReturn && entity.ruleOrder[6] && entity.ServerPos.DistanceTo(outpostXYZD.ToVec3d()) < entity.postRange) {
+				entity.ServerAPI?.World.GetEntityById(entity.EntityId)?.GetBehavior<EntityBehaviorLoyalties>()?.SetCommand("command_return", false);
+				entity.ServerAPI?.Network.BroadcastEntityPacket(entity.EntityId, 1503);
 			}
 		}
 
-		private void ArrivedAtPost() {
-			finished = true;
+		private void OnStuck() {
+			cancelReturn = true;
 			pathTraverser.Stop();
-			CheckDistance();
-			entity.AnimManager.StopAnimation(animMeta.Code);
-			entity.GetBehavior<EntityBehaviorLoyalties>()?.SetCommand("command_return", false);
+		}
+
+		private void OnGoals() {
+			cancelReturn = true;
+			pathTraverser.Stop();
+		}
+
+		private bool CheckDistance() {
+			double boundaries = entity.postRange;
+			if (entity.ruleOrder[3]) {
+				boundaries = entity.postRange * 10;
+			}
+			// Set command to return if the outpost is further away than the boundaries allowed, and entity isn't following player.
+			if (entity.ServerPos.DistanceTo(outpostXYZD.ToVec3d()) > boundaries && !entity.ruleOrder[1]) {
+				entity.ServerAPI?.World.GetEntityById(entity.EntityId)?.GetBehavior<EntityBehaviorLoyalties>()?.SetCommand("command_return", true);
+				entity.ServerAPI?.Network.BroadcastEntityPacket(entity.EntityId, 1503);
+				return false;
+			}
+			return !entity.ruleOrder[6];
 		}
 	}
 }

@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Datastructures;
+using Vintagestory.API.Server;
 using Vintagestory.API.Util;
 
 namespace VSKingdom;
@@ -57,15 +59,15 @@ public class ItemPeople : Item {
 			}
 		}
 
+		byte[] cultureData = (byEntity.Api as ICoreServerAPI)?.WorldManager.SaveGame.GetData("cultureData");
+		List<Culture> cultureList = cultureData is null ? new List<Culture>() : SerializerUtil.Deserialize<List<Culture>>(cultureData);
+		Culture byCulture = cultureList.Find(cultureMatch => cultureMatch.CultureGUID == byEntity.WatchedAttributes.GetTreeAttribute("loyalties").GetString("culture_guid"));
 		// Setup cultural features.
-		Culture byCulture = byEntity.GetBehavior<EntityBehaviorLoyalties>()?.cachedCulture;
-		if (byCulture.CultureGUID != "00000000" && byCulture != null) {
+		if (byCulture != null && byCulture?.CultureGUID != "00000000") {
 			Random rnd = new Random();
 			// Editing the "skinConfig" tree here and changing it to what we want.
 			var entitySkinParts = entity.WatchedAttributes.GetOrAddTreeAttribute("skinConfig").GetOrAddTreeAttribute("appliedParts");
 			var entityFullNames = entity.WatchedAttributes.GetOrAddTreeAttribute("nametag");
-			api.Logger.Notification("Culture: " + byCulture.CultureNAME + ", " + byCulture.CultureGUID);
-			api.Logger.Notification("SkinCol: " + byCulture.SkinColors.Count + ", EyesCol: " + byCulture.EyesColors.Count + ", HairCol: " + byCulture.HairColors.Count);
 			foreach (var part in entitySkinParts) {
 				api.Logger.Notification("Attribute: " + part.Key + " " + part.Value.GetValue().ToString());
 			}
@@ -116,28 +118,27 @@ public class ItemPeople : Item {
 		}
 
 		// If the byEntity is a player then make them the assigned leader.
-		if (byEntity is EntityPlayer playerEnt) {
+		if (entity is EntitySentry sentry && byEntity is EntityPlayer playerEnt) {
 			entity.WatchedAttributes.GetOrAddTreeAttribute("loyalties").SetString("leaders_guid", playerEnt?.PlayerUID ?? null);
 			entity.WatchedAttributes.GetOrAddTreeAttribute("loyalties").SetString("culture_guid", byEntity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("culture_guid") ?? "00000000");
 			entity.WatchedAttributes.GetOrAddTreeAttribute("loyalties").SetString("kingdom_guid", byEntity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdom_guid") ?? "00000000");
 		}
-		long entID = entity.EntityId;
-
-		// SPAWNING ENTITY!
-		byEntity.World.SpawnEntity(entity);
-		handHandling = EnumHandHandling.PreventDefaultAction;
 
 		// If placed on a brazier soldier post then set that to be their outpost.
 		if (api.World.BlockAccessor.GetBlock(blockSel.Position).EntityClass != null) {
 			if (api.World.ClassRegistry.GetBlockEntity(api.World.BlockAccessor.GetBlock(blockSel.Position).EntityClass) == typeof(BlockEntityPost)) {
 				BlockEntityPost outpost = api.World.BlockAccessor.GetBlockEntity(blockSel.Position) as BlockEntityPost;
-				if (outpost.IsCapacity(entID)) {
+				if (outpost.IsCapacity(entity.EntityId)) {
 					outpost.IgnitePost();
 					entity.WatchedAttributes.GetOrAddTreeAttribute("loyalties").SetDouble("outpost_size", outpost.areasize);
 					entity.WatchedAttributes.GetOrAddTreeAttribute("loyalties").SetBlockPos("outpost_xyzd", blockSel.Position);
 				}
 			}
 		}
+
+		// SPAWNING ENTITY!
+		byEntity.World.SpawnEntity(entity);
+		handHandling = EnumHandHandling.PreventDefaultAction;
 	}
 
 	public override string GetHeldTpIdleAnimation(ItemSlot activeHotbarSlot, Entity byEntity, EnumHand hand) {

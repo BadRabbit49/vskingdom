@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Vintagestory.API.Server;
 using Vintagestory.API.Util;
 
 namespace VSKingdom {
@@ -32,9 +33,6 @@ namespace VSKingdom {
 	}
 
 	internal static class KingUtility {
-		private static byte[] kingdomData { get => VSKingdom.serverAPI.WorldManager.SaveGame.GetData("kingdomData"); }
-		private static List<Kingdom> kingdomList => kingdomData is null ? new List<Kingdom>() : SerializerUtil.Deserialize<List<Kingdom>>(kingdomData);
-
 		public static string CorrectedTYPE(string kingdomNAME) {
 			string[] monTypes = { "kingdom", "monarchy", "dynasty", "commonwealth", "empire", "imperium", "sultanate", "fiefdom", "tribal", "tribe" };
 			string[] dicTypes = { "dictatorship", "administration", "state", "authority", "people's" };
@@ -163,7 +161,9 @@ namespace VSKingdom {
 			return gotPrivs;
 		}
 
-		public static string MostSeniority(string kingdomGUID) {
+		public static string MostSeniority(ICoreServerAPI sapi, string kingdomGUID) {
+			byte[] kingdomData = sapi.WorldManager.SaveGame.GetData("kingdomData");
+			List<Kingdom> kingdomList = kingdomData is null ? new List<Kingdom>() : SerializerUtil.Deserialize<List<Kingdom>>(kingdomData);
 			Kingdom thisKingdom = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID);
 			string[] playerInfo = thisKingdom.PlayersINFO.ToArray();
 			string oldestPlayerGuid = playerInfo[0].Split(':')[0];
@@ -194,14 +194,16 @@ namespace VSKingdom {
 			}
 			return playersGUID + ":" + joinedRole + ":" + DateTime.Now.ToShortDateString();
 		}
-
-		public static string ListedAllData(string kingdomGUID) {
+		
+		public static string ListedAllData(ICoreServerAPI sapi, string kingdomGUID) {
+			byte[] kingdomData = sapi.WorldManager.SaveGame.GetData("kingdomData");
+			List<Kingdom> kingdomList = kingdomData is null ? new List<Kingdom>() : SerializerUtil.Deserialize<List<Kingdom>>(kingdomData);
 			Kingdom kingdom = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID);
 			string basicInfo = "FULL KINGDOM INFO\nGuid: " + kingdom.KingdomGUID + "\nName: " + kingdom.KingdomNAME + "\nLong: " + kingdom.KingdomLONG + "\nDesc: " + kingdom.KingdomDESC;
-			string intricate = "\nLeaders Name: " + VSKingdom.serverAPI.World.PlayerByUid(kingdom.LeadersGUID).PlayerName + "\nDate Founded: " + kingdom.FoundedDATE + " (" + kingdom.FoundedMETA + ")";
+			string intricate = "\nLeaders Name: " + sapi.World.PlayerByUid(kingdom.LeadersGUID).PlayerName + "\nDate Founded: " + kingdom.FoundedDATE + " (" + kingdom.FoundedMETA + ")";
 			string[] nameList = new string[] { };
 			foreach (string guid in kingdom.PlayersGUID) {
-				try { nameList.Append(VSKingdom.serverAPI.World.PlayerByUid(guid).PlayerName); } catch { }
+				try { nameList.Append(sapi.World.PlayerByUid(guid).PlayerName); } catch { }
 			}
 			return basicInfo + intricate + "\nPLAYER LIST" + LangUtility.Msg(nameList);
 		}
@@ -236,12 +238,14 @@ namespace VSKingdom {
 			return oldName;
 		}
 
-		public static string ListedAllData(string cultureGUID) {
-			byte[] cultureData = VSKingdom.serverAPI.WorldManager.SaveGame.GetData("cultureData");
+		public static string ListedAllData(ICoreServerAPI sapi, string cultureGUID) {
+			byte[] kingdomData = sapi.WorldManager.SaveGame.GetData("kingdomData");
+			List<Kingdom> kingdomList = kingdomData is null ? new List<Kingdom>() : SerializerUtil.Deserialize<List<Kingdom>>(kingdomData);
+			byte[] cultureData = sapi.WorldManager.SaveGame.GetData("cultureData");
 			List<Culture> cultureList = cultureData is null ? new List<Culture>() : SerializerUtil.Deserialize<List<Culture>>(cultureData);
 			Culture culture = cultureList.Find(cultureMatch => cultureMatch.CultureGUID == cultureGUID);
-			string basicInfo = "FULL CULTURE INFO\nGuid: " + culture.CultureGUID + "\nName: " + culture.CultureNAME + "\nLong: " + culture.CultureLONG + "\nDesc: " + culture.CultureDESC;
-			string intricate = "\nFounder Name: " + VSKingdom.serverAPI.World.PlayerByUid(culture.FounderGUID).PlayerName + "\nDate Founded: " + culture.FoundedDATE + " (" + culture.FoundedMETA + ")";
+			string basicInfo = $"FULL CULTURE INFO\nGuid: {culture.CultureGUID}\nName: {culture.CultureNAME}\nLong: {culture.CultureLONG}\nDesc: {culture.CultureDESC}";
+			string intricate = $"\nFounder Name: {sapi.World.PlayerByUid(culture.FounderGUID).PlayerName}\nDate Founded: {culture.FoundedDATE} ({culture.FoundedMETA})";
 			return basicInfo + intricate;
 		}
 	}

@@ -3,7 +3,7 @@
 	"class": "ItemPeople",
 	"maxstacksize": 1,
 	"variantgroups": [
-		{ "code": "type", "states": [ "archer", "knight" ] },
+		{ "code": "type", "states": [ "archer", "knight", "bandit" ] },
 		{ "code": "gender", "states": [ "masc", "femm" ] }
 	],
 	"shapeByType": { "*": { "base": "vskingdom:entity/humanoid/human" } },

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Text;
-using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Datastructures;
@@ -8,10 +7,14 @@ using Vintagestory.API.Server;
 using Vintagestory.API.MathTools;
 using Vintagestory.GameContent;
 using Vintagestory.API.Config;
+using System.Collections.Generic;
+using Vintagestory.API.Util;
 
 namespace VSKingdom {
 	public class EntityBehaviorLoyalties : EntityBehavior {
-		public EntityBehaviorLoyalties(Entity entity) : base(entity) { }
+		public EntityBehaviorLoyalties(Entity entity) : base(entity) { this.ServerAPI = entity.Api as ICoreServerAPI; }
+
+		public ICoreServerAPI ServerAPI;
 
 		public ITreeAttribute loyalties {
 			get {
@@ -97,49 +100,51 @@ namespace VSKingdom {
 			set => loyalties.SetBool("command_return", value);
 		}
 		
-		public Kingdom cachedKingdom { get => DataUtility.GetKingdom(kingdomGUID, null); }
+		public Kingdom cachedKingdom { get => kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID); }
 
-		public Culture cachedCulture { get => DataUtility.GetCulture(cultureGUID, null); }
+		public Culture cachedCulture { get => cultureList.Find(cultureMatch => cultureMatch.CultureGUID == cultureGUID); }
 
 		public IPlayer cachedLeaders { get => entity.World.PlayerByUid(leadersGUID); }
 
-		public BlockEntityPost cachedOutpost { get => DataUtility.GetOutpost(outpostXYZD); }
+		public BlockEntityPost cachedOutpost { get => (ServerAPI.World.BlockAccessor.GetBlockEntity(outpostXYZD) as BlockEntityPost) ?? null; }
 
 		public override string PropertyName() {
 			return "KingdomLoyalties";
 		}
+		public override void AfterInitialized(bool onFirstSpawn) {
+			base.AfterInitialized(onFirstSpawn);
+			if (entity is EntitySentry sentry) {
+				if (kingdomGUID is null) {
+					kingdomGUID = sentry.baseGroup;
+				}
+				if (cultureGUID is null) {
+					cultureGUID = "00000000";
+				}
+				if (outpostXYZD is null) {
+					outpostXYZD = entity.ServerPos.AsBlockPos;
+				}
+				commandWANDER = true;
+				commandFOLLOW = false;
+				commandFIRING = true;
+				commandPURSUE = true;
+				commandSHIFTS = false;
+				commandNIGHTS = false;
+				commandRETURN = false;
+			}
+		}
 
 		public override void OnEntitySpawn() {
 			base.OnEntitySpawn();
-			try {
+			if (entity is EntityPlayer) {
 				if (kingdomGUID is null) {
 					kingdomGUID = "00000000";
-					cultureGUID = "00000000";
-					outpostXYZD = entity.ServerPos.AsBlockPos;
 				}
-				if (entity is not EntityPlayer) {
-					commandWANDER = true;
-					commandFOLLOW = false;
-					commandFIRING = true;
-					commandPURSUE = true;
-					commandSHIFTS = false;
-					commandNIGHTS = false;
-					commandRETURN = false;
-					return;
+				if (cultureGUID is null) {
+					cultureGUID = "00000000";
 				}
 				loyalties.RemoveAttribute("leaders_name");
 				loyalties.RemoveAttribute("leaders_guid");
-				cachedKingdom.EntitiesALL.Add(entity.EntityId);
-				cachedOutpost.EntityUIDs.Add(entity.EntityId);
-			} catch { }
-		}
-
-		public override void OnEntityDespawn(EntityDespawnData despawn) {
-			try {
-				cachedKingdom.EntitiesALL.Remove(entity.EntityId);
-				cachedOutpost.EntityUIDs.Remove(entity.EntityId);
-			} catch { }
-			base.OnEntityDespawn(despawn);
+			}
 		}
 
 		public override void OnInteract(EntityAgent byEntity, ItemSlot itemslot, Vec3d hitPosition, EnumInteractMode mode, ref EnumHandling handled) {
@@ -160,7 +165,7 @@ namespace VSKingdom {
 					return;
 				}
 				// While the OWNER or a GROUPMEMBER has something in their ACTIVE SLOT try commands.
-				if (entity.Alive && itemslot.Itemstack != null && (DataUtility.IsAFriend(kingdomGUID, byEntity))) {
+				if (entity.Alive && itemslot.Itemstack != null && byEntity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdom_guid") == kingdomGUID) {
 					TryOrderRally(itemslot, player.Player);
 					return;
 				}
@@ -203,8 +208,8 @@ namespace VSKingdom {
 				return;
 			}
 			// Why did you make me do this?!
-			(entity.Api as ICoreServerAPI)?.World.GetEntityById(entity.EntityId).WatchedAttributes.GetTreeAttribute("loyalties").SetString("culture_guid", cultureGUID);
-			(entity.Api as ICoreServerAPI)?.World.GetEntityById(entity.EntityId).WatchedAttributes.MarkPathDirty("loyalties");
+			ServerAPI.World.GetEntityById(entity.EntityId).WatchedAttributes.GetTreeAttribute("loyalties").SetString("culture_guid", cultureGUID);
+			ServerAPI.World.GetEntityById(entity.EntityId).WatchedAttributes.MarkPathDirty("loyalties");
 		}
 
 		public virtual void SetLeaders(string playerUID) {
@@ -255,7 +260,7 @@ namespace VSKingdom {
 			if (itemslot.Itemstack.Item is ItemPoultice) {
 				float healAmount = itemslot.Itemstack.ItemAttributes["health"].AsFloat();
 				entity.Revive();
-				VSKingdom.serverAPI.World.GetEntityById(entity.EntityId).WatchedAttributes.GetTreeAttribute("health").SetFloat("currenthealth", healAmount);
+				(entity.Api as ICoreServerAPI)?.World.GetEntityById(entity.EntityId).WatchedAttributes.GetTreeAttribute("health").SetFloat("currenthealth", healAmount);
 				itemslot.TakeOut(1);
 				itemslot.MarkDirty();
 			}
@@ -264,12 +269,18 @@ namespace VSKingdom {
 		private void TryOrderRally(ItemSlot itemslot, IPlayer player) {
 			if (itemslot.Itemstack.Item is ItemBanner) {
 				EntityPlayer playerEnt = player.Entity;
+				string playerKingdomID = playerEnt.WatchedAttributes.GetTreeAttribute("loyalties").GetString("kingdom_guid");
 				// Activate orders for all surrounding soldiers of this player's faction to follow them!
-				foreach (Entity soldier in entity.World.GetEntitiesAround(entity.ServerPos.XYZ, 15, 4, entity => (DataUtility.IsAFriend(entity, playerEnt)))) {
+				foreach (Entity soldier in entity.World.GetEntitiesAround(entity.ServerPos.XYZ, 15, 4, entity => (entity is EntitySentry sentry && sentry.kingdomID == playerKingdomID))) {
 					var taskManager = soldier.GetBehavior<EntityBehaviorTaskAI>().TaskManager;
 					taskManager.ExecuteTask<AiTaskSentryFollow>();
 				}
 			}
 		}
+
+		private byte[] kingdomData { get => (entity.Api as ICoreServerAPI)?.WorldManager.SaveGame.GetData("kingdomData"); }
+		private byte[] cultureData { get => (entity.Api as ICoreServerAPI)?.WorldManager.SaveGame.GetData("cultureData"); }
+		private List<Kingdom> kingdomList => kingdomData is null ? new List<Kingdom>() : SerializerUtil.Deserialize<List<Kingdom>>(kingdomData);
+		private List<Culture> cultureList => cultureData is null ? new List<Culture>() : SerializerUtil.Deserialize<List<Culture>>(cultureData);
 	}
 }

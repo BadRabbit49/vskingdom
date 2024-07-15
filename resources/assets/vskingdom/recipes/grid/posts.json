@@ -2,8 +2,8 @@
 	{
 		"ingredientPattern": "H,H,P",
 		"ingredients": {
-			"H": { "type": "item", "code": "game:hoop-*", "allowedVariants": [ "lead", "copper", "tinbronze", "bismuthbronze", "blackbronze", "brass", "silver", "gold", "iron", "meteoriciron", "steel" ], "name": "metal" },
-			"P": { "type": "block", "code": "game:metalplate-{metal}" }
+			"H": { "type": "item", "code": "game:hoop-*", "name": "metal", "allowedVariants": [ "lead", "copper", "tinbronze", "bismuthbronze", "blackbronze", "brass", "silver", "gold", "iron", "meteoriciron", "steel" ] },
+			"P": { "type": "block", "code": "game:metalplate-*", "name": "metal", "allowedVariants": [ "lead", "copper", "tinbronze", "bismuthbronze", "blackbronze", "brass", "silver", "gold", "iron", "meteoriciron", "steel" ] }
 		},
 		"width": 1,
 		"height": 3,

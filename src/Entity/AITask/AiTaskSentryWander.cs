@@ -6,82 +6,62 @@ using Vintagestory.GameContent;
 
 namespace VSKingdom {
 	public class AiTaskSentryWander : AiTaskBase {
-		public AiTaskSentryWander(EntityAgent entity) : base(entity) { }
-		
-		protected bool finished;
+		public AiTaskSentryWander(EntitySentry entity) : base(entity) { this.entity = entity; }
+		#pragma warning disable CS0108
+		public EntitySentry entity;
+		#pragma warning restore CS0108
+		protected bool cancelWander = false;
+		protected bool doorIsBehind = false;
 		protected long failedWanders;
-		protected long lastTimeInRangeMs;
-		protected float moveSpeed = 0.035f;
-		protected float wanderChance = 0.005f;
-		protected float wanderRangeMin = 3f;
-		protected float wanderRangeMax = 30f;
-		protected float maxHeight = 7f;
-		protected float targetDistance = 0.12f;
+		protected long lastInRangeMs;
+		protected float execChance;
+		protected float maxHeights;
+		protected float targetDist;
 		protected Vec3d mainTarget;
 		protected NatFloat wanderRangeHor = NatFloat.createStrongerInvexp(3, 40);
 		protected NatFloat wanderRangeVer = NatFloat.createStrongerInvexp(3, 10);
 
-		private ITreeAttribute loyalties;
-		private bool wandering { get => loyalties.GetBool("command_wander"); }
-		private bool following { get => loyalties.GetBool("command_follow"); }
-		private bool returning { get => loyalties.GetBool("command_return"); }
-		private float postRange { get => (float)loyalties.GetDouble("outpost_size", 30); }
-		private Vec3d postBlock { get => loyalties.GetBlockPos("outpost_xyzd").ToVec3d(); }
-
-		public float WanderRangeMul {
-			get => entity.Attributes.GetFloat("wanderRangeMul", 1);
-			set => entity.Attributes.SetFloat("wanderRangeMul", value);
+		protected int FailedPathfinds {
+			get => entity.WatchedAttributes.GetInt("failedConsecutivePathfinds", 0);
+			set => entity.WatchedAttributes.SetInt("failedConsecutivePathfinds", value);
 		}
 
-		public int FailedConsecutivePathfinds {
-			get => entity.Attributes.GetInt("failedConsecutivePathfinds", 0);
-			set => entity.Attributes.SetInt("failedConsecutivePathfinds", value);
+		protected float WanderRangeMul {
+			get => entity.WatchedAttributes.GetFloat("wanderRangeMul", 1);
+			set => entity.WatchedAttributes.SetFloat("wanderRangeMul", value);
 		}
+
+		protected Vec3d postBlock { get => entity.Loyalties.GetBlockPos("outpost_xyzd").ToVec3d(); }
 
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);
-			targetDistance = taskConfig["targetDistance"].AsFloat(0.12f);
-			moveSpeed = taskConfig["movespeed"].AsFloat(0.035f);
-			maxHeight = taskConfig["maxHeight"].AsFloat(7f);
-			wanderChance = taskConfig["wanderChance"].AsFloat(0.005f);
-			wanderRangeMin = taskConfig["wanderRangeMin"].AsFloat(3f);
-			wanderRangeMax = taskConfig["wanderRangeMax"].AsFloat(30f);
-			wanderRangeHor = NatFloat.createInvexp(wanderRangeMin, wanderRangeMax);
-		}
-
-		public override void OnEntitySpawn() {
-			entity.Attributes.SetBlockPos("outpost_xyzd", entity.ServerPos.AsBlockPos);
-		}
-
-		public override void AfterInitialize() {
-			base.AfterInitialize();
-			loyalties = entity.WatchedAttributes.GetTreeAttribute("loyalties");
-			pathTraverser = entity.GetBehavior<EntityBehaviorTaskAI>().PathTraverser;
-			wanderRangeMax = postRange;
+			targetDist = taskConfig["targetRanges"].AsFloat(0.12f);
+			maxHeights = taskConfig["wanderHeight"].AsFloat(7f);
+			execChance = taskConfig["wanderChance"].AsFloat(0.005f);
 		}
 
 		public override bool ShouldExecute() {
-			if (!wandering || following) {
-				finished = true;
+			if (!entity.ruleOrder[0] || entity.ruleOrder[1] || entity.ruleOrder[6]) {
+				cancelWander = true;
 				return false;
 			}
-			if (rand.NextDouble() > (double)((failedWanders > 0) ? (1f - wanderChance * 4f * (float)failedWanders) : wanderChance)) {
+			if (rand.NextDouble() > (double)((failedWanders > 0) ? (1f - execChance * 4f * (float)failedWanders) : execChance)) {
 				failedWanders = 0;
 				return false;
 			}
-			if (returning) {
-				if (entity.ServerPos.XYZ.SquareDistanceTo(postBlock) > wanderRangeMax) {
+			if (entity.ruleOrder[6]) {
+				if (entity.ServerPos.XYZ.SquareDistanceTo(postBlock) > entity.postRange) {
 					// If after 2 minutes still not at spawn and no player nearby, teleport.
-					if (entity.World.ElapsedMilliseconds - lastTimeInRangeMs > 1000 * 60 * 2 && entity.World.GetNearestEntity(entity.ServerPos.XYZ, 15, 15, (e) => e is EntityPlayer) is null) {
+					if (entity.World.ElapsedMilliseconds - lastInRangeMs > 1000 * 60 * 2 && entity.World.GetNearestEntity(entity.ServerPos.XYZ, 15, 15, (e) => e is EntityPlayer) is null) {
 						entity.TeleportTo(postBlock);
 					}
-					loyalties.SetBool("command_return", true);
+					entity.ServerAPI.World.GetEntityById(entity.EntityId)?.GetBehavior<EntityBehaviorLoyalties>()?.SetCommand("command_return", true);
 					mainTarget = postBlock.Clone();
 					return true;
 				} else {
-					loyalties.SetBool("command_return", false);
+					entity.ServerAPI.World.GetEntityById(entity.EntityId)?.GetBehavior<EntityBehaviorLoyalties>()?.SetCommand("command_return", false);
 				}
-				lastTimeInRangeMs = entity.World.ElapsedMilliseconds;
+				lastInRangeMs = entity.World.ElapsedMilliseconds;
 			}
 			mainTarget = LoadNextWanderTarget();
 			return mainTarget != null;
@@ -89,9 +69,9 @@ namespace VSKingdom {
 
 		public override void StartExecute() {
 			base.StartExecute();
-			finished = false;
-			wanderRangeMax = postRange;
-			bool ok = pathTraverser.WalkTowards(mainTarget, moveSpeed, targetDistance, OnGoalReached, OnStuck);
+			cancelWander = false;
+			wanderRangeHor = NatFloat.createInvexp(3f, (float)entity.postRange);
+			bool ok = pathTraverser.WalkTowards(mainTarget, (float)entity.walkSpeed, targetDist, OnGoals, OnStuck);
 		}
 
 		public override bool ContinueExecute(float dt) {
@@ -114,7 +94,7 @@ namespace VSKingdom {
 				pathTraverser.Stop();
 				return false;
 			}
-			return !finished;
+			return !cancelWander;
 		}
 
 		public override void FinishExecute(bool cancelled) {
@@ -127,16 +107,15 @@ namespace VSKingdom {
 
 		// Requirements:
 		// - ✔ Try to not move a lot vertically.
-		// - ✔ If water habitat: Don't walk onto land.
-		// - ✔ Try not to fall from very large heights. Try not to fall from any large heights if entity has FallDamage.
-		// - ✔ If land habitat: Must be above a block the entity can stand on.
-		// - ✔ if failed searches is high, reduce wander range.
+		// - ✔ Try not to fall from very large heights if entity has FallDamageOn.
+		// - ✔ Must be above a block the entity can stand on.
+		// - ✔ If failed searches is high, reduce wander range.
 		private Vec3d LoadNextWanderTarget() {
 			bool canFallDamage = entity.Api.World.Config.GetAsBool("FallDamageOn");
 			int num = 9;
 			Vec4d bestTarget = null;
-			Vec4d curTarget = new Vec4d();
-			if (FailedConsecutivePathfinds > 10) {
+			Vec4d currTarget = new Vec4d();
+			if (FailedPathfinds > 10) {
 				WanderRangeMul = Math.Max(0.1f, WanderRangeMul * 0.9f);
 			} else {
 				WanderRangeMul = Math.Min(1f, WanderRangeMul * 1.1f);
@@ -152,24 +131,24 @@ namespace VSKingdom {
 				double dx = wanderRangeHor.nextFloat() * (rand.Next(2) * 2 - 1) * wanderRangeMul;
 				double dy = wanderRangeHor.nextFloat() * (rand.Next(2) * 2 - 1) * wanderRangeMul;
 				double dz = wanderRangeHor.nextFloat() * (rand.Next(2) * 2 - 1) * wanderRangeMul;
-				curTarget.X = entity.ServerPos.X + dx;
-				curTarget.Y = entity.ServerPos.Y + dy;
-				curTarget.Z = entity.ServerPos.Z + dz;
-				curTarget.W = 1.0;
+				currTarget.X = entity.ServerPos.X + dx;
+				currTarget.Y = entity.ServerPos.Y + dy;
+				currTarget.Z = entity.ServerPos.Z + dz;
+				currTarget.W = 1.0;
 				// Return to spawn area or outpost if there is one.
-				if (returning) {
-					curTarget.W = 1.0 - (double)curTarget.SquareDistanceTo(postBlock) / postRange;
+				if (entity.ruleOrder[6]) {
+					currTarget.W = 1.0 - (double)currTarget.SquareDistanceTo(postBlock) / entity.postRange;
 				}
-				curTarget.Y = MoveDownToFloor((int)curTarget.X, (int)curTarget.Y, (int)curTarget.Z);
-				if (curTarget.Y < 0.0) {
-					curTarget.W = 0.0;
+				currTarget.Y = MoveDownToFloor((int)currTarget.X, (int)currTarget.Y, (int)currTarget.Z);
+				if (currTarget.Y < 0.0) {
+					currTarget.W = 0.0;
 				} else {
 					if (canFallDamage) {
 						// Lets make a straight line plot to see if we would fall off a cliff.
 						bool mustStop = false;
 						bool willFall = false;
 						float angleHor = (float)Math.Atan2(dx, dz) + GameMath.PIHALF;
-						Vec3d target1BlockAhead = curTarget.XYZ.Ahead(1, 0, angleHor);
+						Vec3d target1BlockAhead = currTarget.XYZ.Ahead(1, 0, angleHor);
 						// Otherwise they are forever stuck if they stand over the edge.
 						Vec3d startAhead = entity.ServerPos.XYZ.Ahead(1, 0, angleHor);
 						// Draw a line from here to there and check ahead to see if we will fall.
@@ -190,34 +169,44 @@ namespace VSKingdom {
 							startAhead.Y = nowY;
 						});
 						if (willFall) {
-							curTarget.W = 0.0;
+							currTarget.W = 0.0;
 						}
 					}
 				}
-				if (entity.World.BlockAccessor.GetBlock(new BlockPos((int)curTarget.X, (int)curTarget.Y, (int)curTarget.Z, entity.Pos.Dimension), 2).IsLiquid()) {
-					curTarget.W /= 2.0;
+				if (entity.World.BlockAccessor.GetBlock(new BlockPos((int)currTarget.X, (int)currTarget.Y, (int)currTarget.Z, entity.Pos.Dimension), 2).IsLiquid()) {
+					currTarget.W /= 2.0;
 				}
-				if (curTarget.W > 0.0) {
+				if (currTarget.W > 0.0) {
 					for (int i = 0; i < BlockFacing.HORIZONTALS.Length; i++) {
 						BlockFacing blockFacing = BlockFacing.HORIZONTALS[i];
-						if (entity.World.BlockAccessor.IsSideSolid((int)curTarget.X + blockFacing.Normali.X, (int)curTarget.Y, (int)curTarget.Z + blockFacing.Normali.Z, blockFacing.Opposite)) {
-							curTarget.W *= 0.5;
+						if (entity.World.BlockAccessor.IsSideSolid((int)currTarget.X + blockFacing.Normali.X, (int)currTarget.Y, (int)currTarget.Z + blockFacing.Normali.Z, blockFacing.Opposite)) {
+							currTarget.W *= 0.5;
 						}
 					}
 				}
-				if (bestTarget == null || curTarget.W > bestTarget.W) {
-					bestTarget = new Vec4d(curTarget.X, curTarget.Y, curTarget.Z, curTarget.W);
-					if (curTarget.W >= 1.0) {
+				if (bestTarget == null || currTarget.W > bestTarget.W) {
+					bestTarget = new Vec4d(currTarget.X, currTarget.Y, currTarget.Z, currTarget.W);
+					if (currTarget.W >= 1.0) {
 						break;
 					}
 				}
 			}
 			if (bestTarget.W > 0.0) {
-				FailedConsecutivePathfinds = Math.Max(FailedConsecutivePathfinds - 3, 0);
+				FailedPathfinds = Math.Max(FailedPathfinds - 3, 0);
 				return bestTarget.XYZ;
 			}
-			FailedConsecutivePathfinds++;
+			FailedPathfinds++;
 			return null;
+		}
+
+		private void OnStuck() {
+			cancelWander = true;
+			failedWanders++;
+		}
+
+		private void OnGoals() {
+			cancelWander = true;
+			failedWanders = 0;
 		}
 
 		private int MoveDownToFloor(int x, int y, int z) {
@@ -229,16 +218,6 @@ namespace VSKingdom {
 				y--;
 			}
 			return -1;
-		}
-
-		private void OnStuck() {
-			finished = true;
-			failedWanders++;
-		}
-
-		private void OnGoalReached() {
-			finished = true;
-			failedWanders = 0;
 		}
 	}
 }

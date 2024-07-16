@@ -19,19 +19,20 @@ namespace VSKingdom {
 		protected const double UIPadding = 3.0;
 		protected const double HeightPad = 51.0;
 
+		protected string langCodes;
+
 		protected Vec3d entpos = new Vec3d();
 		protected InventorySentry inventory;
 		protected EntitySentry entity;
 		protected EntityPlayer player;
-		protected ICoreServerAPI sapi;
 		protected ITreeAttribute loyalties => entity.WatchedAttributes.GetTreeAttribute("loyalties");
+
 		public InvSentryDialog(InventorySentry inventory, EntitySentry entity, ICoreClientAPI capi) : base(capi) {
 			this.inventory = inventory;
 			this.entity = entity;
 			this.player = capi.World.Player.Entity;
 			this.capi = capi;
-			this.sapi = capi.World.Player.Entity.Api as ICoreServerAPI;
-
+			this.langCodes = (capi.World.Player as IServerPlayer)?.LanguageCode ?? "en";
 			ElementBounds bgBounds = ElementBounds.Fill.WithFixedPadding(GuiStyle.ElementToDialogPadding);
 			bgBounds.BothSizing = ElementSizing.FitToChildren;
 			// Dialog Bounds.
@@ -91,13 +92,13 @@ namespace VSKingdom {
 				.AddItemSlotGrid(inventory, SendInvPacket, 1, new int[1] { InventorySentry.FoodsItemSlotId }, munitionsSlotsBounds, "otherSlotsAmmo")
 				.AddItemSlotGrid(inventory, SendInvPacket, 1, new int[1] { InventorySentry.HealthItmSlotId }, healthitmSlotsBounds, "otherSlotsHeal");
 			SingleComposer
-				.AddButton(Lang.Get("vskingdom:entries-keyword-wander"), () => OnGiveCommand("command_wander"), gowanderButtonBounds, CairoFont.WhiteSmallishText(), EnumButtonStyle.Normal, "ordersWander")
-				.AddButton(Lang.Get("vskingdom:entries-keyword-follow"), () => OnGiveCommand("command_follow"), gofollowButtonBounds, CairoFont.WhiteSmallishText(), EnumButtonStyle.Normal, "ordersFollow")
-				.AddButton(Lang.Get("vskingdom:entries-keyword-firing"), () => OnGiveCommand("command_firing"), goattackButtonBounds, CairoFont.WhiteSmallishText(), EnumButtonStyle.Normal, "ordersAttack")
-				.AddButton(Lang.Get("vskingdom:entries-keyword-pursue"), () => OnGiveCommand("command_pursue"), gopursueButtonBounds, CairoFont.WhiteSmallishText(), EnumButtonStyle.Normal, "ordersPursue")
-				.AddButton(Lang.Get("vskingdom:entries-keyword-shifts"), () => OnGiveCommand("command_shifts"), doshiftsButtonBounds, CairoFont.WhiteSmallishText(), EnumButtonStyle.Normal, "ordersShifts")
-				.AddButton(Lang.Get("vskingdom:entries-keyword-nights"), () => OnGiveCommand("command_nights"), donightsButtonBounds, CairoFont.WhiteSmallishText(), EnumButtonStyle.Normal, "ordersNights")
-				.AddButton(Lang.Get("vskingdom:entries-keyword-return"), () => OnGiveCommand("command_return"), returntoButtonBounds, CairoFont.WhiteSmallishText(), EnumButtonStyle.Normal, "ordersReturn")
+				.AddButton(LangUtility.GetL(langCodes, "entries-keyword-wander"), () => OnGiveCommand("command_wander"), gowanderButtonBounds, CairoFont.WhiteSmallishText(), EnumButtonStyle.Normal, "ordersWander")
+				.AddButton(LangUtility.GetL(langCodes, "entries-keyword-follow"), () => OnGiveCommand("command_follow"), gofollowButtonBounds, CairoFont.WhiteSmallishText(), EnumButtonStyle.Normal, "ordersFollow")
+				.AddButton(LangUtility.GetL(langCodes, "entries-keyword-firing"), () => OnGiveCommand("command_firing"), goattackButtonBounds, CairoFont.WhiteSmallishText(), EnumButtonStyle.Normal, "ordersAttack")
+				.AddButton(LangUtility.GetL(langCodes, "entries-keyword-pursue"), () => OnGiveCommand("command_pursue"), gopursueButtonBounds, CairoFont.WhiteSmallishText(), EnumButtonStyle.Normal, "ordersPursue")
+				.AddButton(LangUtility.GetL(langCodes, "entries-keyword-shifts"), () => OnGiveCommand("command_shifts"), doshiftsButtonBounds, CairoFont.WhiteSmallishText(), EnumButtonStyle.Normal, "ordersShifts")
+				.AddButton(LangUtility.GetL(langCodes, "entries-keyword-nights"), () => OnGiveCommand("command_nights"), donightsButtonBounds, CairoFont.WhiteSmallishText(), EnumButtonStyle.Normal, "ordersNights")
+				.AddButton(LangUtility.GetL(langCodes, "entries-keyword-return"), () => OnGiveCommand("command_return"), returntoButtonBounds, CairoFont.WhiteSmallishText(), EnumButtonStyle.Normal, "ordersReturn")
 			.EndChildElements();
 			SingleComposer.Compose();
 		}
@@ -160,8 +161,8 @@ namespace VSKingdom {
 				case "command_return": newOrders.returning = !loyalties.GetBool(orders); break;
 			}
 
-			sapi.Network.GetChannel("sentrynetwork").SendPacket<SentryOrders>(newOrders, player as IServerPlayer);
-			capi.ShowChatMessage(Lang.Get($"vskingdom:entries-keyword-{orders.Replace("command_", "")}-{loyalties.GetBool(orders).ToString().ToLower()}"));
+			(entity.Api as ICoreServerAPI)?.Network.GetChannel("sentrynetwork").SendPacket<SentryOrders>(newOrders, player as IServerPlayer);
+			capi.ShowChatMessage(Lang.GetL(langCodes, $"vskingdom:entries-keyword-{orders.Replace("command_", "")}-{loyalties.GetBool(orders).ToString().ToLower()}"));
 			TryClose();
 			if (entity.ruleOrder[0]) {
 				entity.WatchedAttributes.SetFloat("wanderRangeMul", 2f);
@@ -188,7 +189,7 @@ namespace VSKingdom {
 		}
 
 		private string GetName() {
-			return entity.WatchedAttributes.GetTreeAttribute("nametag")?.GetString("name") ?? Lang.Get(entity.Code.ToString());
+			return entity.WatchedAttributes.GetTreeAttribute("nametag")?.GetString("name") ?? Lang.GetL(langCodes, entity.Code.ToString());
 		}
 	}
 }

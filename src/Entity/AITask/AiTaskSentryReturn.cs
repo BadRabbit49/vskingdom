@@ -1,6 +1,7 @@
 ﻿using Vintagestory.API.Common;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
+using Vintagestory.API.Server;
 
 namespace VSKingdom {
 	public class AiTaskSentryReturn : AiTaskBase {
@@ -13,12 +14,14 @@ namespace VSKingdom {
 		protected long lastCheckCooldown = 500L;
 		private BlockPos outpostXYZD { get => entity.Loyalties.GetBlockPos("outpost_xyzd"); }
 
-
 		public override bool ShouldExecute() {
 			if (lastCheckTotalMs + lastCheckCooldown > entity.World.ElapsedMilliseconds) {
 				return false;
 			}
 			lastCheckTotalMs = entity.World.ElapsedMilliseconds;
+			if (entity.ruleOrder[6] == false) {
+				return false;
+			}
 			return CheckDistance();
 		}
 
@@ -45,19 +48,25 @@ namespace VSKingdom {
 			base.FinishExecute(cancelled);
 			pathTraverser.Stop();
 			if (cancelReturn && entity.ruleOrder[6] && entity.ServerPos.DistanceTo(outpostXYZD.ToVec3d()) < entity.postRange) {
-				entity.ServerAPI?.World.GetEntityById(entity.EntityId)?.GetBehavior<EntityBehaviorLoyalties>()?.SetCommand("command_return", false);
-				entity.ServerAPI?.Network.BroadcastEntityPacket(entity.EntityId, 1503);
+				UpdateOrders(false);
 			}
 		}
 
 		private void OnStuck() {
 			cancelReturn = true;
 			pathTraverser.Stop();
+			pathTraverser.Retarget();
 		}
 
 		private void OnGoals() {
 			cancelReturn = true;
 			pathTraverser.Stop();
+		}
+
+		private void UpdateOrders(bool @returning) {
+			SentryOrders updatedOrders = new SentryOrders() { entityUID = entity.EntityId, returning = @returning };
+			IServerPlayer nearestPlayer = entity.ServerAPI.World.NearestPlayer(entity.ServerPos.X, entity.ServerPos.Y, entity.ServerPos.Z) as IServerPlayer;
+			entity.ServerAPI?.Network.GetChannel("sentrynetwork").SendPacket<SentryOrders>(updatedOrders, nearestPlayer);
 		}
 
 		private bool CheckDistance() {
@@ -67,8 +76,7 @@ namespace VSKingdom {
 			}
 			// Set command to return if the outpost is further away than the boundaries allowed, and entity isn't following player.
 			if (entity.ServerPos.DistanceTo(outpostXYZD.ToVec3d()) > boundaries && !entity.ruleOrder[1]) {
-				entity.ServerAPI?.World.GetEntityById(entity.EntityId)?.GetBehavior<EntityBehaviorLoyalties>()?.SetCommand("command_return", true);
-				entity.ServerAPI?.Network.BroadcastEntityPacket(entity.EntityId, 1503);
+				UpdateOrders(true);
 				return false;
 			}
 			return !entity.ruleOrder[6];

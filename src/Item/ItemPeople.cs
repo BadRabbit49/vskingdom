@@ -32,7 +32,7 @@ public class ItemPeople : Item {
 		if (entityType is null) {
 			byEntity.World.Logger.Error("ItemPeople: No such entity - {0}", assetLocation);
 			if (api.World.Side == EnumAppSide.Client) {
-				(api as ICoreClientAPI).TriggerIngameError(this, "nosuchentity", $"No such entity loaded - '{assetLocation}'.");
+				(api as ICoreClientAPI)?.TriggerIngameError(this, "nosuchentity", $"No such entity loaded - '{assetLocation}'.");
 			}
 			return;
 		}
@@ -68,12 +68,6 @@ public class ItemPeople : Item {
 			// Editing the "skinConfig" tree here and changing it to what we want.
 			var entitySkinParts = entity.WatchedAttributes.GetOrAddTreeAttribute("skinConfig").GetOrAddTreeAttribute("appliedParts");
 			var entityFullNames = entity.WatchedAttributes.GetOrAddTreeAttribute("nametag");
-			foreach (var part in entitySkinParts) {
-				api.Logger.Notification("Attribute: " + part.Key + " " + part.Value.GetValue().ToString());
-			}
-			foreach (var stuff in byCulture.SkinColors) {
-				api.Logger.Notification("SkinColor: " + stuff);
-			}
 
 			string[] skinColors = byCulture.SkinColors.ToArray<string>();
 			string[] eyesColors = byCulture.EyesColors.ToArray<string>();

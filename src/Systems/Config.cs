@@ -1,5 +1,4 @@
-﻿using System.IO;
-using Vintagestory.API.Common;
+﻿using Vintagestory.API.Common;
 
 namespace VSKingdom {
 	class ModConfig {
@@ -43,6 +42,7 @@ namespace VSKingdom {
 			api.World.Config.SetInt("MinCultureMake", config.MinCultureMake);
 			api.World.Config.SetInt("MaxNewKingdoms", config.MaxNewKingdoms);
 			api.World.Config.SetInt("MaxNewCultures", config.MaxNewCultures);
+			api.World.Config.SetString("ServerLanguage", config.ServerLanguage);
 			api.World.Config.SetString("BasicMascNames", config.BasicMascNames);
 			api.World.Config.SetString("BasicFemmNames", config.BasicFemmNames);
 			api.World.Config.SetString("BasicLastNames", config.BasicLastNames);
@@ -75,6 +75,7 @@ namespace VSKingdom {
 		public int MinCultureMake { get; set; } = 720;
 		public int MaxNewKingdoms { get; set; } = -1;
 		public int MaxNewCultures { get; set; } = -1;
+		public string ServerLanguage { get; set; } = "en";
 		public string BasicMascNames { get; set; } = "Aphid, Eriek, Adachi, Farhad, Barker, Floyd, Temper, Kanin, Fauln, Riftok, Blauld, Canft, Henlir, Rauln, Gautfor, Gouldfor, Mantiel, Shink, Helno, Recksmeal, Marky, Marcus, Hardwin, Timoleon, Leonidas, Yikes, Brutus, William, Maurinus, Hubertus, Bikke";
 		public string BasicFemmNames { get; set; } = "Annie, Agnes, Lestli, Candis, Bianca, Hedwig, Demud, Imagina, Johanna, Judith, Magdalena, Philippa, Violat, Walpurga, Josephine, Joana, Yvonne, Tauts, Diane, Olivia, Hermoine, Triss, Harley, Lucia, Mirella, Bernadetta, Tacia, Listle, Willa, Sabrine";
 		public string BasicLastNames { get; set; } = "Ponright, Tonio, Elliott, Daniels, Perez, Smith, Parkins, Genright, Harkons, Newoak, Bishop, Gearsmith, Steenwilk, Beckett, Birchwood, Driftern, Caesaran, Lisbeth, Flenk, Tunnleway, Sharps, Reynolds, Cokforth, Reyleigh, Jaunt, Biklin, Brown, Meina, Kant";
@@ -91,6 +92,7 @@ namespace VSKingdom {
 			MinCultureMake = prev.MinCultureMake;
 			MaxNewKingdoms = prev.MaxNewKingdoms;
 			MaxNewCultures = prev.MaxNewCultures;
+			ServerLanguage = prev.ServerLanguage;
 			BasicMascNames = prev.BasicMascNames;
 			BasicFemmNames = prev.BasicFemmNames;
 			BasicLastNames = prev.BasicLastNames;

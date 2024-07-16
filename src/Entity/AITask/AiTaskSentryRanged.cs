@@ -190,6 +190,9 @@ namespace VSKingdom {
 		
 		public override void OnEntityHurt(DamageSource source, float damage) {
 			base.OnEntityHurt(source, damage);
+			if (source.SourceEntity == null) {
+				return;
+			}
 			// Ignore projectiles for the most part, only cancel attack.
 			if (source.SourceEntity is EntityProjectile) {
 				cancelAttack = true;

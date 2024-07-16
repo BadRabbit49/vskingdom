@@ -7,8 +7,6 @@ using Vintagestory.API.Datastructures;
 using Vintagestory.API.Server;
 using Vintagestory.API.Util;
 using Vintagestory.GameContent;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace VSKingdom {
 	public class EntitySentry : EntityHumanoid {
@@ -54,33 +52,35 @@ namespace VSKingdom {
 			}
 			// Register stuff for client-side api.
 			if (api is ICoreClientAPI capi) {
-				ClientAPI = capi;
+				
 				talkUtil = new EntityTalkUtil(capi, this);
 			}
 			// Register listeners if api is on server.
 			if (api is ICoreServerAPI sapi) {
-				ServerAPI = sapi;
-				Loyalties = WatchedAttributes.GetOrAddTreeAttribute("loyalties");
 				WatchedAttributes.RegisterModifiedListener("inventory", ReadInventoryFromAttributes);
 				GetBehavior<EntityBehaviorHealth>().onDamaged += (dmg, dmgSource) => HealthUtility.handleDamaged(World.Api, this, dmg, dmgSource);
-				ruleOrder = new bool[7] { true, false, true, true, false, false, false, };
-				friendsID = new string[] { };
-				enemiesID = new string[] { };
-				moveSpeed = properties.Attributes["moveSpeed"].AsDouble(0.035);
-				walkSpeed = properties.Attributes["walkSpeed"].AsDouble(0.018);
-				weapClass = properties.Attributes["weapClass"].AsString("melee").ToLowerInvariant();
-				baseGroup = properties.Attributes["baseGroup"].AsString("00000000");
-				if (baseGroup == "xxxxxxxx") {
-					WatchedAttributes.GetTreeAttribute("loyalties").SetString("kingdom_guid", "xxxxxxxx");
-					WatchedAttributes.GetTreeAttribute("loyalties").SetString("leaders_guid", null);
-					WatchedAttributes.MarkPathDirty("loyalties");
-					kingdomID = "xxxxxxxx";
-					leadersID = null;
-				}
-				sapi.Network.GetChannel("sentrynetwork").SendPacket<long>(this.EntityId, sapi.World.NearestPlayer(Pos.X, Pos.Y, Pos.Z) as IServerPlayer);
 			}
-			UpdateStats();
-			UpdateTasks(null);
+			ClientAPI = (api as ICoreClientAPI);
+			ServerAPI = (api as ICoreServerAPI);
+			Loyalties = WatchedAttributes.GetOrAddTreeAttribute("loyalties");
+			ruleOrder = new bool[7] { true, false, true, true, false, false, false, };
+			moveSpeed = properties.Attributes["moveSpeed"].AsDouble(0.035);
+			walkSpeed = properties.Attributes["walkSpeed"].AsDouble(0.018);
+			weapClass = properties.Attributes["weapClass"].AsString("melee").ToLowerInvariant();
+			baseGroup = properties.Attributes["baseGroup"].AsString("00000000");
+			kingdomID = Loyalties.GetString("kingdom_guid") ?? properties.Attributes["baseGroup"].AsString("00000000");
+			cultureID = Loyalties.GetString("culture_guid") ?? "00000000";
+			leadersID = Loyalties.GetString("leaders_guid", null);
+			friendsID = new string[] { };
+			enemiesID = new string[] { };
+			outlawsID = new string[] { };
+			if (baseGroup == "xxxxxxxx") {
+				Loyalties.SetString("kingdom_guid", "xxxxxxxx");
+				Loyalties.SetString("leaders_guid", null);
+				WatchedAttributes.MarkPathDirty("loyalties");
+				kingdomID = "xxxxxxxx";
+				leadersID = null;
+			}
 			ReadInventoryFromAttributes();
 		}
 
@@ -92,19 +92,22 @@ namespace VSKingdom {
 				string code = dressCodes[i] + "Spawn";
 				if (Properties.Attributes[code].Exists) {
 					try {
-						var item = ServerAPI.World.GetItem(new AssetLocation(MathUtility.GetRandom(Properties.Attributes[code].AsArray<string>(null))));
+						var item = World.GetItem(new AssetLocation(MathUtility.GetRandom(Properties.Attributes[code].AsArray<string>(null))));
 						ItemStack itemstack = new ItemStack(item, 1);
 						if (i == 18 && GearInventory[16].Itemstack.Item is ItemBow) {
 							itemstack = new ItemStack(item, MathUtility.GetRandom(item.MaxStackSize, 5));
 						}
-						ServerAPI.World.SpawnItemEntity(itemstack, this.Pos.XYZ);
-						var newstack = (ServerAPI.World.SpawnItemEntity(itemstack, this.Pos.XYZ) as EntityItem);
+						var newstack = World.SpawnItemEntity(itemstack, this.ServerPos.XYZ) as EntityItem;
 						GearInventory[i].Itemstack = newstack?.Itemstack;
-						newstack.Die();
+						newstack.Die(EnumDespawnReason.PickedUp, null);
 						GearInvSlotModified(i);
 					} catch { }
 				}
 			}
+			SentryUpdate update = new SentryUpdate() { entityUID = this.EntityId, kingdomID = this.kingdomID };
+			(Api as ICoreServerAPI)?.Network.GetChannel("sentrynetwork").SendPacket<SentryUpdate>(update, World.NearestPlayer(ServerPos.X, ServerPos.Y, ServerPos.Z) as IServerPlayer);
+			UpdateStats();
+			UpdateTasks(null);
 		}
 
 		public override void OnEntityDespawn(EntityDespawnData despawn) {
@@ -114,6 +117,9 @@ namespace VSKingdom {
 
 		public override void OnTesselation(ref Shape entityShape, string shapePathForLogging) {
 			base.OnTesselation(ref entityShape, shapePathForLogging);
+			if (GearInventory.Empty) {
+				return;
+			}
 			foreach (ItemSlot slot in GearInventory) {
 				addGearToShape(slot, entityShape, shapePathForLogging);
 			}
@@ -157,7 +163,7 @@ namespace VSKingdom {
 					return player.ServerControls.Sneak && base.ShouldReceiveDamage(damageSource, damage);
 				}
 				if (kingdomID == attacker.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdom_guid")) {
-					return Api.World.Config.GetAsBool("FriendlyFire") && base.ShouldReceiveDamage(damageSource, damage);
+					return ServerAPI.World.Config.GetAsBool("FriendlyFire", true) && base.ShouldReceiveDamage(damageSource, damage);
 				}
 				return base.ShouldReceiveDamage(damageSource, damage);
 			}
@@ -279,28 +285,32 @@ namespace VSKingdom {
 		}
 
 		public virtual void UpdateInfos(byte[] kingdomData) {
-			kingdomID = Loyalties.GetString("kingdom_guid", baseGroup);
-			cultureID = Loyalties.GetString("culture_guid", "00000000");
+			if (Api.Side == EnumAppSide.Server) {
+				try { Api.Logger.Notification($"[SERVER]\nBasegroup is: {baseGroup}\nKingdomID is:{kingdomID}\nLoyaltiesID is: {Loyalties.GetString("kingdom_guid", "")}"); } catch { }
+			}
+			if (Api.Side == EnumAppSide.Client) {
+				try { Api.Logger.Notification($"[CLIENT]\nBasegroup is: {baseGroup}\nKingdomID is:{kingdomID}\nLoyaltiesID is: {Loyalties.GetString("kingdom_guid", "")}"); } catch { }
+			}
+			SentryUpdate update = SerializerUtil.Deserialize<SentryUpdate>(kingdomData);
+			kingdomID = Loyalties.GetString("kingdom_guid") ?? update?.kingdomID ?? baseGroup ?? "00000000";
+			cultureID = Loyalties.GetString("culture_guid") ?? "00000000";
 			leadersID = Loyalties.GetString("leaders_guid", null);
-			List<Kingdom> kingdomList = SerializerUtil.Deserialize<List<Kingdom>>(kingdomData);
-			var kingdom = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomID);
-			Api.Logger.Notification($"Array of enemies is: {kingdom?.EnemiesGUID.ToArray<string>()[0]}");
-			friendsID = kingdom?.FriendsGUID.ToArray<string>() ?? new string[0];
-			enemiesID = kingdom?.EnemiesGUID.ToArray<string>() ?? new string[0];
-			outlawsID = kingdom?.OutlawsGUID.ToArray<string>() ?? new string[0];
-			Api.Logger.Notification($"Array of enemies NOW is: {enemiesID[0]}");
+			friendsID = update.friendsID ?? new string[0];
+			enemiesID = update.enemiesID ?? new string[0];
+			outlawsID = update.outlawsID ?? new string[0];
+			Api.Logger.Notification($"[ENEMIES]:\n{enemiesID[0]}\n{enemiesID[enemiesID.Length - 1]}");
 		}
 
 		public virtual void UpdateTasks(byte[] commandData) {
 			if (commandData != null) {
-				SentryOrders tasks = SerializerUtil.Deserialize<SentryOrders>(commandData);
-				Loyalties.SetBool("command_wander", tasks.wandering ?? Loyalties.GetBool("command_wander", true));
-				Loyalties.SetBool("command_follow", tasks.following ?? Loyalties.GetBool("command_follow", false));
-				Loyalties.SetBool("command_firing", tasks.attacking ?? Loyalties.GetBool("command_firing", true));
-				Loyalties.SetBool("command_pursue", tasks.pursueing ?? Loyalties.GetBool("command_pursue", true));
-				Loyalties.SetBool("command_shifts", tasks.shifttime ?? Loyalties.GetBool("command_shifts", false));
-				Loyalties.SetBool("command_nights", tasks.nighttime ?? Loyalties.GetBool("command_nights", false));
-				Loyalties.SetBool("command_return", tasks.returning ?? Loyalties.GetBool("command_nights", false));
+				SentryOrders orders = SerializerUtil.Deserialize<SentryOrders>(commandData);
+				Loyalties.SetBool("command_wander", orders.wandering ?? Loyalties.GetBool("command_wander", true));
+				Loyalties.SetBool("command_follow", orders.following ?? Loyalties.GetBool("command_follow", false));
+				Loyalties.SetBool("command_firing", orders.attacking ?? Loyalties.GetBool("command_firing", true));
+				Loyalties.SetBool("command_pursue", orders.pursueing ?? Loyalties.GetBool("command_pursue", true));
+				Loyalties.SetBool("command_shifts", orders.shifttime ?? Loyalties.GetBool("command_shifts", false));
+				Loyalties.SetBool("command_nights", orders.nighttime ?? Loyalties.GetBool("command_nights", false));
+				Loyalties.SetBool("command_return", orders.returning ?? Loyalties.GetBool("command_nights", false));
 				WatchedAttributes.MarkPathDirty("loyalties");
 			}
 			ruleOrder = new bool[] {

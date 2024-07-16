@@ -111,7 +111,10 @@ namespace VSKingdom {
 
 		public override bool ContinueExecute(float dt) {
 			// Don't pursue if there is no target, the target is dead, or the attack has been called off!
-			if (cancelAttack || targetEntity is null || !targetEntity.Alive) {
+			if (cancelAttack || targetEntity == null) {
+				return false;
+			}
+			if (!targetEntity.Alive) {
 				return false;
 			}
 			EntityPos serverPos1 = entity.ServerPos;

@@ -10,6 +10,7 @@ using Vintagestory.API.Util;
 using Vintagestory.GameContent;
 using Vintagestory.API.Config;
 using Vintagestory.API.MathTools;
+using Vintagestory.API.Datastructures;
 
 namespace VSKingdom {
 	public class VSKingdom : ModSystem {
@@ -189,19 +190,42 @@ namespace VSKingdom {
 		}
 
 		private void OnSentryUpdated(IServerPlayer fromPlayer, SentryUpdate sentryUpdate) {
-			serverAPI.Logger.Notification($"kingdomList size is {kingdomList.Count} with {kingdomList[0].KingdomNAME} and {kingdomList[1]?.KingdomNAME ?? ""}");
+			EntitySentry sentry = serverAPI.World.GetEntityById(sentryUpdate.entityUID) as EntitySentry;
+			ITreeAttribute loyalties = sentry.WatchedAttributes.GetTreeAttribute("loyalties");
 			var kingdom = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == sentryUpdate.kingdomID);
 			var entGUID = sentryUpdate.entityUID;
-			sentryUpdate = new SentryUpdate() {
-				kingdomID = kingdom.KingdomGUID,
-				friendsID = kingdom.FriendsGUID.ToArray(),
-				enemiesID = kingdom.EnemiesGUID.ToArray(),
-				outlawsID = kingdom.OutlawsGUID.ToArray()
-			};
+			// NEEDS TO BE DONE ON THE SERVER SIDE HERE.
+			sentry.kingdomID = sentryUpdate.kingdomID ?? sentry.baseGroup ?? "00000000";
+			sentry.friendsID = kingdom.FriendsGUID.ToArray();
+			sentry.enemiesID = kingdom.EnemiesGUID.ToArray();
+			sentry.outlawsID = kingdom.OutlawsGUID.ToArray();
+			// To ensure the Client-side gets the same variables to prevent desync we will still send an update there. Might not need to in the future though.
+			sentryUpdate = new SentryUpdate() { friendsID = kingdom.FriendsGUID.ToArray(), enemiesID = kingdom.EnemiesGUID.ToArray(), outlawsID = kingdom.OutlawsGUID.ToArray() };
 			serverAPI.Network.BroadcastEntityPacket(entGUID, 1502, SerializerUtil.Serialize<SentryUpdate>(sentryUpdate));
 		}
 
 		private void OnSentryOrdered(IServerPlayer fromPlayer, SentryOrders sentryOrders) {
+			EntitySentry sentry = serverAPI.World.GetEntityById(sentryOrders.entityUID) as EntitySentry;
+			ITreeAttribute loyalties = sentry.WatchedAttributes.GetTreeAttribute("loyalties");
+			// WATCHED VARIABLES ONLY CAN BE SET FROM SERVER (I.E. HERE).
+			loyalties.SetBool("command_wander", sentryOrders.wandering ?? loyalties.GetBool("command_wander", true));
+			loyalties.SetBool("command_follow", sentryOrders.following ?? loyalties.GetBool("command_follow", false));
+			loyalties.SetBool("command_firing", sentryOrders.attacking ?? loyalties.GetBool("command_firing", true));
+			loyalties.SetBool("command_pursue", sentryOrders.pursueing ?? loyalties.GetBool("command_pursue", true));
+			loyalties.SetBool("command_shifts", sentryOrders.shifttime ?? loyalties.GetBool("command_shifts", false));
+			loyalties.SetBool("command_nights", sentryOrders.nighttime ?? loyalties.GetBool("command_nights", false));
+			loyalties.SetBool("command_return", sentryOrders.returning ?? loyalties.GetBool("command_nights", false));
+			sentry.WatchedAttributes.MarkPathDirty("loyalties");
+			sentry.ruleOrder = new bool[] {
+				loyalties?.GetBool("command_wander") ?? true,
+				loyalties?.GetBool("command_follow") ?? false,
+				loyalties?.GetBool("command_firing") ?? true,
+				loyalties?.GetBool("command_pursue") ?? true,
+				loyalties?.GetBool("command_shifts") ?? false,
+				loyalties?.GetBool("command_nights") ?? false,
+				loyalties?.GetBool("command_return") ?? false
+			};
+			// Stopping kind of redundant other than to make sure variables are updated passed. Needs testing.
 			serverAPI.Network.BroadcastEntityPacket(sentryOrders.entityUID, 1503, SerializerUtil.Serialize<SentryOrders>(sentryOrders));
 		}
 

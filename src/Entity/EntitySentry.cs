@@ -24,9 +24,9 @@ namespace VSKingdom {
 		public virtual string kingdomID { get; set; }
 		public virtual string cultureID { get; set; }
 		public virtual string leadersID { get; set; }
-		public virtual string[] friendsID { get; set; }
-		public virtual string[] enemiesID { get; set; }
-		public virtual string[] outlawsID { get; set; }
+		public virtual string[] friendsID { get; set; } = new string[] { };
+		public virtual string[] enemiesID { get; set; } = new string[] { };
+		public virtual string[] outlawsID { get; set; } = new string[] { };
 		public virtual string inventory => "gear-" + EntityId;
 		public virtual EntityTalkUtil talkUtil { get; set; }
 		public virtual InventorySentry gearInv { get; set; }
@@ -52,7 +52,6 @@ namespace VSKingdom {
 			}
 			// Register stuff for client-side api.
 			if (api is ICoreClientAPI capi) {
-				
 				talkUtil = new EntityTalkUtil(capi, this);
 			}
 			// Register listeners if api is on server.
@@ -105,7 +104,7 @@ namespace VSKingdom {
 				}
 			}
 			SentryUpdate update = new SentryUpdate() { entityUID = this.EntityId, kingdomID = this.kingdomID };
-			(Api as ICoreServerAPI).Network.GetChannel("sentrynetwork").SendPacket<SentryUpdate>(update, World.NearestPlayer(ServerPos.X, ServerPos.Y, ServerPos.Z) as IServerPlayer);
+			(Api as ICoreServerAPI)?.Network.GetChannel("sentrynetwork").SendPacket<SentryUpdate>(update, World.NearestPlayer(ServerPos.X, ServerPos.Y, ServerPos.Z) as IServerPlayer);
 			UpdateStats();
 			UpdateTasks(null);
 		}
@@ -220,7 +219,7 @@ namespace VSKingdom {
 			gearInv.ToTreeAttributes(tree);
 			WatchedAttributes.MarkPathDirty("inventory");
 			// If on server-side, not client, send the packetid on the channel.
-			ServerAPI?.Network.BroadcastEntityPacket(EntityId, 1504, SerializerUtil.ToBytes((w) => tree.ToBytes(w)));
+			(Api as ICoreServerAPI)?.Network.BroadcastEntityPacket(EntityId, 1504, SerializerUtil.ToBytes((w) => tree.ToBytes(w)));
 			UpdateStats();
 		}
 
@@ -246,7 +245,6 @@ namespace VSKingdom {
 			InventoryDialog?.Dispose();
 			InventoryDialog = null;
 			UpdateStats();
-			ServerAPI?.Network.GetChannel("sentrynetwork").SendPacket<long>(this.EntityId, ServerAPI.World.AllOnlinePlayers[0] as IServerPlayer);
 		}
 
 		public virtual void ReadInventoryFromAttributes() {
@@ -284,35 +282,17 @@ namespace VSKingdom {
 			}
 		}
 
-		public virtual void UpdateInfos(byte[] kingdomData) {
-			if (Api.Side == EnumAppSide.Server) {
-				try { Api.Logger.Notification($"[SERVER]\nBasegroup is: {baseGroup}\nKingdomID is:{kingdomID}\nLoyaltiesID is: {Loyalties.GetString("kingdom_guid", "")}"); } catch { }
-			}
-			if (Api.Side == EnumAppSide.Client) {
-				try { Api.Logger.Notification($"[CLIENT]\nBasegroup is: {baseGroup}\nKingdomID is:{kingdomID}\nLoyaltiesID is: {Loyalties.GetString("kingdom_guid", "")}"); } catch { }
-			}
-			SentryUpdate update = SerializerUtil.Deserialize<SentryUpdate>(kingdomData);
-			kingdomID = Loyalties.GetString("kingdom_guid") ?? update?.kingdomID ?? baseGroup ?? "00000000";
+		public virtual void UpdateInfos(byte[] data) {
+			SentryUpdate update = SerializerUtil.Deserialize<SentryUpdate>(data);
+			kingdomID = Loyalties.GetString("kingdom_guid") ?? baseGroup ?? "00000000";
 			cultureID = Loyalties.GetString("culture_guid") ?? "00000000";
-			leadersID = Loyalties.GetString("leaders_guid", null);
-			friendsID = update.friendsID ?? new string[0];
-			enemiesID = update.enemiesID ?? new string[0];
-			outlawsID = update.outlawsID ?? new string[0];
-			Api.Logger.Notification($"[ENEMIES]:\n{enemiesID[0]}\n{enemiesID[enemiesID.Length - 1]}");
+			leadersID = Loyalties.GetString("leaders_guid") ?? null;
+			friendsID = update.friendsID;
+			enemiesID = update.enemiesID;
+			outlawsID = update.outlawsID;
 		}
 
-		public virtual void UpdateTasks(byte[] commandData) {
-			if (commandData != null) {
-				SentryOrders orders = SerializerUtil.Deserialize<SentryOrders>(commandData);
-				Loyalties.SetBool("command_wander", orders.wandering ?? Loyalties.GetBool("command_wander", true));
-				Loyalties.SetBool("command_follow", orders.following ?? Loyalties.GetBool("command_follow", false));
-				Loyalties.SetBool("command_firing", orders.attacking ?? Loyalties.GetBool("command_firing", true));
-				Loyalties.SetBool("command_pursue", orders.pursueing ?? Loyalties.GetBool("command_pursue", true));
-				Loyalties.SetBool("command_shifts", orders.shifttime ?? Loyalties.GetBool("command_shifts", false));
-				Loyalties.SetBool("command_nights", orders.nighttime ?? Loyalties.GetBool("command_nights", false));
-				Loyalties.SetBool("command_return", orders.returning ?? Loyalties.GetBool("command_nights", false));
-				WatchedAttributes.MarkPathDirty("loyalties");
-			}
+		public virtual void UpdateTasks(byte[] data) {
 			ruleOrder = new bool[] {
 				Loyalties?.GetBool("command_wander", true) ?? true,
 				Loyalties?.GetBool("command_follow", false) ?? false,
@@ -322,7 +302,6 @@ namespace VSKingdom {
 				Loyalties?.GetBool("command_nights", false) ?? false,
 				Loyalties?.GetBool("command_return", false) ?? false
 			};
-			Api.Logger.Notification($"Tasks are:\ncommand_wander: {ruleOrder[0]},\ncommand_follow: {ruleOrder[1]},\ncommand_firing: {ruleOrder[2]},\ncommand_pursue: {ruleOrder[3]},\ncommand_shifts: {ruleOrder[4]},\ncommand_nights: {ruleOrder[5]},\ncommand_return: {ruleOrder[6]}!");
 		}
 
 		public virtual void UpdateTrees(byte[] data) {

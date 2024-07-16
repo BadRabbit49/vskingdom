@@ -162,7 +162,7 @@ namespace VSKingdom {
 			}
 
 			(entity.Api as ICoreServerAPI)?.Network.GetChannel("sentrynetwork").SendPacket<SentryOrders>(newOrders, player as IServerPlayer);
-			capi.ShowChatMessage(Lang.GetL(langCodes, $"vskingdom:entries-keyword-{orders.Replace("command_", "")}-{loyalties.GetBool(orders).ToString().ToLower()}"));
+			capi.ShowChatMessage(LangUtility.GetL(langCodes, $"entries-keyword-{orders.Replace("command_", "")}-{loyalties.GetBool(orders).ToString().ToLower()}"));
 			TryClose();
 			if (entity.ruleOrder[0]) {
 				entity.WatchedAttributes.SetFloat("wanderRangeMul", 2f);

@@ -219,14 +219,18 @@ namespace VSKingdom {
 			bool usingArgs = fullargs != null && fullargs != "" && fullargs != " ";
 			bool canInvite = inKingdom && KingUtility.GetRolesPRIV(thisKingdom.MembersROLE, KingUtility.GetMemberROLE(thisKingdom.PlayersINFO, callerID))[5];
 			bool adminPass = args.Caller.HasPrivilege(Privilege.controlserver) || thisPlayer.PlayerName == "BadRabbit49";
-			bool canCreate = args.Caller.GetRole(serverAPI).PrivilegeLevel >= serverAPI.World.Config.GetInt("MinCreateLevel", -1);
+			bool canCreate = args.Caller.GetRole(serverAPI).PrivilegeLevel >= serverAPI.World.Config.GetAsInt("MinCreateLevel", -1);
 			bool maxCreate = serverAPI.World.Config.GetInt("MaxNewKingdoms", -1) != -1 || serverAPI.World.Config.GetInt("MaxNewKingdoms", -1) < (kingdomList.Count + 1);
 
-			string[] keywords = { LangUtility.GetL(langCode, "entries-keyword-kingdom"), LangUtility.GetL(langCode, "entries-keyword-player"), LangUtility.GetL(langCode, "entries-keyword-players") };
+			string[] keywords = {
+				LangUtility.GetL(langCode, "entries-keyword-kingdom"),
+				LangUtility.GetL(langCode, "entries-keyword-player"),
+				LangUtility.GetL(langCode, "entries-keyword-players")
+			};
 
-			/**if (adminPass && inKingdom) {
-				try { serverAPI.SendMessage(thisPlayer, 0, KingUtility.ListedAllData(serverAPI, thisKingdom.KingdomGUID), EnumChatType.OwnMessage); } catch { }
-			}**/
+			if (adminPass && inKingdom) {
+				try { serverAPI.Logger.Debug(KingUtility.ListedAllData(serverAPI, thisKingdom.KingdomGUID)); } catch { }
+			}
 
 			switch ((string)args[0]) {
 				// Creates new owned Kingdom.

@@ -2,7 +2,6 @@
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.MathTools;
-using Vintagestory.GameContent;
 
 namespace VSKingdom {
 	public class AiTaskSentryWaters : AiTaskBase {
@@ -13,11 +12,6 @@ namespace VSKingdom {
 		protected bool cancelWaters;
 		protected Vec3d target = new Vec3d();
 		protected BlockPos pos = new BlockPos(Dimensions.NormalWorld);
-
-		public override void AfterInitialize() {
-			base.AfterInitialize();
-			pathTraverser = entity.GetBehavior<EntityBehaviorTaskAI>().PathTraverser;
-		}
 
 		public override bool ShouldExecute() {
 			if (!entity.Swimming || rand.NextDouble() > 0.04f) {

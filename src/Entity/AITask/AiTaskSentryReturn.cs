@@ -12,7 +12,7 @@ namespace VSKingdom {
 		protected bool cancelReturn = false;
 		protected long lastCheckTotalMs;
 		protected long lastCheckCooldown = 500L;
-		private BlockPos outpostXYZD { get => entity.Loyalties.GetBlockPos("outpost_xyzd"); }
+		protected Vec3d postBlock { get => entity.Loyalties.GetBlockPos("outpost_xyzd").ToVec3d(); }
 
 		public override bool ShouldExecute() {
 			if (lastCheckTotalMs + lastCheckCooldown > entity.World.ElapsedMilliseconds) {
@@ -26,11 +26,11 @@ namespace VSKingdom {
 		}
 
 		public override void StartExecute() {
-			if (outpostXYZD is null) {
+			if (postBlock is null) {
 				cancelReturn = true;
 				return;
 			}
-			cancelReturn = !pathTraverser.NavigateTo(outpostXYZD.ToVec3d(), (float)entity.moveSpeed, (float)entity.postRange, OnStuck, OnGoals, true, 10000);
+			cancelReturn = !pathTraverser.NavigateTo(postBlock, (float)entity.moveSpeed, (float)entity.postRange, OnStuck, OnGoals, true, 10000);
 			base.StartExecute();
 		}
 
@@ -38,7 +38,7 @@ namespace VSKingdom {
 			if (entity.ruleOrder[1] || CheckDistance()) {
 				cancelReturn = true;
 			}
-			if (lastCheckCooldown + 500 < entity.World.ElapsedMilliseconds && outpostXYZD is not null && entity.MountedOn is null) {
+			if (lastCheckCooldown + 500 < entity.World.ElapsedMilliseconds && postBlock is not null && entity.MountedOn is null) {
 				lastCheckCooldown = entity.World.ElapsedMilliseconds;
 			}
 			return cancelReturn;
@@ -47,7 +47,7 @@ namespace VSKingdom {
 		public override void FinishExecute(bool cancelled) {
 			base.FinishExecute(cancelled);
 			pathTraverser.Stop();
-			if (cancelReturn && entity.ruleOrder[6] && entity.ServerPos.DistanceTo(outpostXYZD.ToVec3d()) < entity.postRange) {
+			if (cancelReturn && entity.ruleOrder[6] && entity.ServerPos.DistanceTo(postBlock) < entity.postRange) {
 				UpdateOrders(false);
 			}
 		}
@@ -75,7 +75,7 @@ namespace VSKingdom {
 				boundaries = entity.postRange * 10;
 			}
 			// Set command to return if the outpost is further away than the boundaries allowed, and entity isn't following player.
-			if (entity.ServerPos.DistanceTo(outpostXYZD.ToVec3d()) > boundaries && !entity.ruleOrder[1]) {
+			if (entity.ServerPos.DistanceTo(postBlock) > boundaries && !entity.ruleOrder[1]) {
 				UpdateOrders(true);
 				return false;
 			}

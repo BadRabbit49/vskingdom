@@ -10,8 +10,8 @@ namespace VSKingdom {
 		#pragma warning disable CS0108
 		public EntitySentry entity;
 		#pragma warning restore CS0108
-		protected bool cancelWander = false;
-		protected bool doorIsBehind = false;
+		protected bool cancelWander;
+		protected bool doorIsBehind;
 		protected long failedWanders;
 		protected long lastInRangeMs;
 		protected float execChance;
@@ -26,11 +26,7 @@ namespace VSKingdom {
 			set => entity.WatchedAttributes.SetInt("failedConsecutivePathfinds", value);
 		}
 
-		protected float WanderRangeMul {
-			get => entity.WatchedAttributes.GetFloat("wanderRangeMul", 1);
-			set => entity.WatchedAttributes.SetFloat("wanderRangeMul", value);
-		}
-
+		protected float WanderRangeMul { get => entity.WatchedAttributes.GetFloat("wanderRangeMul", 1); }
 		protected Vec3d postBlock { get => entity.Loyalties.GetBlockPos("outpost_xyzd").ToVec3d(); }
 
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
@@ -113,17 +109,17 @@ namespace VSKingdom {
 		private Vec3d LoadNextWanderTarget() {
 			bool canFallDamage = entity.Api.World.Config.GetAsBool("FallDamageOn");
 			int num = 9;
+			float wanderRangeMul = WanderRangeMul;
 			Vec4d bestTarget = null;
 			Vec4d currTarget = new Vec4d();
 			if (FailedPathfinds > 10) {
-				WanderRangeMul = Math.Max(0.1f, WanderRangeMul * 0.9f);
+				wanderRangeMul = Math.Max(0.1f, WanderRangeMul * 0.9f);
 			} else {
-				WanderRangeMul = Math.Min(1f, WanderRangeMul * 1.1f);
+				wanderRangeMul = Math.Min(1f, WanderRangeMul * 1.1f);
 				if (rand.NextDouble() < 0.05) {
-					WanderRangeMul = Math.Min(1f, WanderRangeMul * 1.5f);
+					wanderRangeMul = Math.Min(1f, WanderRangeMul * 1.5f);
 				}
 			}
-			float wanderRangeMul = WanderRangeMul;
 			if (rand.NextDouble() < 0.05) {
 				wanderRangeMul *= 3f;
 			}

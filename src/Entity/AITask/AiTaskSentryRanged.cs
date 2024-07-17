@@ -56,13 +56,11 @@ namespace VSKingdom {
 			}.Init();
 		}
 
-		public override void AfterInitialize() {
-			base.AfterInitialize();
-			pathTraverser = entity.GetBehavior<EntityBehaviorTaskAI>().PathTraverser;
-		}
-
 		public override bool ShouldExecute() {
-			if (cooldownUntilMs > entity.World.ElapsedMilliseconds || !HasRanged()) {
+			if (cooldownUntilMs > entity.World.ElapsedMilliseconds) {
+				return false;
+			}
+			if (!HasRanged()) {
 				return false;
 			}
 			if (totalDurationMs + totalCooldownMs < entity.World.ElapsedMilliseconds) {
@@ -75,19 +73,22 @@ namespace VSKingdom {
 				goto IL_0095;
 			}
 			goto IL_00d6;
-		IL_0095:
+			IL_0095:
 			totalDurationMs = entity.World.ElapsedMilliseconds;
 			targetEntity = partitionUtil.GetNearestInteractableEntity(entity.ServerPos.XYZ, maxDist * 3f, (Entity ent) => IsTargetableEntity(ent, maxDist * 4f) && hasDirectContact(ent, maxDist * 4f, minDist));
 			goto IL_00d6;
-		IL_00d6:
+			IL_00d6:
 			return targetEntity?.Alive ?? false;
 		}
 
 		public override bool IsTargetableEntity(Entity ent, float range, bool ignoreEntityCode = false) {
-			if (ent == entity || !ent.Alive || ent is null) {
+			if (ent is null) {
 				return false;
 			}
-			if (ent is EntityProjectile projectile && projectile.FiredBy is not null) {
+			if (ent == entity || !ent.Alive) {
+				return false;
+			}
+			if (ent is EntityProjectile projectile && projectile.FiredBy != null) {
 				targetEntity = projectile.FiredBy;
 			}
 			if (ent.WatchedAttributes.HasAttribute("loyalties")) {
@@ -189,7 +190,6 @@ namespace VSKingdom {
 		}
 		
 		public override void OnEntityHurt(DamageSource source, float damage) {
-			base.OnEntityHurt(source, damage);
 			if (source.SourceEntity == null) {
 				return;
 			}
@@ -198,10 +198,12 @@ namespace VSKingdom {
 				cancelAttack = true;
 			}
 			// Interrupt attack and flee! Enemy is close!
-			if (source?.CauseEntity.ServerPos.DistanceTo(entity.ServerPos) < minDist) {
+			if (source.GetCauseEntity().ServerPos.DistanceTo(entity.ServerPos) < minDist) {
 				cancelAttack = true;
 				FinishExecute(true);
 				Retreat(true);
+			} else {
+				base.OnEntityHurt(source, damage);
 			}
 		}
 

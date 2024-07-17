@@ -159,6 +159,9 @@ namespace VSKingdom {
 		}
 
 		public override void OnEntityHurt(DamageSource source, float damage) {
+			if (source.GetCauseEntity() is EntitySentry sentry && entity.kingdomID == sentry.kingdomID) {
+				return;
+			}
 			if (damage > 1 && source.GetCauseEntity() is not EntityHumanoid) {
 				targetEntity = source.GetCauseEntity();
 			}

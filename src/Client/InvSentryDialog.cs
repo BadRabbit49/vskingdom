@@ -148,31 +148,39 @@ namespace VSKingdom {
 
 		protected bool OnGiveCommand(string orders) {
 			// This is a brute-force way of doing this. I didn't want it to come to this but here it is.
-			entity.WatchedAttributes.GetTreeAttribute("loyalties").SetBool(orders, !loyalties.GetBool(orders));
+			bool toggle = !loyalties.GetBool(orders);
 			SentryOrders newOrders = new SentryOrders();
 			newOrders.entityUID = entity.EntityId;
 			switch (orders) {
-				case "command_wander": newOrders.wandering = !loyalties.GetBool(orders); break;
-				case "command_follow": newOrders.following = !loyalties.GetBool(orders); break;
-				case "command_firing": newOrders.attacking = !loyalties.GetBool(orders); break;
-				case "command_pursue": newOrders.pursueing = !loyalties.GetBool(orders); break;
-				case "command_shifts": newOrders.shifttime = !loyalties.GetBool(orders); break;
-				case "command_nights": newOrders.nighttime = !loyalties.GetBool(orders); break;
-				case "command_return": newOrders.returning = !loyalties.GetBool(orders); break;
+				case "command_wander":
+					newOrders.wandering = toggle;
+					newOrders.attribute = string.Join(',', "f", "wanderRangeMul", toggle ? 2 : 1);
+					break;
+				case "command_follow":
+					newOrders.following = toggle;
+					newOrders.attribute = string.Join(',', "l", "guardedEntityId", toggle ? player.EntityId : 0);
+					(entity.Api as ICoreServerAPI)?.Network.GetChannel("sentrynetwork").SendPacket<PlayerUpdate>(new PlayerUpdate() { entityUID = player.EntityId, followers = new long[] { entity.EntityId } }, player.Player as IServerPlayer);
+					break;
+				case "command_firing":
+					newOrders.attacking = toggle;
+					break;
+				case "command_pursue":
+					newOrders.pursueing = toggle;
+					newOrders.attribute = string.Join(',', "f", "pursueRangeMul", toggle ? 2 : 1);
+					break;
+				case "command_shifts":
+					newOrders.shifttime = toggle;
+					break;
+				case "command_nights":
+					newOrders.nighttime = toggle;
+					break;
+				case "command_return":
+					newOrders.returning = toggle;
+					break;
 			}
-
-			(entity.Api as ICoreServerAPI)?.Network.GetChannel("sentrynetwork").SendPacket<SentryOrders>(newOrders, player as IServerPlayer);
-			capi.ShowChatMessage(LangUtility.GetL(langCodes, $"entries-keyword-{orders.Replace("command_", "")}-{loyalties.GetBool(orders).ToString().ToLower()}"));
+			(entity.Api as ICoreServerAPI)?.Network.GetChannel("sentrynetwork").SendPacket<SentryOrders>(newOrders, player.Player as IServerPlayer);
+			capi.ShowChatMessage(LangUtility.GetL(langCodes, new string($"entries-keyword-{orders.Replace("command_", "")}-{loyalties.GetBool(orders).ToString().ToLower()}")));
 			TryClose();
-			if (entity.ruleOrder[0]) {
-				entity.WatchedAttributes.SetFloat("wanderRangeMul", 2f);
-			} else {
-				entity.WatchedAttributes.SetFloat("wanderRangeMul", 1f);
-			}
-			if (entity.ruleOrder[1]) {
-				entity.WatchedAttributes.SetString("guardedPlayerUid", player.PlayerUID);
-				entity.WatchedAttributes.SetLong("guardedEntityId", player.EntityId);
-			}
 			return true;
 		}
 

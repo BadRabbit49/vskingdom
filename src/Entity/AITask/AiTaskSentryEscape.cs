@@ -19,7 +19,6 @@ namespace VSKingdom {
 		protected bool cancelEscape;
 		protected long fleeingStartMs;
 		protected long fleeDurationMs = 5000L;
-		protected float moveSpeed = 0.035f;
 		protected float seekRange = 25f;
 		protected float fleeRange = 30f;
 		protected Vec3d targetPos = new Vec3d();
@@ -30,8 +29,6 @@ namespace VSKingdom {
 
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);
-			moveSpeed = taskConfig["movespeed"].AsFloat(0.035f);
-			seekRange = taskConfig["seekRange"].AsFloat(25);
 			fleeRange = taskConfig["fleeRange"].AsFloat(seekRange + 15f);
 			fleeDurationMs = taskConfig["fleeDurationMs"].AsInt(5000);
 			JsonObject jsonObject = taskConfig["animation"];
@@ -41,8 +38,8 @@ namespace VSKingdom {
 					animMeta = animationMetaData;
 				} else {
 					animMeta = new AnimationMetaData {
-						Code = taskConfig["animation"].AsString("sprint").ToLowerInvariant(),
-						Animation = taskConfig["animation"].AsString("sprint").ToLowerInvariant(),
+						Code = taskConfig["animation"].AsString("move").ToLowerInvariant(),
+						Animation = taskConfig["animation"].AsString("move").ToLowerInvariant(),
 						AnimationSpeed = taskConfig["animationSpeed"].AsFloat(1),
 					}.Init();
 					animMeta.EaseInSpeed = 1f;
@@ -84,7 +81,7 @@ namespace VSKingdom {
 			base.StartExecute();
 			cancelEscape = false;
 			soundChance = Math.Max(0.025f, soundChance - 0.2f);
-			pathTraverser.WalkTowards(targetPos, moveSpeed * (float)GlobalConstants.SprintSpeedMultiplier, targetEntity.SelectionBox.XSize + 0.2f, OnGoalReached, OnStuck);
+			pathTraverser.WalkTowards(targetPos, (float)entity.moveSpeed * (float)GlobalConstants.SprintSpeedMultiplier, targetEntity.SelectionBox.XSize + 0.2f, OnGoalReached, OnStuck);
 			fleeingStartMs = entity.World.ElapsedMilliseconds;
 			entity.CurrentControls = EnumEntityActivity.SprintMode;
 		}

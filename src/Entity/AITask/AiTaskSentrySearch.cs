@@ -43,8 +43,11 @@ namespace VSKingdom {
 		}
 
 		public override bool IsTargetableEntity(Entity ent, float range, bool ignoreEntityCode = false) {
-			if (ent is null) {
+			if (ent == null || ent == entity || !ent.Alive) {
 				return false;
+			}
+			if (ent is EntityProjectile projectile && projectile.FiredBy is not null) {
+				targetEntity = projectile.FiredBy;
 			}
 			if (ent.WatchedAttributes.HasAttribute("loyalties")) {
 				if (ent is EntitySentry sent) {

@@ -36,6 +36,8 @@ namespace VSKingdom {
 			api.World.Config.SetBool("ArmorWeights", config.ArmorWeights);
 			api.World.Config.SetBool("InfiniteAmmo", config.InfiniteAmmo);
 			api.World.Config.SetBool("InfiniteHeal", config.InfiniteHeal);
+			api.World.Config.SetBool("DropsOnDeath", config.DropsOnDeath);
+			api.World.Config.SetBool("AllowLooting", config.AllowLooting);
 			api.World.Config.SetBool("AllowCivilWars", config.AllowCivilWars);
 			api.World.Config.SetBool("AllowTeleports", config.AllowTeleports);
 			api.World.Config.SetInt("MinCreateLevel", config.MinCreateLevel);
@@ -69,6 +71,8 @@ namespace VSKingdom {
 		public bool ArmorWeights { get; set; } = true;
 		public bool InfiniteAmmo { get; set; } = false;
 		public bool InfiniteHeal { get; set; } = false;
+		public bool DropsOnDeath { get; set; } = true;
+		public bool AllowLooting { get; set; } = true;
 		public bool AllowCivilWars { get; set; } = true;
 		public bool AllowTeleports { get; set; } = true;
 		public int MinCreateLevel { get; set; } = -1;
@@ -86,6 +90,8 @@ namespace VSKingdom {
 			ArmorWeights = prev.ArmorWeights;
 			InfiniteAmmo = prev.InfiniteAmmo;
 			InfiniteHeal = prev.InfiniteHeal;
+			DropsOnDeath = prev.DropsOnDeath;
+			AllowLooting = prev.AllowLooting;
 			AllowCivilWars = prev.AllowCivilWars;
 			AllowTeleports = prev.AllowTeleports;
 			MinCreateLevel = prev.MinCreateLevel;

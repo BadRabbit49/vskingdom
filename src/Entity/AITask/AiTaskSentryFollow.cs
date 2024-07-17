@@ -1,4 +1,3 @@
-using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Datastructures;
 using Vintagestory.GameContent;
@@ -9,6 +8,7 @@ namespace VSKingdom {
 		#pragma warning disable CS0108
 		public EntitySentry entity;
 		#pragma warning restore CS0108
+		
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);
 			allowTeleport &= entity.Api.World.Config.GetAsBool("AllowTeleport");
@@ -19,16 +19,17 @@ namespace VSKingdom {
 				return false;
 			}
 			targetEntity = GetGuardedEntity();
-			if (targetEntity is null || !targetEntity.Alive || targetEntity.ShouldDespawn || !targetEntity.IsInteractable) {
-				return false;
-			}
-			return true;
+			return targetEntity != null && targetEntity.Alive && targetEntity.ShouldDespawn == false && targetEntity.IsInteractable;
 		}
 
 		public override void StartExecute() {
 			base.StartExecute();
+			long[] followers = (targetEntity.WatchedAttributes.GetAttribute("followerEntityUids") as LongArrayAttribute)?.value;
 			float size = targetEntity.SelectionBox.XSize;
-			pathTraverser.NavigateTo_Async(targetEntity.ServerPos.XYZ, moveSpeed, size + 0.2f, OnGoalReached, () => stuck = true, null, 1000, 1);
+			for (int i = 0; i < followers.Length; i++) {
+				size += entity.World.GetEntityById(followers[i])?.SelectionBox.XSize ?? 0;
+			}
+			pathTraverser.NavigateTo_Async(targetEntity.ServerPos.XYZ, (float)entity.moveSpeed, size + 0.2f, OnGoalReached, () => stuck = true, null, 1000, 1);
 			targetOffset.Set(entity.World.Rand.NextDouble() * 2 - 1, 0, entity.World.Rand.NextDouble() * 2 - 1);
 			stuck = false;
 			// Overridden base method to avoid constant teleporting when stuck.
@@ -36,18 +37,13 @@ namespace VSKingdom {
 				tryTeleport();
 			}
 		}
-
-		public override void FinishExecute(bool cancelled) {
-			base.FinishExecute(cancelled);
-		}
-
+		
 		public Entity GetGuardedEntity() {
-			string @string = entity.WatchedAttributes.GetString("guardedPlayerUid");
-			if (@string != null) {
-				return entity.World.PlayerByUid(@string)?.Entity;
+			long entityGUID = entity.WatchedAttributes.GetLong("guardedEntityId", 0);
+			if (entityGUID != 0) {
+				return entity.ServerAPI?.World.GetEntityById(entityGUID);
 			}
-			long @long = entity.WatchedAttributes.GetLong("guardedEntityId", 0L);
-			return entity.World.GetEntityById(@long);
+			return null;
 		}
 	}
 }

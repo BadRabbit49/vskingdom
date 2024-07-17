@@ -17,7 +17,7 @@ namespace VSKingdom {
 			}
 			return closest;
 		}
-
+		
 		public static Entity GetClosest(Vec3d pos, Entity[] entities) {
 			Entity closest = entities[0];
 			double bestDist = pos.SquareDistanceTo(entities[0].ServerPos);
@@ -30,7 +30,18 @@ namespace VSKingdom {
 			return closest;
 		}
 
-		public static int GetRandom(int num, int low = 0) {
+		public static bool CanSeeEnt(Entity entity1, Entity entity2) {
+			EntitySelection entitySel = new EntitySelection();
+			BlockSelection blockSel = new BlockSelection();
+			// Do a line Trace into the target, see if there are any entities in the way.
+			entity1.World.RayTraceForSelection(entity1.ServerPos.XYZ.AddCopy(entity1.LocalEyePos), entity2.ServerPos.XYZ.AddCopy(entity2.LocalEyePos), ref blockSel, ref entitySel);
+			if (blockSel.Block.SideIsSolid(blockSel.Position, blockSel.Face.Index) || entitySel.Entity != entity2) {
+				return false;
+			}
+			return true;
+		}
+
+		public static int  GetRandom(int num, int low = 0) {
 			Random rnd = new Random();
 			return rnd.Next(low, num);
 		}

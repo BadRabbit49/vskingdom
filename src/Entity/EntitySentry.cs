@@ -161,8 +161,8 @@ namespace VSKingdom {
 				if (attacker is EntityPlayer player && leadersID == player.PlayerUID) {
 					return player.ServerControls.Sneak && base.ShouldReceiveDamage(damageSource, damage);
 				}
-				if (kingdomID == attacker.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdom_guid")) {
-					return ServerAPI.World.Config.GetAsBool("FriendlyFire", true) && base.ShouldReceiveDamage(damageSource, damage);
+				if (kingdomID == attacker.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdom_guid") && ServerAPI.World.Config.GetAsBool("FriendlyFire", true)) {
+					return base.ShouldReceiveDamage(damageSource, damage);
 				}
 				return base.ShouldReceiveDamage(damageSource, damage);
 			}
@@ -275,8 +275,8 @@ namespace VSKingdom {
 						weapRates += (armor?.StatModifers?.rangedWeaponsSpeed ?? 0);
 					}
 				}
-				moveSpeed = Properties.Attributes["moveSpeed"].AsDouble(0.035) + (massTotal * 2);
-				walkSpeed = Properties.Attributes["walkSpeed"].AsDouble(0.018) + massTotal;
+				moveSpeed = Properties.Attributes["moveSpeed"].AsDouble(0.030) + (massTotal * 2);
+				walkSpeed = Properties.Attributes["walkSpeed"].AsDouble(0.015) + massTotal;
 			} catch (NullReferenceException e) {
 				World.Logger.Error(e.ToString());
 			}
@@ -284,9 +284,9 @@ namespace VSKingdom {
 
 		public virtual void UpdateInfos(byte[] data) {
 			SentryUpdate update = SerializerUtil.Deserialize<SentryUpdate>(data);
-			kingdomID = Loyalties.GetString("kingdom_guid") ?? baseGroup ?? "00000000";
-			cultureID = Loyalties.GetString("culture_guid") ?? "00000000";
-			leadersID = Loyalties.GetString("leaders_guid") ?? null;
+			kingdomID = Loyalties?.GetString("kingdom_guid") ?? baseGroup ?? "00000000";
+			cultureID = Loyalties?.GetString("culture_guid") ?? "00000000";
+			leadersID = Loyalties?.GetString("leaders_guid") ?? null;
 			friendsID = update.friendsID;
 			enemiesID = update.enemiesID;
 			outlawsID = update.outlawsID;

@@ -81,7 +81,7 @@ namespace VSKingdom {
 			base.StartExecute();
 			cancelEscape = false;
 			soundChance = Math.Max(0.025f, soundChance - 0.2f);
-			pathTraverser.WalkTowards(targetPos, (float)entity.moveSpeed * (float)GlobalConstants.SprintSpeedMultiplier, targetEntity.SelectionBox.XSize + 0.2f, OnGoalReached, OnStuck);
+			pathTraverser.WalkTowards(targetPos, (float)entity.moveSpeed * (float)GlobalConstants.SprintSpeedMultiplier, targetEntity.SelectionBox.XSize + 0.2f, OnGoals, OnStuck);
 			fleeingStartMs = entity.World.ElapsedMilliseconds;
 			entity.CurrentControls = EnumEntityActivity.SprintMode;
 		}
@@ -133,13 +133,13 @@ namespace VSKingdom {
 			cancelEscape = true;
 		}
 
-		private void OnGoalReached() {
+		private void OnGoals() {
 			cancelEscape = true;
 			pathTraverser.Retarget();
 		}
 
 		private bool ShouldFleeTarget() {
-			if (!targetEntity.Alive) {
+			if (targetEntity == null || !targetEntity.Alive) {
 				return false;
 			}
 			if (targetEntity.HasBehavior<EntityBehaviorHealth>()) {

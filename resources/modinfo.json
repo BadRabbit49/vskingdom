@@ -5,6 +5,6 @@
 	"side": "universal",
 	"authors": [ "BadRabbit49" ],
 	"description": "Adds commandable soldiers and archers to guard against threats, protect your land, equip with weapons and armor, and lead into battle.",
-	"version": "1.4.14",
+	"version": "1.5.0",
 	"dependencies": { "game": "1.19.8" }
 }

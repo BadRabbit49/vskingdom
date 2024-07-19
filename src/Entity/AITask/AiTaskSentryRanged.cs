@@ -95,7 +95,8 @@ namespace VSKingdom {
 				if (ent is EntitySentry sent) {
 					return entity.enemiesID.Contains(sent.kingdomID);
 				}
-				return entity.enemiesID.Contains(ent.WatchedAttributes.GetTreeAttribute("loyalties").GetString("kingdom_guid"));
+				string entKingdom = ent.WatchedAttributes.GetTreeAttribute("loyalties").GetString("kingdom_guid");
+				return (entity.kingdomID == "xxxxxxxx" && entKingdom != "xxxxxxxx") || (entity.kingdomID != "xxxxxxxx" && entKingdom == "xxxxxxxx") || entity.enemiesID.Contains(entKingdom);
 			}
 			if (ignoreEntityCode || IsTargetEntity(ent.Code.Path)) {
 				return CanSense(ent, range);
@@ -173,7 +174,7 @@ namespace VSKingdom {
 				didRenderSwitch = true;
 			}
 			// Do after aiming time is finished.
-			if (accum > releasesAtMs / 1000f && !projectileFired && !EntityInTheWay()) {
+			if (accum > releasesAtMs / 1000f && !projectileFired && !EntityInTheWay() && HasRanged()) {
 				projectileFired = FireProjectile();
 				// Don't play anything when the hittingSound is incorrectly set.
 				if (hittingsound != null) {
@@ -219,19 +220,15 @@ namespace VSKingdom {
 		private bool FireProjectile() {
 			EntityProjectile projectile = (EntityProjectile)entity.World.ClassRegistry.CreateEntity(projectileType);
 			projectile.FiredBy = entity;
-			projectile.Damage = GetDamage();
+			projectile.Damage = entity.RightHandItemSlot.Itemstack.Collectible.Attributes["damage"].AsFloat() + entity.AmmoItemSlot.Itemstack.Collectible.Attributes["damage"].AsFloat();
 			projectile.ProjectileStack = new ItemStack(entity.World.GetItem(ammoLocation));
-			// We don't want unfair duplicates of ammo if infinite ammo is on.
-			if (entity.Api.World.Config.GetAsBool("InfiniteAmmo")) {
-				projectile.DropOnImpactChance = 0;
-			} else if (entity.GearInventory[18].Itemstack.ItemAttributes != null) {
-				projectile.DropOnImpactChance = 1f - (entity.GearInventory[18].Itemstack.ItemAttributes["breakChanceOnImpact"].AsFloat(0.5f));
-			}
+			projectile.DropOnImpactChance = entity.Api.World.Config.GetAsBool("InfiniteAmmo") ? 0 : 1f - (entity.AmmoItemSlot.Itemstack.ItemAttributes["breakChanceOnImpact"].AsFloat(0.5f));
 			projectile.World = entity.World;
 			Vec3d pos = entity.ServerPos.AheadCopy(0.5).XYZ.AddCopy(0, entity.LocalEyePos.Y, 0);
 			Vec3d aheadPos = targetEntity.ServerPos.XYZ.AddCopy(0, targetEntity.LocalEyePos.Y, 0);
 			double distf = Math.Pow(pos.SquareDistanceTo(aheadPos), 0.1);
 			Vec3d velocity = (aheadPos - pos + new Vec3d(0, pos.DistanceTo(aheadPos) / 16, 0)).Normalize() * GameMath.Clamp(distf - 1f, 0.1f, 1f);
+
 			// Set final projectile parameters, position, velocity, from point, and rotation.
 			projectile.ServerPos.SetPos(entity.ServerPos.AheadCopy(0.5).XYZ.Add(0, entity.LocalEyePos.Y, 0));
 			projectile.ServerPos.Motion.Set(velocity);
@@ -267,22 +264,6 @@ namespace VSKingdom {
 				pathTraverser.WalkTowards(targetPos, (float)entity.walkSpeed, targetEntity.SelectionBox.XSize + 0.2f, OnGoals, OnStuck);
 			}
 			pathTraverser.Retarget();
-		}
-
-		private float GetDamage() {
-			if (HasRanged()) {
-				float dmg1 = 0f;
-				float dmg2 = 0f;
-				if (entity.RightHandItemSlot?.Itemstack.Collectible.Attributes != null) {
-					dmg1 += entity.RightHandItemSlot.Itemstack.Collectible.Attributes["damage"].AsFloat(0);
-				}
-				if (entity.GearInventory[18]?.Itemstack.Collectible.Attributes != null) {
-					dmg2 = entity.GearInventory[18].Itemstack.Collectible.Attributes["damage"].AsFloat(0);
-				}
-				return dmg1 + dmg2;
-			} else {
-				return 2f;
-			}
 		}
 
 		private bool IsEnemy(Entity target) {

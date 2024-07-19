@@ -2,7 +2,6 @@
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Datastructures;
-using Vintagestory.GameContent;
 
 namespace VSKingdom {
 	public class AiTaskSentryWander : AiTaskBase {
@@ -194,7 +193,7 @@ namespace VSKingdom {
 			FailedPathfinds++;
 			return null;
 		}
-
+		
 		private void OnStuck() {
 			cancelWander = true;
 			failedWanders++;

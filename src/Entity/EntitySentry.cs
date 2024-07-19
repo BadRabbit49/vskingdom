@@ -17,6 +17,7 @@ namespace VSKingdom {
 		public virtual double massTotal { get; set; }
 		public virtual string weapClass { get; set; }
 		public virtual double weapSkill { get; set; }
+		public virtual double weapValue { get; set; }
 		public virtual double weapRates { get; set; }
 		public virtual double weapRange { get; set; }
 		public virtual double postRange { get; set; }
@@ -28,6 +29,7 @@ namespace VSKingdom {
 		public virtual string[] enemiesID { get; set; } = new string[] { };
 		public virtual string[] outlawsID { get; set; } = new string[] { };
 		public virtual string inventory => "gear-" + EntityId;
+		public virtual EntitySentry thisSent => (ServerAPI?.World.GetEntityById(this.EntityId) as EntitySentry) ?? this;
 		public virtual EntityTalkUtil talkUtil { get; set; }
 		public virtual InventorySentry gearInv { get; set; }
 		public virtual InvSentryDialog InventoryDialog { get; set; }
@@ -38,8 +40,8 @@ namespace VSKingdom {
 		public virtual ItemSlot HealItemSlot => gearInv[19];
 		public override IInventory GearInventory => gearInv;
 		public ITreeAttribute Loyalties;
-		public ICoreClientAPI ClientAPI;
-		public ICoreServerAPI ServerAPI;
+		public ICoreClientAPI ClientAPI => (Api as ICoreClientAPI);
+		public ICoreServerAPI ServerAPI => (Api as ICoreServerAPI);
 
 		public override void Initialize(EntityProperties properties, ICoreAPI api, long InChunkIndex3d) {
 			base.Initialize(properties, api, InChunkIndex3d);
@@ -59,8 +61,6 @@ namespace VSKingdom {
 				WatchedAttributes.RegisterModifiedListener("inventory", ReadInventoryFromAttributes);
 				GetBehavior<EntityBehaviorHealth>().onDamaged += (dmg, dmgSource) => HealthUtility.handleDamaged(World.Api, this, dmg, dmgSource);
 			}
-			ClientAPI = (api as ICoreClientAPI);
-			ServerAPI = (api as ICoreServerAPI);
 			Loyalties = WatchedAttributes.GetOrAddTreeAttribute("loyalties");
 			ruleOrder = new bool[7] { true, false, true, true, false, false, false, };
 			moveSpeed = properties.Attributes["moveSpeed"].AsDouble(0.035);
@@ -262,21 +262,24 @@ namespace VSKingdom {
 				} else {
 					GetBehavior<EntityBehaviorLoyalties>().enlistedStatus = EnlistedStatus.ENLISTED;
 				}
+				EntitySentry thisEnt = (Api as ICoreServerAPI)?.World.GetEntityById(this.EntityId) as EntitySentry;
+				ItemStack weapon = RightHandItemSlot?.Itemstack ?? null;
 				// Set weapon class, movement speed, and ranges to distinguish behaviors.
-				postRange = Loyalties?.GetDouble("outpost_size") ?? 6.0;
-				weapRange = RightHandItemSlot?.Itemstack?.Item?.AttackRange ?? 1.5;
-				massTotal = Properties.Attributes["massTotal"].AsDouble(0);
-				weapSkill = Properties.Attributes["weapSkill"].AsDouble(1);
-				weapRates = Properties.Attributes["weapRates"].AsDouble(1);
+				thisEnt.postRange = Loyalties?.GetDouble("outpost_size") ?? 6.0;
+				thisEnt.weapValue = (double)((weapon?.Collectible?.Durability ?? 1f) * (weapon?.Collectible.AttackPower ?? weapon?.Collectible.Attributes?["damage"].AsFloat() ?? 1f));
+				thisEnt.weapRange = RightHandItemSlot?.Itemstack?.Item?.AttackRange ?? 1.5;
+				thisEnt.massTotal = 0;
+				thisEnt.weapSkill = 1;
+				thisEnt.weapRates = 1;
 				foreach (var slot in gearInv) {
 					if (!slot.Empty && slot.Itemstack.Item is ItemWearable armor) {
-						massTotal += (armor?.StatModifers?.walkSpeed ?? 0);
-						weapSkill += (armor?.StatModifers?.rangedWeaponsAcc ?? 0);
-						weapRates += (armor?.StatModifers?.rangedWeaponsSpeed ?? 0);
+						thisEnt.massTotal += (armor?.StatModifers?.walkSpeed ?? 0);
+						thisEnt.weapSkill += (armor?.StatModifers?.rangedWeaponsAcc ?? 0);
+						thisEnt.weapRates += (armor?.StatModifers?.rangedWeaponsSpeed ?? 0);
 					}
 				}
-				moveSpeed = Properties.Attributes["moveSpeed"].AsDouble(0.030) + (massTotal * 2);
-				walkSpeed = Properties.Attributes["walkSpeed"].AsDouble(0.015) + massTotal;
+				thisEnt.moveSpeed = Properties.Attributes["moveSpeed"].AsDouble(0.030) + (massTotal * 2);
+				thisEnt.walkSpeed = Properties.Attributes["walkSpeed"].AsDouble(0.015) + massTotal;
 			} catch (NullReferenceException e) {
 				World.Logger.Error(e.ToString());
 			}

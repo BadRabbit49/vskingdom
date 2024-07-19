@@ -40,7 +40,7 @@ namespace VSKingdom {
 		public override void StartExecute() {
 			base.StartExecute();
 			cancelWaters = false;
-			pathTraverser.WalkTowards(target, (float)entity.moveSpeed, 0.5f, OnGoalReached, OnStuck);
+			pathTraverser.WalkTowards(target, (float)entity.moveSpeed, 0.5f, OnGoals, OnStuck);
 		}
 
 		public override bool ContinueExecute(float dt) {
@@ -61,7 +61,7 @@ namespace VSKingdom {
 			cancelWaters = true;
 		}
 
-		private void OnGoalReached() {
+		private void OnGoals() {
 			cancelWaters = true;
 		}
 	}

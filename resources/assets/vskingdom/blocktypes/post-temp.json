@@ -3,8 +3,10 @@
 	"class": "BlockPost",
 	"entityClass": "BlockEntityPost",
 	"entityBehaviors": [ { "name": "Resupply" } ],
-	"attributes": { },
-	"behaviors": [ { "name": "HeatSource", "properties": { "heatStrength": 4 } } ],
+	"attributes": { "handbook": { "excludeByType": { "*": true, "*-null-none-good": false } } },
+	"behaviorsByType": {
+		"*-live-*": [ { "name": "Container" }, { "name": "Ignitable" }, { "name": "HeatSource", "properties": { "heatStrength": 4 } } ]
+	},
 	"variantgroups": [
 		{ "code": "metal", "states": [ "electrum" ] },
 		{ "code": "fuels", "states": [ "null", "temp" ] },

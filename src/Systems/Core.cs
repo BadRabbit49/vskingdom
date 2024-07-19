@@ -11,15 +11,12 @@ using Vintagestory.GameContent;
 using Vintagestory.API.Config;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Datastructures;
-using Vintagestory.API.Common.Entities;
 
 namespace VSKingdom {
 	public class VSKingdom : ModSystem {
 		Harmony harmony = new Harmony("badrabbit49.vskingdom");
 		public ICoreClientAPI clientAPI;
 		public ICoreServerAPI serverAPI;
-
-		public bool fsmEnabled { get; set; }
 		public string serverLang { get; set; }
 
 		private List<Kingdom> kingdomList;
@@ -58,8 +55,6 @@ namespace VSKingdom {
 			if (!Harmony.HasAnyPatches("badrabbit49.vskingdom")) {
 				harmony.PatchAll();
 			}
-			// Check if maltiez FSMlib is enabled.
-			fsmEnabled = api.ModLoader.IsModEnabled("fsmlib");
 			// Create chat commands for creation, deletion, invitation, and so of kingdoms.
 			api.ChatCommands.Create("kingdom")
 				.WithAdditionalInformation(LangUtility.Get(""))
@@ -92,8 +87,7 @@ namespace VSKingdom {
 			sapi.Event.PlayerJoin += PlayerJoinsGame;
 			sapi.Event.PlayerDisconnect += PlayerLeaveGame;
 			sapi.Event.PlayerDeath += PlayerDeathFrom;
-			sapi.Event.ServerRunPhase(EnumServerRunPhase.Shutdown, SaveAllData);
-			sapi.Event.RegisterGameTickListener(KingdomCleanup, 600000);
+			sapi.Event.ServerRunPhase(EnumServerRunPhase.Shutdown, CleanupData);
 			sapi.Network.RegisterChannel("sentrynetwork")
 				.RegisterMessageType<PlayerUpdate>().SetMessageHandler<PlayerUpdate>(OnPlayerUpdated)
 				.RegisterMessageType<SentryUpdate>().SetMessageHandler<SentryUpdate>(OnSentryUpdated)
@@ -149,6 +143,28 @@ namespace VSKingdom {
 			cultureList = cultureData is null ? new List<Culture>() : SerializerUtil.Deserialize<List<Culture>>(cultureData);
 		}
 
+		private void CleanupData() {
+			string[] permanentDATA = { "00000000", "xxxxxxxx" };
+			List<string> markedForDeletion = new List<string>();
+			foreach (var kingdom in kingdomList) {
+				var enemies = kingdom.EnemiesGUID.ToArray();
+				foreach (var enemy in enemies) {
+					if (!KingdomExists(enemy)) {
+						kingdom.EnemiesGUID.Remove(enemy);
+					}
+				}
+				if (kingdom.PlayersGUID.Count == 0 && permanentDATA.Contains(kingdom.KingdomGUID) == false) {
+					markedForDeletion.Add(kingdom.KingdomGUID);
+				}
+			}
+			if (markedForDeletion.Count > 0) {
+				foreach (var marked in markedForDeletion) {
+					DeleteKingdom(marked);
+				}
+			}
+			SaveAllData();
+		}
+
 		private void LevelFinalize(ICoreClientAPI capi) {
 			capi.Gui.Icons.CustomIcons["backpack"] = capi.Gui.Icons.SvgIconSource(new AssetLocation("vskingdom:textures/icons/character/backpack.svg"));
 			capi.Gui.Icons.CustomIcons["baguette"] = capi.Gui.Icons.SvgIconSource(new AssetLocation("vskingdom:textures/icons/character/baguette.svg"));
@@ -187,32 +203,33 @@ namespace VSKingdom {
 
 		private void PlayerDeathFrom(IServerPlayer player, DamageSource damage) {
 			if (serverAPI.World.Config.GetAsBool("DropsOnDeath") && damage.GetCauseEntity().WatchedAttributes.HasAttribute("loyalties")) {
-				var thisKingdom = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == player.Entity.WatchedAttributes.GetTreeAttribute("loyalties").GetString("kingdom_guid"));
 				var killer = damage.GetCauseEntity();
-				var killed = player.Entity;
+				var victim = player.Entity;
+				var thatKingdom = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == killer.WatchedAttributes.GetTreeAttribute("loyalties").GetString("kingdom_guid", "00000000"));
+				var thisKingdom = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == victim.WatchedAttributes.GetTreeAttribute("loyalties").GetString("kingdom_guid", "00000000"));
 				// If the entities were at war with eachother then loot will be dropped. Specifically their armor and what they had in their right hand slot.
-				if (thisKingdom.EnemiesGUID.Contains(killer.WatchedAttributes.GetTreeAttribute("loyalties").GetString("kingdom_guid"))) {
+				if (thisKingdom.EnemiesGUID.Contains(thatKingdom.KingdomGUID) || thatKingdom.KingdomGUID == "xxxxxxxx") {
 					// If the killer can, try looting the player corpse right away, take what is better.
 					if (serverAPI.World.Config.GetAsBool("AllowLooting") && killer is EntitySentry sentry) {
 						for (int i = 12; i < 14; i++) {
 							float ownGearDmgRed = (sentry.GearInventory[i]?.Itemstack?.Item as ItemWearable)?.ProtectionModifiers.FlatDamageReduction ?? 0;
-							if (!killed.GearInventory[i].Empty && killed.GearInventory[i].Itemstack.Item is ItemWearable gear && gear.ProtectionModifiers.FlatDamageReduction > ownGearDmgRed) {
+							if (!victim.GearInventory[i].Empty && victim.GearInventory[i].Itemstack.Item is ItemWearable gear && gear.ProtectionModifiers.FlatDamageReduction > ownGearDmgRed) {
 								try {
 									var badStack = sentry.GearInventory[i]?.TakeOut(1);
-									killed.GearInventory[i].TryPutInto(serverAPI.World, sentry.gearInv[i], killed.GearInventory[i].StackSize);
+									victim.GearInventory[i].TryPutInto(serverAPI.World, sentry.gearInv[i], victim.GearInventory[i].StackSize);
 									sentry.GearInvSlotModified(i);
-									killed.GearInventory[i].Itemstack = badStack;
-									killed.GearInventory.MarkSlotDirty(i);
+									victim.GearInventory[i].Itemstack = badStack;
+									victim.GearInventory.MarkSlotDirty(i);
 								} catch { }
 							}
 						}
 					}
 
-					var blockAccessor = killed.World.BlockAccessor;
-					double x = killed.ServerPos.X + killed.SelectionBox.X1 - killed.OriginSelectionBox.X1;
-					double y = killed.ServerPos.Y + killed.SelectionBox.Y1 - killed.OriginSelectionBox.Y1;
-					double z = killed.ServerPos.Z + killed.SelectionBox.Z1 - killed.OriginSelectionBox.Z1;
-					double d = killed.ServerPos.Dimension;
+					var blockAccessor = victim.World.BlockAccessor;
+					double x = victim.ServerPos.X + victim.SelectionBox.X1 - victim.OriginSelectionBox.X1;
+					double y = victim.ServerPos.Y + victim.SelectionBox.Y1 - victim.OriginSelectionBox.Y1;
+					double z = victim.ServerPos.Z + victim.SelectionBox.Z1 - victim.OriginSelectionBox.Z1;
+					double d = victim.ServerPos.Dimension;
 
 					BlockPos bonePos = new BlockPos((int)x, (int)y, (int)z, (int)d);
 					Random rnd = new Random();
@@ -238,21 +255,21 @@ namespace VSKingdom {
 						}
 					}
 					// Spawn the body block here if it was placed, drop all items if not possible.
-					if (placedBlock && killed.WatchedAttributes.HasAttribute("inventory")) {
+					if (placedBlock && victim.WatchedAttributes.HasAttribute("inventory")) {
 						// Initialize BlockEntityBody here and put stuff into it.
 						if (blockAccessor.GetBlockEntity(bonePos) is BlockEntityBody decblock) {
 							// Get the inventory of the person who died if they have one.
 							for (int i = 12; i < 14; i++) {
-								try { killed.GearInventory[i].TryPutInto(serverAPI.World, decblock.gearInv[i], killed.GearInventory[i].StackSize); } catch { }
+								try { victim.GearInventory[i].TryPutInto(serverAPI.World, decblock.gearInv[i], victim.GearInventory[i].StackSize); } catch { }
 							}
-							if (!killed.RightHandItemSlot.Empty && killed.RightHandItemSlot.Itemstack.Collectible.Attributes["toolrackTransform"].Exists) {
-								try { killed.RightHandItemSlot.TryPutInto(serverAPI.World, decblock.gearInv[16], 1); } catch { }
+							if (!victim.RightHandItemSlot.Empty && victim.RightHandItemSlot.Itemstack.Collectible.Attributes["toolrackTransform"].Exists) {
+								try { victim.RightHandItemSlot.TryPutInto(serverAPI.World, decblock.gearInv[16], 1); } catch { }
 							}
 						}
 					} else {
-						foreach (ItemSlot item in killed.GearInventory) {
+						foreach (ItemSlot item in victim.GearInventory) {
 							if (!item.Empty) {
-								serverAPI.World.SpawnItemEntity(item.Itemstack, killed.ServerPos.XYZ);
+								serverAPI.World.SpawnItemEntity(item.Itemstack, victim.ServerPos.XYZ);
 								item.Itemstack = null;
 								item.MarkDirty();
 							}
@@ -997,30 +1014,6 @@ namespace VSKingdom {
 					}
 				}
 			}
-		}
-
-		private void KingdomCleanup(float dt) {
-			List<string> markedForDeletion = new List<string>();
-			foreach (var kingdom in kingdomList) {
-				var enemies = kingdom.EnemiesGUID.ToArray();
-				foreach (var enemy in enemies) {
-					if (!KingdomExists(enemy)) {
-						kingdom.EnemiesGUID.Remove(enemy);
-					}
-				}
-				if (kingdom.PlayersGUID.Count == 0 && kingdom.KingdomGUID != "xxxxxxxx" && kingdom.KingdomGUID != "00000000") {
-					markedForDeletion.Add(kingdom.KingdomGUID);
-				}
-				if (kingdom.KingdomGUID != "xxxxxxxx" && !kingdom.EnemiesGUID.Contains("xxxxxxxx") && !markedForDeletion.Contains(kingdom.KingdomGUID)) {
-					SetWarKingdom("xxxxxxxx", kingdom.KingdomGUID);
-				}
-			}
-			if (markedForDeletion.Count > 0) {
-				foreach (var marked in markedForDeletion) {
-					DeleteKingdom(marked);
-				}
-			}
-			SaveKingdom();
 		}
 
 		public string KingdomWanted(HashSet<string> enemiesGUID) {

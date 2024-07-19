@@ -79,7 +79,8 @@ namespace VSKingdom {
 				if (ent is EntitySentry sent) {
 					return entity.enemiesID.Contains(sent.kingdomID);
 				}
-				return entity.enemiesID.Contains(ent.WatchedAttributes.GetTreeAttribute("loyalties").GetString("kingdom_guid"));
+				string entKingdom = ent.WatchedAttributes.GetTreeAttribute("loyalties").GetString("kingdom_guid");
+				return (entity.kingdomID == "xxxxxxxx" && entKingdom != "xxxxxxxx") || (entity.kingdomID != "xxxxxxxx" && entKingdom == "xxxxxxxx") || entity.enemiesID.Contains(entKingdom);
 			}
 			if (ignoreEntityCode || IsTargetEntity(ent.Code.Path)) {
 				return CanSense(ent, range);
@@ -111,14 +112,11 @@ namespace VSKingdom {
 
 		public override bool ContinueExecute(float dt) {
 			// Don't pursue if there is no target, the target is dead, or the attack has been called off!
-			if (cancelAttack || targetEntity == null) {
-				return false;
-			}
-			if (!targetEntity.Alive) {
+			if (cancelAttack || targetEntity == null || !targetEntity.Alive) {
 				return false;
 			}
 			EntityPos serverPos1 = entity.ServerPos;
-			EntityPos serverPos2 = targetEntity.ServerPos;
+			EntityPos serverPos2 = targetEntity?.ServerPos;
 			bool flag = true;
 			if (turnToTarget) {
 				float num = GameMath.AngleRadDistance(entity.ServerPos.Yaw, (float)Math.Atan2(serverPos2.X - serverPos1.X, serverPos2.Z - serverPos1.Z));
@@ -137,7 +135,7 @@ namespace VSKingdom {
 					return false;
 				}
 				// Try NavigateTo instead of WalkTowards?
-				GoToPos(new Vec3d(serverPos2), (float)entity.moveSpeed, (float)entity.weapRange);
+				GoToPos(serverPos2?.XYZ ?? serverPos1.XYZ, (float)entity.moveSpeed, (float)entity.weapRange);
 			} else {
 				StopNow();
 			}
@@ -152,10 +150,7 @@ namespace VSKingdom {
 					GoToPos(kitePos, (float)entity.moveSpeed, 0);
 				}
 			}
-			if (lastSearchMs + durationOfMs > entity.World.ElapsedMilliseconds) {
-				return true;
-			}
-			return false;
+			return lastSearchMs + durationOfMs > entity.World.ElapsedMilliseconds;
 		}
 
 		public override void OnEntityHurt(DamageSource source, float damage) {

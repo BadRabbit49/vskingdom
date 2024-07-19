@@ -6,6 +6,7 @@
 		{ "code": "type", "states": [ "archer", "knight", "bandit" ] },
 		{ "code": "gender", "states": [ "masc", "femm" ] }
 	],
+	"attributes": { "handbook": { "excludeByType": { "*-bandit-*": true } } },
 	"shapeByType": { "*": { "base": "vskingdom:entity/humanoid/human" } },
 	"texturesByType": { "*": { "skin": { "base": "game:entity/humanoid/seraphskinparts/body/skin1" } } },
 	"creativeinventory": {

@@ -53,7 +53,8 @@ namespace VSKingdom {
 				if (ent is EntitySentry sent) {
 					return entity.enemiesID.Contains(sent.kingdomID);
 				}
-				return entity.enemiesID.Contains(ent.WatchedAttributes.GetTreeAttribute("loyalties").GetString("kingdom_guid"));
+				string entKingdom = ent.WatchedAttributes.GetTreeAttribute("loyalties").GetString("kingdom_guid");
+				return (entity.kingdomID == "xxxxxxxx" && entKingdom != "xxxxxxxx") || (entity.kingdomID != "xxxxxxxx" && entKingdom == "xxxxxxxx") || entity.enemiesID.Contains(entKingdom);
 			}
 			if (ent == attackedByEntity && ent != null && ent.Alive) {
 				return true;
@@ -69,31 +70,21 @@ namespace VSKingdom {
 		}
 
 		public override void OnEntityHurt(DamageSource source, float damage) {
-			base.OnEntityHurt(source, damage);
+			if (!IsTargetableEntity(source.GetCauseEntity(), (float)source.GetCauseEntity().Pos.DistanceTo(entity.Pos))) {
+				return;
+			}
 			if (source.Type != EnumDamageType.Heal && lastCheckForHelp + 5000 < entity.World.ElapsedMilliseconds) {
 				lastCheckForHelp = entity.World.ElapsedMilliseconds;
 				// Alert all surrounding units! We're under attack!
-				foreach (var soldier in entity.World.GetEntitiesAround(entity.ServerPos.XYZ, 20, 4, entity => (entity is EntitySentry))) {
-					var taskManager = soldier.GetBehavior<EntityBehaviorTaskAI>().TaskManager;
-					taskManager.GetTask<AiTaskSentrySearch>()?.OnAllyAttacked(source.SourceEntity);
-					taskManager.GetTask<AiTaskSentryAttack>()?.OnAllyAttacked(source.SourceEntity);
-					taskManager.GetTask<AiTaskSentryRanged>()?.OnAllyAttacked(source.SourceEntity);
+				foreach (EntitySentry soldier in entity.World.GetEntitiesAround(entity.ServerPos.XYZ, 20, 4, entity => (entity is EntitySentry))) {
+					if (entity.kingdomID == soldier.kingdomID) {
+						var taskManager = soldier.GetBehavior<EntityBehaviorTaskAI>().TaskManager;
+						taskManager.GetTask<AiTaskSentryAttack>()?.OnAllyAttacked(source.SourceEntity);
+						taskManager.GetTask<AiTaskSentryRanged>()?.OnAllyAttacked(source.SourceEntity);
+					}
 				}
 			}
-		}
-
-		public void OnAllyAttacked(Entity byEntity) {
-			if (targetEntity is null || !targetEntity.Alive) {
-				targetEntity = byEntity;
-			}
-			ShouldExecute();
-		}
-
-		public void OnEnemySpotted(Entity targetEnt) {
-			if (targetEntity is null || !targetEntity.Alive) {
-				targetEntity = targetEnt;
-			}
-			ShouldExecute();
+			base.OnEntityHurt(source, damage);
 		}
 		
 		private bool EntityInReach(Entity candidate) {

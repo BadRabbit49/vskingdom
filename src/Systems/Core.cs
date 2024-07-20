@@ -223,6 +223,19 @@ namespace VSKingdom {
 								} catch { }
 							}
 						}
+						if (!victim.RightHandItemSlot.Empty) {
+							if ((sentry.weapClass == "range" && victim.RightHandItemSlot.Itemstack.Item is ItemBow) || (sentry.weapClass == "melee" && victim.RightHandItemSlot.Itemstack.Item is not ItemBow)) {
+								ItemStack weapon = victim.RightHandItemSlot?.Itemstack ?? null;
+								double victimWeapValue = (weapon?.Collectible?.Durability ?? 1f) * (weapon?.Collectible.AttackPower ?? weapon?.Collectible.Attributes?["damage"].AsFloat() ?? 1f);
+								if (victimWeapValue > sentry.weapValue) {
+									var badStack = sentry.RightHandItemSlot?.TakeOut(1);
+									victim.RightHandItemSlot.TryPutInto(serverAPI.World, sentry.gearInv[16], victim.RightHandItemSlot.StackSize);
+									sentry.GearInvSlotModified(16);
+									victim.RightHandItemSlot.Itemstack = badStack;
+									victim.RightHandItemSlot.MarkDirty();
+								}
+							}
+						}
 					}
 
 					var blockAccessor = victim.World.BlockAccessor;

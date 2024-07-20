@@ -54,9 +54,6 @@ public class ItemPeople : Item {
 
 		if (attributes != null && attributes.IsTrue("setGuardedEntityAttribute")) {
 			entity.WatchedAttributes.SetLong("guardedEntityId", byEntity.EntityId);
-			if (byEntity is EntityPlayer entityPlayer) {
-				entity.WatchedAttributes.SetString("guardedPlayerUid", entityPlayer.PlayerUID);
-			}
 		}
 
 		byte[] cultureData = (byEntity.Api as ICoreServerAPI)?.WorldManager.SaveGame.GetData("cultureData");

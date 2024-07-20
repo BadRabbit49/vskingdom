@@ -116,9 +116,6 @@ namespace VSKingdom {
 
 		public override void OnTesselation(ref Shape entityShape, string shapePathForLogging) {
 			base.OnTesselation(ref entityShape, shapePathForLogging);
-			if (GearInventory.Empty) {
-				return;
-			}
 			foreach (ItemSlot slot in GearInventory) {
 				addGearToShape(slot, entityShape, shapePathForLogging);
 			}

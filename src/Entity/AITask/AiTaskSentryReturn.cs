@@ -26,41 +26,28 @@ namespace VSKingdom {
 		}
 
 		public override void StartExecute() {
-			if (postBlock is null) {
-				cancelReturn = true;
-				return;
-			}
-			cancelReturn = !pathTraverser.NavigateTo(postBlock, (float)entity.moveSpeed, (float)entity.postRange, OnStuck, OnGoals, true, 10000);
+			pathTraverser.NavigateTo(postBlock, (float)entity.moveSpeed, (float)entity.postRange, OnStuck, OnGoals, true, 10000);
 			base.StartExecute();
 		}
 
 		public override bool ContinueExecute(float dt) {
-			if (entity.ruleOrder[1] || CheckDistance()) {
+			if (entity.ruleOrder[1] || CheckDistance() || cancelReturn) {
 				cancelReturn = true;
+				return false;
 			}
 			if (lastCheckCooldown + 500 < entity.World.ElapsedMilliseconds && postBlock is not null && entity.MountedOn is null) {
 				lastCheckCooldown = entity.World.ElapsedMilliseconds;
 			}
-			return cancelReturn;
-		}
-
-		public override void FinishExecute(bool cancelled) {
-			base.FinishExecute(cancelled);
-			pathTraverser.Stop();
-			if (cancelReturn && entity.ruleOrder[6] && entity.ServerPos.DistanceTo(postBlock) < entity.postRange) {
-				UpdateOrders(false);
-			}
+			return true;
 		}
 
 		private void OnStuck() {
 			cancelReturn = true;
-			pathTraverser.Stop();
 			pathTraverser.Retarget();
 		}
 
 		private void OnGoals() {
 			cancelReturn = true;
-			pathTraverser.Stop();
 		}
 
 		private void UpdateOrders(bool @returning) {
@@ -72,7 +59,7 @@ namespace VSKingdom {
 		private bool CheckDistance() {
 			double boundaries = entity.postRange;
 			if (entity.ruleOrder[3]) {
-				boundaries = entity.postRange * 10;
+				boundaries = entity.postRange * 4;
 			}
 			// Set command to return if the outpost is further away than the boundaries allowed, and entity isn't following player.
 			if (entity.ServerPos.DistanceTo(postBlock) > boundaries && !entity.ruleOrder[1]) {

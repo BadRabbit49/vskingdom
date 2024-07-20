@@ -349,7 +349,7 @@
 			{ "code": "bodytemperature" },
 			{ "code": "KingdomFullNames" },
 			{ "code": "KingdomLoyalties" },
-			{ "code": "SoldierDecayBody", "hoursToDecay": 24, "skeletonBody": [ "humanoid1", "humanoid2" ] },
+			{ "code": "SoldierDecayBody", "hoursToDecay": 0.5, "skeletonBody": [ "humanoid1", "humanoid2" ] },
 			{
 				"code": "taskai",
 				"aitasks": [

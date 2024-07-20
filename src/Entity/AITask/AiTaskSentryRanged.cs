@@ -253,11 +253,13 @@ namespace VSKingdom {
 		}
 
 		private void Retreat(bool full) {
-			Vec3d targetPos = new Vec3d();
-			updateTargetPosFleeMode(targetPos);
-			entity.AnimManager.StopAnimation(animMeta.Code);
-			pathTraverser.WalkTowards(targetPos, full ? (float)entity.moveSpeed : (float)entity.walkSpeed, (targetEntity?.SelectionBox.XSize + 0.2f) ?? 5f, OnGoals, OnStuck);
-			pathTraverser.Retarget();
+			try {
+				Vec3d targetPos = new Vec3d();
+				updateTargetPosFleeMode(targetPos);
+				entity.AnimManager.StopAnimation(animMeta.Code);
+				pathTraverser.WalkTowards(targetPos, full ? (float)entity.moveSpeed : (float)entity.walkSpeed, (targetEntity?.SelectionBox.XSize + 0.2f) ?? 5f, OnGoals, OnStuck);
+				pathTraverser.Retarget();
+			} catch { }
 		}
 
 		private bool IsEnemy(Entity target) {

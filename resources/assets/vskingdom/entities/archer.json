@@ -10,6 +10,9 @@
 		"moveSpeed": 0.035,
 		"walkSpeed": 0.018,
 		"weapClass": "range",
+		"gearSpawn": [ "game:clothes-upperbody-tattered-linen-shirt" ],
+		"pantSpawn": [ "game:clothes-lowerbody-commoner-trousers", "game:clothes-lowerbody-survivor" ],
+		"shoeSpawn": [ "game:clothes-foot-survivor", "game:clothes-foot-peasent-slippers" ],
 		"skinnableParts": [
 			{
 				"code": "baseskin",
@@ -339,7 +342,7 @@
 			{ "code": "bodytemperature" },
 			{ "code": "KingdomFullNames" },
 			{ "code": "KingdomLoyalties" },
-			{ "code": "SoldierDecayBody", "hoursToDecay": 0.01, "skeletonBody": [ "humanoid1", "humanoid2" ] },
+			{ "code": "SoldierDecayBody", "hoursToDecay": 96, "skeletonBody": [ "humanoid1", "humanoid2" ] },
 			{
 				"code": "taskai",
 				"aitasks": [
@@ -360,6 +363,10 @@
 						"animationSpeed": 1.75
 					},
 					{
+						"code": "SentryFollow",
+						"priority": 1.5
+					},
+					{
 						"code": "SentryHealth",
 						"priority": 1.2,
 						"mincooldown": 1000,
@@ -369,10 +376,6 @@
 					{
 						"code": "SentryWaters",
 						"priority": 1.2
-					},
-					{
-						"code": "SentryFollow",
-						"priority": 1.0
 					},
 					{
 						"code": "SentryReturn",

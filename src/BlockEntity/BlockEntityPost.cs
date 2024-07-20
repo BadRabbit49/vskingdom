@@ -10,6 +10,7 @@ using Vintagestory.API.Datastructures;
 using Vintagestory.API.Config;
 using Vintagestory.API.Common;
 using Vintagestory.API.Client;
+using Vintagestory.API.Common.Entities;
 
 namespace VSKingdom {
 	public class BlockEntityPost : BlockEntityContainer, IHeatSource, IPointOfInterest {
@@ -72,6 +73,7 @@ namespace VSKingdom {
 			maxpawns = 2 * metlTier;
 			respawns = 2 * metlTier;
 			areasize = 3 * metlTier;
+			RegisterGameTickListener(Returnings, 90000);
 			// Register entity as a point of interest.
 			if (api is ICoreServerAPI sapi) {
 				sapi.ModLoader.GetModSystem<POIRegistry>().AddPOI(this);
@@ -88,7 +90,7 @@ namespace VSKingdom {
 				}
 			}
 		}
-
+		
 		public override void OnBlockBroken(IPlayer byPlayer = null) {
 			if (byPlayer.PlayerUID != ownerUID) {
 				switch (Block.LastCodePart()) {
@@ -205,6 +207,16 @@ namespace VSKingdom {
 				EntityUIDs.Add(entityId);
 			}
 			return EntityUIDs.Count < capacity;
+		}
+
+		public void Returnings(float dt) {
+			foreach (long uid in EntityUIDs) {
+				Entity entity = (Api as ICoreServerAPI)?.World.GetEntityById(uid) ?? null;
+				if (entity != null && entity.ServerPos.XYZ.DistanceTo(Pos.ToVec3d()) > areasize) {
+					var taskManager = entity.GetBehavior<EntityBehaviorTaskAI>().TaskManager;
+					taskManager.GetTask<AiTaskSentryReturn>()?.StartExecute();
+				}
+			}
 		}
 
 		public void UseRespawn() {

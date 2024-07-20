@@ -9,10 +9,16 @@ namespace VSKingdom {
 		#pragma warning disable CS0108
 		public EntitySentry entity;
 		#pragma warning restore CS0108
+		protected bool banditryBehavior = false;
 		protected long lastCheckTotalMs;
 		protected long lastCheckForHelp;
 		protected long lastCheckCooldown = 500L;
 		protected float minRange;
+
+		public override void LoadConfig(Vintagestory.API.Datastructures.JsonObject taskConfig, Vintagestory.API.Datastructures.JsonObject aiConfig) {
+			base.LoadConfig(taskConfig, aiConfig);
+			banditryBehavior = taskConfig["isBandit"].AsBool(false);
+		}
 
 		public override bool ShouldExecute() {
 			if (lastCheckTotalMs + lastCheckCooldown > entity.World.ElapsedMilliseconds) {
@@ -50,11 +56,13 @@ namespace VSKingdom {
 				targetEntity = projectile.FiredBy;
 			}
 			if (ent.WatchedAttributes.HasAttribute("loyalties")) {
-				if (ent is EntitySentry sent) {
-					return entity.enemiesID.Contains(sent.kingdomID);
+				if (banditryBehavior) {
+					return ent is EntitySentry sentry && sentry.kingdomID != "xxxxxxxx";
 				}
-				string entKingdom = ent.WatchedAttributes.GetTreeAttribute("loyalties").GetString("kingdom_guid");
-				return (entity.kingdomID == "xxxxxxxx" && entKingdom != "xxxxxxxx") || (entity.kingdomID != "xxxxxxxx" && entKingdom == "xxxxxxxx") || entity.enemiesID.Contains(entKingdom);
+				if (ent is EntitySentry sent) {
+					return entity.enemiesID.Contains(sent.kingdomID) || sent.kingdomID == "xxxxxxxx";
+				}
+				return entity.enemiesID.Contains(ent.WatchedAttributes.GetTreeAttribute("loyalties").GetString("kingdom_guid"));
 			}
 			if (ent == attackedByEntity && ent != null && ent.Alive) {
 				return true;

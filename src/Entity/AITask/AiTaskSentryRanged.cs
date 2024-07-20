@@ -6,7 +6,6 @@ using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using System;
 using System.Collections.Generic;
-using Vintagestory.API.Config;
 using System.Linq;
 
 namespace VSKingdom {
@@ -17,8 +16,9 @@ namespace VSKingdom {
 		#pragma warning restore CS0108
 		protected bool animsStarted = false;
 		protected bool cancelAttack = false;
-		protected bool didRenderSwitch = false;
-		protected bool projectileFired = false;
+		protected bool renderSwitch = false;
+		protected bool banditryBehavior = false;
+		protected bool projectiledFired = false;
 		protected int durationOfMs = 1200;
 		protected int releasesAtMs = 1000;
 		protected long totalDurationMs;
@@ -42,6 +42,7 @@ namespace VSKingdom {
 			base.LoadConfig(taskConfig, aiConfig);
 			maxDist = taskConfig["maxDist"].AsFloat(20f);
 			minDist = taskConfig["minDist"].AsFloat(3f);
+			banditryBehavior = taskConfig["isBandit"].AsBool(false);
 			drawBowsMeta = new AnimationMetaData() {
 				Code = "bowdraw",
 				Animation = "bowdraw",
@@ -82,21 +83,20 @@ namespace VSKingdom {
 		}
 
 		public override bool IsTargetableEntity(Entity ent, float range, bool ignoreEntityCode = false) {
-			if (ent is null) {
-				return false;
-			}
-			if (ent == entity || !ent.Alive) {
+			if (ent is null || ent == entity || !ent.Alive) {
 				return false;
 			}
 			if (ent is EntityProjectile projectile && projectile.FiredBy != null) {
 				targetEntity = projectile.FiredBy;
 			}
 			if (ent.WatchedAttributes.HasAttribute("loyalties")) {
-				if (ent is EntitySentry sent) {
-					return entity.enemiesID.Contains(sent.kingdomID);
+				if (banditryBehavior) {
+					return ent is EntitySentry sentry && sentry.kingdomID != "xxxxxxxx";
 				}
-				string entKingdom = ent.WatchedAttributes.GetTreeAttribute("loyalties").GetString("kingdom_guid");
-				return (entity.kingdomID == "xxxxxxxx" && entKingdom != "xxxxxxxx") || (entity.kingdomID != "xxxxxxxx" && entKingdom == "xxxxxxxx") || entity.enemiesID.Contains(entKingdom);
+				if (ent is EntitySentry sent) {
+					return entity.enemiesID.Contains(sent.kingdomID) || sent.kingdomID == "xxxxxxxx";
+				}
+				return entity.enemiesID.Contains(ent.WatchedAttributes.GetTreeAttribute("loyalties").GetString("kingdom_guid"));
 			}
 			if (ignoreEntityCode || IsTargetEntity(ent.Code.Path)) {
 				return CanSense(ent, range);
@@ -108,8 +108,8 @@ namespace VSKingdom {
 			accum = 0;
 			animsStarted = false;
 			cancelAttack = false;
-			didRenderSwitch = false;
-			projectileFired = false;
+			renderSwitch = false;
+			projectiledFired = false;
 			// Get and initialize the item's attributes to the weapon.
 			drawingsound = ItemsProperties.wepnAimAudio.Get(entity.RightHandItemSlot?.Itemstack?.Collectible?.Code);
 			List<AssetLocation> hitAudio = ItemsProperties.wepnHitAudio.Get(entity.RightHandItemSlot?.Itemstack?.Collectible?.Code);
@@ -168,14 +168,14 @@ namespace VSKingdom {
 			accum += dt;
 
 			// Draw back the weapon to its render variant if it has one. 
-			if (!didRenderSwitch && accum > durationOfMs / 2000f) {
+			if (!renderSwitch && accum > durationOfMs / 2000f) {
 				entity.RightHandItemSlot?.Itemstack?.Attributes?.SetInt("renderVariant", 3);
 				entity.RightHandItemSlot.MarkDirty();
-				didRenderSwitch = true;
+				renderSwitch = true;
 			}
 			// Do after aiming time is finished.
-			if (accum > releasesAtMs / 1000f && !projectileFired && !EntityInTheWay() && HasRanged()) {
-				projectileFired = FireProjectile();
+			if (accum > releasesAtMs / 1000f && !projectiledFired && !EntityInTheWay() && HasRanged()) {
+				projectiledFired = FireProjectile();
 				// Don't play anything when the hittingSound is incorrectly set.
 				if (hittingsound != null) {
 					entity.World.PlaySoundAt(hittingsound, entity, null, false);
@@ -255,14 +255,8 @@ namespace VSKingdom {
 		private void Retreat(bool full) {
 			Vec3d targetPos = new Vec3d();
 			updateTargetPosFleeMode(targetPos);
-			entity.ServerControls.IsAiming = false;
 			entity.AnimManager.StopAnimation(animMeta.Code);
-			if (full) {
-				entity.Controls.Sprint = true;
-				pathTraverser.WalkTowards(targetPos, (float)entity.moveSpeed * (float)GlobalConstants.SprintSpeedMultiplier, targetEntity.SelectionBox.XSize + 0.2f, OnGoals, OnStuck);
-			} else {
-				pathTraverser.WalkTowards(targetPos, (float)entity.walkSpeed, targetEntity.SelectionBox.XSize + 0.2f, OnGoals, OnStuck);
-			}
+			pathTraverser.WalkTowards(targetPos, full ? (float)entity.moveSpeed : (float)entity.walkSpeed, (targetEntity?.SelectionBox.XSize + 0.2f) ?? 5f, OnGoals, OnStuck);
 			pathTraverser.Retarget();
 		}
 

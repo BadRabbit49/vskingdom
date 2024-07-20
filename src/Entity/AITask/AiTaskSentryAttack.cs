@@ -17,6 +17,7 @@ namespace VSKingdom {
 		protected bool cancelAttack = false;
 		protected bool turnToTarget = true;
 		protected bool doorIsBehind = false;
+		protected bool banditryBehavior = false;
 		protected long durationOfMs = 1500L;
 		protected long lastSearchMs;
 		protected float maxDist = 20f;
@@ -28,6 +29,7 @@ namespace VSKingdom {
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);
 			// Initialize ALL of the provided melee attacks.
+			banditryBehavior = taskConfig["isBandit"].AsBool(false);
 			string[] animCodes = taskConfig["animCodes"].AsArray<string>(new string[] { "hit", "spearstabs" });
 			animMetas = new AnimationMetaData[animCodes.Length];
 			for (int i = 0; i < animCodes.Length; i++) {
@@ -76,11 +78,13 @@ namespace VSKingdom {
 				targetEntity = projectile.FiredBy;
 			}
 			if (ent.WatchedAttributes.HasAttribute("loyalties")) {
-				if (ent is EntitySentry sent) {
-					return entity.enemiesID.Contains(sent.kingdomID);
+				if (banditryBehavior) {
+					return ent is EntitySentry sentry && sentry.kingdomID != "xxxxxxxx";
 				}
-				string entKingdom = ent.WatchedAttributes.GetTreeAttribute("loyalties").GetString("kingdom_guid");
-				return (entity.kingdomID == "xxxxxxxx" && entKingdom != "xxxxxxxx") || (entity.kingdomID != "xxxxxxxx" && entKingdom == "xxxxxxxx") || entity.enemiesID.Contains(entKingdom);
+				if (ent is EntitySentry sent) {
+					return entity.enemiesID.Contains(sent.kingdomID) || sent.kingdomID == "xxxxxxxx";
+				}
+				return entity.enemiesID.Contains(ent.WatchedAttributes.GetTreeAttribute("loyalties").GetString("kingdom_guid"));
 			}
 			if (ignoreEntityCode || IsTargetEntity(ent.Code.Path)) {
 				return CanSense(ent, range);

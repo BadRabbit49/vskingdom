@@ -361,7 +361,8 @@
 						"mincooldown": 500,
 						"maxcooldown": 1500,
 						"animCodes": [ "hit", "spearstabs", "swordswing", "swordsmash", "swordslash", "swordstabs" ],
-						"damageTier": 3
+						"damageTier": 3,
+						"isBandit": true
 					},
 					{
 						"code": "SentrySearch",
@@ -370,7 +371,8 @@
 						"mincooldown": 1000,
 						"maxcooldown": 1500,
 						"seekingRange": 20,
-						"animationSpeed": 1.75
+						"animationSpeed": 1.75,
+						"isBandit": true
 					},
 					{
 						"code": "SentryHealth",

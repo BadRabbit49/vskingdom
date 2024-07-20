@@ -79,7 +79,7 @@ namespace VSKingdom {
 			}
 			if (ent.WatchedAttributes.HasAttribute("loyalties")) {
 				if (banditryBehavior) {
-					return ent is EntitySentry sentry && sentry.kingdomID != "xxxxxxxx";
+					return ent is EntityPlayer || (ent is EntitySentry sentry && sentry.kingdomID != "xxxxxxxx");
 				}
 				if (ent is EntitySentry sent) {
 					return entity.enemiesID.Contains(sent.kingdomID) || sent.kingdomID == "xxxxxxxx";

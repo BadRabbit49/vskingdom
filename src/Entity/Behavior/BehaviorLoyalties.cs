@@ -7,14 +7,10 @@ using Vintagestory.API.Server;
 using Vintagestory.API.MathTools;
 using Vintagestory.GameContent;
 using Vintagestory.API.Config;
-using System.Collections.Generic;
-using Vintagestory.API.Util;
 
 namespace VSKingdom {
 	public class EntityBehaviorLoyalties : EntityBehavior {
-		public EntityBehaviorLoyalties(Entity entity) : base(entity) { this.ServerAPI = entity.Api as ICoreServerAPI; }
-
-		public ICoreServerAPI ServerAPI;
+		public EntityBehaviorLoyalties(Entity entity) : base(entity) { }
 
 		public ITreeAttribute loyalties {
 			get {
@@ -99,18 +95,11 @@ namespace VSKingdom {
 			get => loyalties.GetBool("command_return");
 			set => loyalties.SetBool("command_return", value);
 		}
-		
-		public Kingdom cachedKingdom { get => kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID); }
-
-		public Culture cachedCulture { get => cultureList.Find(cultureMatch => cultureMatch.CultureGUID == cultureGUID); }
-
-		public IPlayer cachedLeaders { get => entity.World.PlayerByUid(leadersGUID); }
-
-		public BlockEntityPost cachedOutpost { get => (ServerAPI.World.BlockAccessor.GetBlockEntity(outpostXYZD) as BlockEntityPost) ?? null; }
 
 		public override string PropertyName() {
 			return "KingdomLoyalties";
 		}
+
 		public override void AfterInitialized(bool onFirstSpawn) {
 			base.AfterInitialized(onFirstSpawn);
 			if (entity is EntitySentry sentry) {
@@ -152,11 +141,11 @@ namespace VSKingdom {
 			if (byEntity is EntityPlayer player && mode == EnumInteractMode.Interact && entity is not EntityPlayer) {
 				// Remind them to join their leaders kingdom if they aren't already in it.
 				if (leadersGUID == player.PlayerUID && kingdomGUID != player.GetBehavior<EntityBehaviorLoyalties>()?.kingdomGUID) {
-					SetKingdom(byEntity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdom_guid") ?? kingdomGUID);
+					kingdomGUID = byEntity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdom_guid") ?? kingdomGUID;
 				}
 				// While a STRANGER has something in their ACTIVE SLOT try commands.
-				if (enlistedStatus == EnlistedStatus.CIVILIAN && entity.Alive && cachedLeaders is null && itemslot.Itemstack != null && player.Controls.Sneak) {
-					TryRecruiting(itemslot, player.Player);
+				if (enlistedStatus == EnlistedStatus.CIVILIAN && entity.Alive && leadersGUID == null && itemslot.Itemstack != null && player.Controls.Sneak) {
+					TryRecruiting(itemslot, player.Player as IServerPlayer);
 					return;
 				}
 				// Try to revive if the entity is dead but not a carcass.
@@ -194,55 +183,7 @@ namespace VSKingdom {
 			base.GetInfoText(infotext);
 		}
 
-		public virtual void SetKingdom(string kingdomGUID) {
-			if (kingdomGUID is null || kingdomGUID == "") {
-				return;
-			}
-			// Why did you make me do this?!
-			(entity.Api as ICoreServerAPI)?.World.GetEntityById(entity.EntityId).WatchedAttributes.GetTreeAttribute("loyalties").SetString("kingdom_guid", kingdomGUID);
-			(entity.Api as ICoreServerAPI)?.World.GetEntityById(entity.EntityId).WatchedAttributes.MarkPathDirty("loyalties");
-		}
-
-		public virtual void SetCulture(string cultureGUID) {
-			if (cultureGUID is null || cultureGUID == "") {
-				return;
-			}
-			// Why did you make me do this?!
-			ServerAPI.World.GetEntityById(entity.EntityId).WatchedAttributes.GetTreeAttribute("loyalties").SetString("culture_guid", cultureGUID);
-			ServerAPI.World.GetEntityById(entity.EntityId).WatchedAttributes.MarkPathDirty("loyalties");
-		}
-
-		public virtual void SetLeaders(string playerUID) {
-			if (playerUID is not null && entity.World.PlayerByUid(playerUID) is not null) {
-				leadersGUID = playerUID;
-			}
-			if (cachedLeaders.Entity.HasBehavior<EntityBehaviorLoyalties>()) {
-				SetKingdom(cachedLeaders.Entity.GetBehavior<EntityBehaviorLoyalties>()?.kingdomGUID);
-			}
-		}
-		
-		public virtual void SetOutpost(BlockPos blockPos) {
-			if (blockPos.X == 0 && blockPos.Y == 0 && blockPos.Z == 0) {
-				(entity.Api as ICoreServerAPI)?.World.GetEntityById(entity.EntityId).WatchedAttributes.GetTreeAttribute("loyalties").SetDouble("outpost_size", 5.0);
-				(entity.Api as ICoreServerAPI)?.World.GetEntityById(entity.EntityId).WatchedAttributes.MarkPathDirty("loyalties");
-				return;
-			}
-			if (entity.World.BlockAccessor.GetBlockEntity(blockPos) is BlockEntityPost outpost) {
-				if (outpost is not null && outpost.IsCapacity(entity.EntityId)) {
-					(entity.Api as ICoreServerAPI)?.World.GetEntityById(entity.EntityId).WatchedAttributes.GetTreeAttribute("loyalties").SetDouble("outpost_size", outpost.areasize);
-					(entity.Api as ICoreServerAPI)?.World.GetEntityById(entity.EntityId).WatchedAttributes.GetTreeAttribute("loyalties").SetBlockPos("outpost_xyzd", blockPos);
-					(entity.Api as ICoreServerAPI)?.World.GetEntityById(entity.EntityId).WatchedAttributes.MarkPathDirty("loyalties");
-				}
-			}
-		}
-
-		public virtual void SetCommand(string commands, bool value) {
-			// This is a very brute-force and unsophisticated way of doing this. In the future it should be changed.
-			(entity.Api as ICoreServerAPI)?.World.GetEntityById(entity.EntityId).WatchedAttributes.GetTreeAttribute("loyalties").SetBool(commands, value);
-			(entity.Api as ICoreServerAPI)?.World.GetEntityById(entity.EntityId).WatchedAttributes.MarkPathDirty("loyalties");
-		}
-
-		private void TryRecruiting(ItemSlot itemslot, IPlayer player) {
+		private void TryRecruiting(ItemSlot itemslot, IServerPlayer player) {
 			// If the entity isn't already owned, giving it some kind of currency will hire it on to join.
 			if (itemslot.Itemstack.ItemAttributes["currency"].Exists) {
 				itemslot.TakeOut(1);
@@ -277,10 +218,5 @@ namespace VSKingdom {
 				}
 			}
 		}
-
-		private byte[] kingdomData { get => (entity.Api as ICoreServerAPI)?.WorldManager.SaveGame.GetData("kingdomData"); }
-		private byte[] cultureData { get => (entity.Api as ICoreServerAPI)?.WorldManager.SaveGame.GetData("cultureData"); }
-		private List<Kingdom> kingdomList => kingdomData is null ? new List<Kingdom>() : SerializerUtil.Deserialize<List<Kingdom>>(kingdomData);
-		private List<Culture> cultureList => cultureData is null ? new List<Culture>() : SerializerUtil.Deserialize<List<Culture>>(cultureData);
 	}
 }

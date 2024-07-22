@@ -12,7 +12,6 @@ namespace VSKingdom {
 		protected bool cancelWander;
 		protected bool doorIsBehind;
 		protected long failedWanders;
-		protected long lastInRangeMs;
 		protected float execChance;
 		protected float maxHeights;
 		protected float targetDist;
@@ -44,20 +43,6 @@ namespace VSKingdom {
 				failedWanders = 0;
 				return false;
 			}
-			if (entity.ruleOrder[6]) {
-				if (entity.ServerPos.XYZ.SquareDistanceTo(postBlock) > entity.postRange) {
-					// If after 2 minutes still not at spawn and no player nearby, teleport.
-					if (entity.World.ElapsedMilliseconds - lastInRangeMs > 1000 * 60 * 2 && entity.World.GetNearestEntity(entity.ServerPos.XYZ, 15, 15, (e) => e is EntityPlayer) is null) {
-						entity.TeleportTo(postBlock);
-					}
-					entity.ServerAPI.World.GetEntityById(entity.EntityId)?.GetBehavior<EntityBehaviorLoyalties>()?.SetCommand("command_return", true);
-					mainTarget = postBlock.Clone();
-					return true;
-				} else {
-					entity.ServerAPI.World.GetEntityById(entity.EntityId)?.GetBehavior<EntityBehaviorLoyalties>()?.SetCommand("command_return", false);
-				}
-				lastInRangeMs = entity.World.ElapsedMilliseconds;
-			}
 			mainTarget = LoadNextWanderTarget();
 			return mainTarget != null;
 		}
@@ -66,7 +51,7 @@ namespace VSKingdom {
 			base.StartExecute();
 			cancelWander = false;
 			wanderRangeHor = NatFloat.createInvexp(3f, (float)entity.postRange);
-			bool ok = pathTraverser.WalkTowards(mainTarget, (float)entity.walkSpeed, targetDist, OnGoals, OnStuck);
+			bool ok = pathTraverser.NavigateTo_Async(mainTarget, (float)entity.walkSpeed, targetDist, OnGoals, OnStuck, NoPaths);
 		}
 
 		public override bool ContinueExecute(float dt) {
@@ -108,24 +93,24 @@ namespace VSKingdom {
 		private Vec3d LoadNextWanderTarget() {
 			bool canFallDamage = entity.Api.World.Config.GetAsBool("FallDamageOn");
 			int num = 9;
-			float wanderRangeMul = WanderRangeMul;
+			float rangeMul = WanderRangeMul;
 			Vec4d bestTarget = null;
 			Vec4d currTarget = new Vec4d();
 			if (FailedPathfinds > 10) {
-				wanderRangeMul = Math.Max(0.1f, WanderRangeMul * 0.9f);
+				rangeMul = Math.Max(0.1f, WanderRangeMul * 0.9f);
 			} else {
-				wanderRangeMul = Math.Min(1f, WanderRangeMul * 1.1f);
+				rangeMul = Math.Min(1f, WanderRangeMul * 1.1f);
 				if (rand.NextDouble() < 0.05) {
-					wanderRangeMul = Math.Min(1f, WanderRangeMul * 1.5f);
+					rangeMul = Math.Min(1f, WanderRangeMul * 1.5f);
 				}
 			}
 			if (rand.NextDouble() < 0.05) {
-				wanderRangeMul *= 3f;
+				rangeMul *= 3f;
 			}
 			while (num-- > 0) {
-				double dx = wanderRangeHor.nextFloat() * (rand.Next(2) * 2 - 1) * wanderRangeMul;
-				double dy = wanderRangeHor.nextFloat() * (rand.Next(2) * 2 - 1) * wanderRangeMul;
-				double dz = wanderRangeHor.nextFloat() * (rand.Next(2) * 2 - 1) * wanderRangeMul;
+				double dx = wanderRangeHor.nextFloat() * (rand.Next(2) * 2 - 1) * rangeMul;
+				double dy = wanderRangeHor.nextFloat() * (rand.Next(2) * 2 - 1) * rangeMul;
+				double dz = wanderRangeHor.nextFloat() * (rand.Next(2) * 2 - 1) * rangeMul;
 				currTarget.X = entity.ServerPos.X + dx;
 				currTarget.Y = entity.ServerPos.Y + dy;
 				currTarget.Z = entity.ServerPos.Z + dz;
@@ -202,6 +187,10 @@ namespace VSKingdom {
 		private void OnGoals() {
 			cancelWander = true;
 			failedWanders = 0;
+		}
+
+		private void NoPaths() {
+			cancelWander = true;
 		}
 
 		private int MoveDownToFloor(int x, int y, int z) {

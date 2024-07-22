@@ -4,7 +4,6 @@ using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.GameContent;
 using System;
-using System.Collections.Generic;
 using Vintagestory.API.Server;
 using Vintagestory.API.Util;
 
@@ -48,6 +47,41 @@ namespace VSKingdom {
 			}
 		}
 
+		public void LootGear(EntitySentry killer, EntitySentry victim) {
+			if (!entity.World.Config.GetAsBool("AllowLooting") || killer == null || victim == null) {
+				return;
+			}
+			// If the entities were at war with eachother then loot will be dropped. Specifically their armor and what they had in their right hand slot.
+			if (killer.enemiesID.Contains(victim.kingdomID) || killer.kingdomID == "xxxxxxxx") {
+				// If the killer can, try looting the player corpse right away, take what is better.
+				for (int i = 12; i < 14; i++) {
+					float ownGearDmgRed = (killer.GearInventory[i]?.Itemstack?.Item as ItemWearable)?.ProtectionModifiers.FlatDamageReduction ?? 0;
+					if (!victim.GearInventory[i].Empty && victim.GearInventory[i].Itemstack.Item is ItemWearable gear && gear.ProtectionModifiers.FlatDamageReduction > ownGearDmgRed) {
+						try {
+							var badStack = killer.GearInventory[i]?.TakeOut(1);
+							victim.GearInventory[i].TryPutInto(entity.World, killer.gearInv[i], victim.GearInventory[i].StackSize);
+							killer.GearInvSlotModified(i);
+							victim.GearInventory[i].Itemstack = badStack;
+							victim.GearInventory.MarkSlotDirty(i);
+						} catch { }
+					}
+				}
+				if (!victim.RightHandItemSlot.Empty) {
+					if ((killer.weapClass == "range" && victim.RightHandItemSlot.Itemstack.Item is ItemBow) || (killer.weapClass == "melee" && victim.RightHandItemSlot.Itemstack.Item is not ItemBow)) {
+						try {
+							if (victim.weapValue > killer.weapValue) {
+								var badStack = killer.RightHandItemSlot?.TakeOut(1);
+								victim.RightHandItemSlot.TryPutInto(entity.World, killer.gearInv[16], victim.RightHandItemSlot.StackSize);
+								killer.GearInvSlotModified(16);
+								victim.RightHandItemSlot.Itemstack = badStack;
+								victim.RightHandItemSlot.MarkDirty();
+							}
+						} catch { }
+					}
+				}
+			}
+		}
+
 		public void DecayNow(EntityAgent entity) {
 			if (DiedInABattle && CanRespawnAtOutpost()) {
 				entity.AllowDespawn = false;
@@ -56,6 +90,7 @@ namespace VSKingdom {
 			if (entity.AllowDespawn || !DiedNaturally) {
 				return;
 			}
+
 			var blockAccessor = entity.World.BlockAccessor;
 			double x = entity.ServerPos.X + entity.SelectionBox.X1 - entity.OriginSelectionBox.X1;
 			double y = entity.ServerPos.Y + entity.SelectionBox.Y1 - entity.OriginSelectionBox.Y1;
@@ -111,15 +146,13 @@ namespace VSKingdom {
 			if (damageSourceForDeath is null) {
 				DiedNaturally = false;
 			}
-			if (entity is EntitySentry thisEnt) {
-				HasAnyInvLeft = !thisEnt.GearInventory.Empty;
+			if (entity is EntitySentry thisSentry) {
+				HasAnyInvLeft = !thisSentry.GearInventory.Empty;
 			}
 			EnumDamageSource source = damageSourceForDeath.Source;
 			if (source == EnumDamageSource.Entity || source == EnumDamageSource.Player) {
 				if (damageSourceForDeath.CauseEntity is EntityHumanoid) {
-					string thisKingdom = entity.WatchedAttributes?.GetTreeAttribute("loyalties")?.GetString("kingdom_guid") ?? "00000000";
-					string thatKingdom = damageSourceForDeath.CauseEntity?.WatchedAttributes?.GetTreeAttribute("loyalties")?.GetString("kingdom_guid") ?? "00000000";
-					DiedInABattle = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == thisKingdom)?.EnemiesGUID.Contains(thatKingdom) ?? false;
+					DiedInABattle = (entity as EntitySentry)?.enemiesID.Contains(damageSourceForDeath.CauseEntity?.WatchedAttributes?.GetTreeAttribute("loyalties")?.GetString("kingdom_guid") ?? "00000000") ?? false;
 				}
 			} else if (source == EnumDamageSource.Void) {
 				(entity as EntityAgent).AllowDespawn = true;
@@ -132,7 +165,10 @@ namespace VSKingdom {
 			}
 			// Respawn the entity if they didn't die in a battle.
 			if (!DiedInABattle) {
-				CanRespawnAtOutpost();
+				bool canRespawn = CanRespawnAtOutpost();
+				if (!canRespawn && entity is EntitySentry thisEnt && damageSourceForDeath.GetCauseEntity() is EntitySentry thatEnt) {
+					LootGear(thisEnt, thatEnt);
+				}
 			}
 		}
 
@@ -165,10 +201,5 @@ namespace VSKingdom {
 			}
 			return false;
 		}
-
-		private byte[] kingdomData { get => ServerAPI.WorldManager.SaveGame.GetData("kingdomData"); }
-		private byte[] cultureData { get => ServerAPI.WorldManager.SaveGame.GetData("cultureData"); }
-		private List<Kingdom> kingdomList => kingdomData is null ? new List<Kingdom>() : SerializerUtil.Deserialize<List<Kingdom>>(kingdomData);
-		private List<Culture> cultureList => cultureData is null ? new List<Culture>() : SerializerUtil.Deserialize<List<Culture>>(cultureData);
 	}
 }

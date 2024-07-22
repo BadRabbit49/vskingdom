@@ -11,6 +11,7 @@ namespace VSKingdom {
 		#pragma warning restore CS0108
 		protected bool cancelReturn = false;
 		protected long lastCheckTotalMs;
+		protected long lastWasInRangeMs;
 		protected long lastCheckCooldown = 500L;
 		protected Vec3d postBlock { get => entity.Loyalties.GetBlockPos("outpost_xyzd").ToVec3d(); }
 
@@ -19,14 +20,14 @@ namespace VSKingdom {
 				return false;
 			}
 			lastCheckTotalMs = entity.World.ElapsedMilliseconds;
-			if (entity.ruleOrder[6] == false) {
-				return false;
+			if (entity.ruleOrder[6]) {
+				return true;
 			}
 			return CheckDistance();
 		}
 
 		public override void StartExecute() {
-			pathTraverser.NavigateTo(postBlock, (float)entity.moveSpeed, (float)entity.postRange, OnStuck, OnGoals, true, 10000);
+			pathTraverser.NavigateTo_Async(postBlock, (float)entity.moveSpeed, (float)entity.postRange, OnGoals, OnStuck, NoPaths);
 			base.StartExecute();
 		}
 
@@ -42,12 +43,16 @@ namespace VSKingdom {
 		}
 
 		private void OnStuck() {
-			cancelReturn = true;
-			pathTraverser.Retarget();
+			cancelReturn = CheckTeleport();
 		}
 
 		private void OnGoals() {
 			cancelReturn = true;
+			pathTraverser.Retarget();
+		}
+
+		private void NoPaths() {
+			bool teleport = CheckTeleport();
 		}
 
 		private void UpdateOrders(bool @returning) {
@@ -56,13 +61,27 @@ namespace VSKingdom {
 			entity.ServerAPI?.Network.GetChannel("sentrynetwork").SendPacket<SentryOrders>(updatedOrders, nearestPlayer);
 		}
 
+		private bool CheckTeleport() {
+			if (entity.ServerPos.XYZ.SquareDistanceTo(postBlock) > entity.postRange * entity.postRange) {
+				// If after 2 minutes still not at spawn and no player nearby, teleport back home and set command return to false.
+				var nearestPlayer = entity.World.NearestPlayer(entity.ServerPos.X, entity.ServerPos.Y, entity.ServerPos.Z).Entity;
+				if (entity.Alive && entity.World.ElapsedMilliseconds - lastWasInRangeMs > 1000 * 60 * 2 && nearestPlayer.ServerPos.DistanceTo(entity.ServerPos) > 50) {
+					entity.TeleportTo(postBlock);
+					UpdateOrders(false);
+					return true;
+				}
+			}
+			return false;
+		}
+
 		private bool CheckDistance() {
 			double boundaries = entity.postRange;
 			if (entity.ruleOrder[3]) {
 				boundaries = entity.postRange * 4;
 			}
 			// Set command to return if the outpost is further away than the boundaries allowed, and entity isn't following player.
-			if (entity.ServerPos.DistanceTo(postBlock) > boundaries && !entity.ruleOrder[1]) {
+			if (entity.Alive && entity.ServerPos.SquareDistanceTo(postBlock) > boundaries * boundaries && !entity.ruleOrder[1]) {
+				lastWasInRangeMs = entity.World.ElapsedMilliseconds;
 				UpdateOrders(true);
 				return false;
 			}

@@ -135,7 +135,6 @@ namespace VSKingdom {
 					targetEntity = null;
 					cancelAttack = true;
 					StopNow();
-					entity.ServerAPI?.World.GetEntityById(entity.EntityId)?.GetBehavior<EntityBehaviorLoyalties>()?.SetCommand("command_return", true);
 					return false;
 				}
 				// Try NavigateTo instead of WalkTowards?
@@ -204,7 +203,6 @@ namespace VSKingdom {
 			pathTraverser.CurrentTarget.X = targetPos.X;
 			pathTraverser.CurrentTarget.Y = targetPos.Y;
 			pathTraverser.CurrentTarget.Z = targetPos.Z;
-			pathTraverser.Retarget();
 		}
 
 		private void OnStuck() {

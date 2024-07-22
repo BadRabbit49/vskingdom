@@ -81,9 +81,8 @@ namespace VSKingdom {
 			base.StartExecute();
 			cancelEscape = false;
 			soundChance = Math.Max(0.025f, soundChance - 0.2f);
-			pathTraverser.WalkTowards(targetPos, (float)entity.moveSpeed * (float)GlobalConstants.SprintSpeedMultiplier, targetEntity.SelectionBox.XSize + 0.2f, OnGoals, OnStuck);
+			pathTraverser.NavigateTo_Async(targetPos, (float)entity.moveSpeed, targetEntity.SelectionBox.XSize + 0.2f, OnGoals, OnStuck);
 			fleeingStartMs = entity.World.ElapsedMilliseconds;
-			entity.CurrentControls = EnumEntityActivity.SprintMode;
 		}
 
 		public override bool ContinueExecute(float dt) {
@@ -134,7 +133,6 @@ namespace VSKingdom {
 		}
 
 		private void OnGoals() {
-			cancelEscape = true;
 			pathTraverser.Retarget();
 		}
 
@@ -145,7 +143,7 @@ namespace VSKingdom {
 			if (targetEntity.HasBehavior<EntityBehaviorHealth>()) {
 				Vec3d targetPosOffset = new Vec3d().Set(entity.World.Rand.NextDouble() * 2.0 - 1.0, 0.0, entity.World.Rand.NextDouble() * 2.0 - 1.0);
 				// Now if we have some breathing room to reevaluate the situation, see if we should continue this fight or not.
-				if (entity.ServerPos.SquareDistanceTo(targetEntity.ServerPos.X + targetPosOffset.X, targetEntity.ServerPos.Y, targetEntity.ServerPos.Z + targetPosOffset.Z) > 3) {
+				if (entity.ServerPos.SquareDistanceTo(targetEntity.ServerPos.X + targetPosOffset.X, targetEntity.ServerPos.Y, targetEntity.ServerPos.Z + targetPosOffset.Z) > 9) {
 					// Determine if enemy has more health, armor, and is stronger.
 					ITreeAttribute targetHealthTree = targetEntity.WatchedAttributes.GetTreeAttribute("health");
 					return (CurHealth / MaxHealth) < 0.25 && (targetHealthTree.GetFloat("currenthealth") / targetHealthTree.GetFloat("basemaxhealth")) > 0.25;

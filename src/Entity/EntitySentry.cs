@@ -29,7 +29,6 @@ namespace VSKingdom {
 		public virtual string[] enemiesID { get; set; } = new string[] { };
 		public virtual string[] outlawsID { get; set; } = new string[] { };
 		public virtual string inventory => "gear-" + EntityId;
-		public virtual EntitySentry thisSent => (ServerAPI?.World.GetEntityById(this.EntityId) as EntitySentry) ?? this;
 		public virtual EntityTalkUtil talkUtil { get; set; }
 		public virtual InventorySentry gearInv { get; set; }
 		public virtual InvSentryDialog InventoryDialog { get; set; }
@@ -63,8 +62,8 @@ namespace VSKingdom {
 			}
 			Loyalties = WatchedAttributes.GetOrAddTreeAttribute("loyalties");
 			ruleOrder = new bool[7] { true, false, true, true, false, false, false, };
-			moveSpeed = properties.Attributes["moveSpeed"].AsDouble(0.035);
-			walkSpeed = properties.Attributes["walkSpeed"].AsDouble(0.018);
+			moveSpeed = properties.Attributes["moveSpeed"].AsDouble(0.030);
+			walkSpeed = properties.Attributes["walkSpeed"].AsDouble(0.015);
 			weapClass = properties.Attributes["weapClass"].AsString("melee").ToLowerInvariant();
 			baseGroup = properties.Attributes["baseGroup"].AsString("00000000");
 			kingdomID = Loyalties.GetString("kingdom_guid") ?? properties.Attributes["baseGroup"].AsString("00000000");
@@ -182,7 +181,7 @@ namespace VSKingdom {
 
 		public override void Revive() {
 			this.Alive = true;
-			ReceiveDamage(new DamageSource { Source = EnumDamageSource.Revive, Type = EnumDamageType.Heal }, 9999f);
+			ReceiveDamage(new DamageSource { SourceEntity = this, CauseEntity = this, Source = EnumDamageSource.Revive, Type = EnumDamageType.Heal }, 9999f);
 			AnimManager?.StopAnimation("dies");
 			IsOnFire = false;
 			foreach (EntityBehavior behavior in SidedProperties.Behaviors) {
@@ -293,15 +292,28 @@ namespace VSKingdom {
 		}
 
 		public virtual void UpdateTasks(byte[] data) {
-			ruleOrder = new bool[] {
-				Loyalties?.GetBool("command_wander", true) ?? true,
-				Loyalties?.GetBool("command_follow", false) ?? false,
-				Loyalties?.GetBool("command_firing", true) ?? true,
-				Loyalties?.GetBool("command_pursue", true) ?? true,
-				Loyalties?.GetBool("command_shifts", false) ?? false,
-				Loyalties?.GetBool("command_nights", false) ?? false,
-				Loyalties?.GetBool("command_return", false) ?? false
-			};
+			if (data != null) {
+				SentryOrders orders = SerializerUtil.Deserialize<SentryOrders>(data);
+				ruleOrder = new bool[] {
+					orders.wandering ?? Loyalties.GetBool("command_wander", true),
+					orders.following ?? Loyalties.GetBool("command_follow", false),
+					orders.attacking ?? Loyalties.GetBool("command_firing", true),
+					orders.pursueing ?? Loyalties.GetBool("command_pursue", true),
+					orders.shifttime ?? Loyalties.GetBool("command_shifts", false),
+					orders.nighttime ?? Loyalties.GetBool("command_nights", false),
+					orders.returning ?? Loyalties.GetBool("command_return", false)
+				};
+			} else {
+				ruleOrder = new bool[] {
+					Loyalties.GetBool("command_wander", true),
+					Loyalties.GetBool("command_follow", false),
+					Loyalties.GetBool("command_firing", true),
+					Loyalties.GetBool("command_pursue", true),
+					Loyalties.GetBool("command_shifts", false),
+					Loyalties.GetBool("command_nights", false),
+					Loyalties.GetBool("command_return", false)
+				};
+			}
 		}
 
 		public virtual void UpdateTrees(byte[] data) {

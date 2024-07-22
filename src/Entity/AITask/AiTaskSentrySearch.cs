@@ -78,7 +78,7 @@ namespace VSKingdom {
 		}
 
 		public override void OnEntityHurt(DamageSource source, float damage) {
-			if (!IsTargetableEntity(source.GetCauseEntity(), (float)source.GetCauseEntity().Pos.DistanceTo(entity.Pos))) {
+			if (source.GetCauseEntity() == null || !IsTargetableEntity(source.GetCauseEntity(), (float)source.GetCauseEntity().Pos.DistanceTo(entity.Pos))) {
 				return;
 			}
 			if (source.Type != EnumDamageType.Heal && lastCheckForHelp + 5000 < entity.World.ElapsedMilliseconds) {

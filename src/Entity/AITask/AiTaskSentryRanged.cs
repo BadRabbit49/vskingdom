@@ -46,14 +46,17 @@ namespace VSKingdom {
 			drawBowsMeta = new AnimationMetaData() {
 				Code = "bowdraw",
 				Animation = "bowdraw",
+				BlendMode = EnumAnimationBlendMode.Add
 			}.Init();
 			fireBowsMeta = new AnimationMetaData() {
 				Code = "bowfire",
 				Animation = "bowfire",
+				BlendMode = EnumAnimationBlendMode.Add
 			}.Init();
 			loadBowsMeta = new AnimationMetaData() {
 				Code = "bowload",
 				Animation = "bowload",
+				BlendMode = EnumAnimationBlendMode.Add
 			}.Init();
 		}
 
@@ -142,7 +145,7 @@ namespace VSKingdom {
 				return false;
 			}
 			// Retreat if target is too close!
-			if (entity.ServerPos.SquareDistanceTo(targetEntity.ServerPos.XYZ) <= 4 * 4) {
+			if (entity.ServerPos.SquareDistanceTo(targetEntity.ServerPos.XYZ) <= 16) {
 				Retreat(false);
 			}
 			// Calculate aiming at targetEntity!
@@ -199,7 +202,7 @@ namespace VSKingdom {
 				cancelAttack = true;
 			}
 			// Interrupt attack and flee! Enemy is close!
-			if (source.GetCauseEntity().ServerPos.DistanceTo(entity.ServerPos) < minDist) {
+			if (source.GetCauseEntity().ServerPos.SquareDistanceTo(entity.ServerPos) < minDist * minDist) {
 				cancelAttack = true;
 				FinishExecute(true);
 				Retreat(true);
@@ -257,8 +260,11 @@ namespace VSKingdom {
 				Vec3d targetPos = new Vec3d();
 				updateTargetPosFleeMode(targetPos);
 				entity.AnimManager.StopAnimation(animMeta.Code);
-				pathTraverser.WalkTowards(targetPos, full ? (float)entity.moveSpeed : (float)entity.walkSpeed, (targetEntity?.SelectionBox.XSize + 0.2f) ?? 5f, OnGoals, OnStuck);
+				pathTraverser.CurrentTarget.X = targetPos.X;
+				pathTraverser.CurrentTarget.Y = targetPos.Y;
+				pathTraverser.CurrentTarget.Z = targetPos.Z;
 				pathTraverser.Retarget();
+				pathTraverser.NavigateTo_Async(targetPos, full ? (float)entity.moveSpeed : (float)entity.walkSpeed, (targetEntity?.SelectionBox.XSize + 0.2f) ?? 5f, OnGoals, OnStuck);
 			} catch { }
 		}
 

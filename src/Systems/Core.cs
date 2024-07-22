@@ -369,7 +369,7 @@ namespace VSKingdom {
 
 		private void OnSentryOrdered(IServerPlayer fromPlayer, SentryOrders sentryOrders) {
 			EntitySentry sentry = serverAPI.World.GetEntityById(sentryOrders.entityUID) as EntitySentry;
-			ITreeAttribute loyalties = sentry.WatchedAttributes.GetTreeAttribute("loyalties");
+			ITreeAttribute loyalties = sentry.Loyalties ?? sentry.WatchedAttributes.GetTreeAttribute("loyalties");
 			// WATCHED VARIABLES ONLY CAN BE SET FROM SERVER (I.E. HERE).
 			loyalties.SetBool("command_wander", sentryOrders.wandering ?? loyalties.GetBool("command_wander", true));
 			loyalties.SetBool("command_follow", sentryOrders.following ?? loyalties.GetBool("command_follow", false));
@@ -396,13 +396,13 @@ namespace VSKingdom {
 			}
 			sentry.WatchedAttributes.MarkPathDirty("loyalties");
 			sentry.ruleOrder = new bool[] {
-				loyalties?.GetBool("command_wander") ?? true,
-				loyalties?.GetBool("command_follow") ?? false,
-				loyalties?.GetBool("command_firing") ?? true,
-				loyalties?.GetBool("command_pursue") ?? true,
-				loyalties?.GetBool("command_shifts") ?? false,
-				loyalties?.GetBool("command_nights") ?? false,
-				loyalties?.GetBool("command_return") ?? false
+				loyalties.GetBool("command_wander"),
+				loyalties.GetBool("command_follow"),
+				loyalties.GetBool("command_firing"),
+				loyalties.GetBool("command_pursue"),
+				loyalties.GetBool("command_shifts"),
+				loyalties.GetBool("command_nights"),
+				loyalties.GetBool("command_return")
 			};
 			// Stopping kind of redundant other than to make sure variables are updated passed. Needs testing.
 			serverAPI.Network.BroadcastEntityPacket(sentryOrders.entityUID, 1503, SerializerUtil.Serialize<SentryOrders>(sentryOrders));

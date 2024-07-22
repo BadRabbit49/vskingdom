@@ -13,6 +13,7 @@
 		"gearSpawn": [ "game:clothes-upperbody-tattered-linen-shirt" ],
 		"pantSpawn": [ "game:clothes-lowerbody-commoner-trousers", "game:clothes-lowerbody-survivor", "game:clothes-lowerbody-raw-hide-trousers" ],
 		"shoeSpawn": [ "game:clothes-foot-survivor", "game:clothes-foot-peasent-slippers" ],
+		"randomIdleAnimations": [ "yawn", "stretch", "cough", "headscratch" ],
 		"skinnableParts": [
 			{
 				"code": "baseskin",
@@ -340,6 +341,7 @@
 			{ "code": "health", "currenthealth": 20, "maxhealth": 20 },
 			{ "code": "bodytemperature" },
 			{ "code": "extraskinnable" },
+			{ "code": "idleanimations" },
 			{ "code": "KingdomFullNames" },
 			{ "code": "KingdomLoyalties" },
 			{ "code": "SoldierDecayBody", "hoursToDecay": 96, "skeletonBody": [ "humanoid1", "humanoid2" ] },
@@ -401,6 +403,11 @@
 						"code": "lookaround",
 						"priority": 0.5,
 						"animation": "idle1"
+					},
+					{
+						"code": "lookaround",
+						"priority": 0.5,
+						"animation": "idle2"
 					}
 				]
 			}

@@ -21,14 +21,17 @@ namespace VSKingdom {
 			get => entity.WatchedAttributes.GetTreeAttribute("nametag")?.GetString("name");
 			set => entity.WatchedAttributes.GetTreeAttribute("nametag")?.SetString("name", value);
 		}
+
 		public string FamilyName {
 			get => entity.WatchedAttributes.GetTreeAttribute("nametag")?.GetString("last");
 			set => entity.WatchedAttributes.GetTreeAttribute("nametag")?.SetString("last", value);
 		}
+
 		public bool ShowOnlyWhenTargeted {
 			get => entity.WatchedAttributes.GetTreeAttribute("nametag")?.GetBool("showtagonlywhentargeted") == true;
 			set => entity.WatchedAttributes.GetTreeAttribute("nametag")?.SetBool("showtagonlywhentargeted", value);
 		}
+
 		public int RenderRange {
 			get => entity.WatchedAttributes.GetTreeAttribute("nametag").GetInt("renderRange");
 			set => entity.WatchedAttributes.GetTreeAttribute("nametag")?.SetInt("renderRange", value);

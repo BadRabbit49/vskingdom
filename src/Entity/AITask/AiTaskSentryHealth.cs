@@ -7,13 +7,11 @@ namespace VSKingdom {
 	public class AiTaskSentryHealth : AiTaskBase {
 		public AiTaskSentryHealth(EntityAgent entity) : base(entity) { }
 
-		protected AnimationMetaData baseAnimMeta { get; set; }
-		
 		protected bool animStarted;
 		protected float healingFactor;
 		
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
-			baseAnimMeta = new AnimationMetaData() {
+			animMeta = new AnimationMetaData() {
 				Code = "BandageSelf".ToLowerInvariant(),
 				Animation = "BandageSelf".ToLowerInvariant(),
 				AnimationSpeed = 1f
@@ -38,7 +36,6 @@ namespace VSKingdom {
 		public override void StartExecute() {
 			// TODO: Make executable command to go find cover before healing! Possibly take off armor or assess healing factor.
 			healingFactor = entity.GearInventory[19].Itemstack.Collectible.Attributes["health"].AsFloat();
-			animMeta = baseAnimMeta;
 			animStarted = false;
 		}
 

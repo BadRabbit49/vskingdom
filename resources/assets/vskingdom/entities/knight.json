@@ -352,7 +352,7 @@
 						"code": "SentryAttack",
 						"entityCodes": [ "player", "archer-*", "knight-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "looter", "bandit-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
 						"priority": 2.0,
-						"seekingRange": 15,
+						"seekingRange": 12,
 						"mincooldown": 500,
 						"maxcooldown": 1500,
 						"animCodes": [ "hit", "spearstabs", "swordswing", "swordsmash", "swordslash", "swordstabs" ],

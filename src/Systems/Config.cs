@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using Vintagestory.API.Common;
-using Vintagestory.API.Server;
+﻿using Vintagestory.API.Common;
 
 namespace VSKingdom {
 	class ModConfig {

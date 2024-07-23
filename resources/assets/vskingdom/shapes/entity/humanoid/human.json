@@ -5776,8 +5776,8 @@
 			]
 		},
 		{
-			"name": "WoundedIdle",
-			"code": "woundedidle",
+			"name": "HurtIdle",
+			"code": "hurtidle",
 			"quantityframes": 20,
 			"onActivityStopped": "EaseOut",
 			"onAnimationEnd": "Repeat",

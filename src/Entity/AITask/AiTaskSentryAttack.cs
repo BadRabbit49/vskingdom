@@ -25,12 +25,13 @@ namespace VSKingdom {
 		protected float curTurn;
 		protected string prevAnims;
 		protected AnimationMetaData[] animMetas;
+		protected AiTaskSentrySearch searchTask => entity.GetBehavior<EntityBehaviorTaskAI>().TaskManager.GetTask<AiTaskSentrySearch>();
 
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);
 			// Initialize ALL of the provided melee attacks.
 			banditryBehavior = taskConfig["isBandit"].AsBool(false);
-			string[] animCodes = taskConfig["animCodes"].AsArray<string>(new string[] { "hit", "spearstabs" });
+			string[] animCodes = taskConfig["animCodes"]?.AsArray<string>(new string[] { "hit", "spearstabs" });
 			animMetas = new AnimationMetaData[animCodes.Length];
 			for (int i = 0; i < animCodes.Length; i++) {
 				animMetas[i] = new AnimationMetaData() {
@@ -57,13 +58,12 @@ namespace VSKingdom {
 			if (retaliateAttacks && attackedByEntity != null && attackedByEntity.Alive && attackedByEntity.IsInteractable && IsTargetableEntity(attackedByEntity, maxDist, ignoreEntityCode: true) && hasDirectContact(attackedByEntity, maxDist, maxDist / 2f)) {
 				targetEntity = attackedByEntity;
 			} else {
-				Random rnd = new Random();
 				Vec3d position = entity.ServerPos.XYZ.Add(0.0, entity.SelectionBox.Y2 / 2f, 0.0).Ahead(entity.SelectionBox.XSize / 2f, 0f, entity.ServerPos.Yaw);
-				if (rnd.Next(0, 1) == 0) {
+				if (rand.Next(0, 1) == 0) {
 					targetEntity = entity.World.GetNearestEntity(position, maxDist, maxDist / 2f, (Entity ent) => IsTargetableEntity(ent, maxDist) && hasDirectContact(ent, maxDist, maxDist / 2f));
 				} else {
 					var targetList = entity.World.GetEntitiesAround(position, maxDist, maxDist / 2f, (Entity ent) => IsTargetableEntity(ent, maxDist) && hasDirectContact(ent, maxDist, maxDist / 2f));
-					targetEntity = targetList[rnd.Next(0, targetList.Length - 1)];
+					targetEntity = targetList[rand.Next(0, targetList.Length - 1)];
 				}
 			}
 			lastSearchMs = entity.World.ElapsedMilliseconds;
@@ -112,6 +112,7 @@ namespace VSKingdom {
 			}
 			cancelAttack = false;
 			curTurn = pathTraverser.curTurnRadPerSec;
+			searchTask.SetTargetEnts(targetEntity);
 		}
 
 		public override bool ContinueExecute(float dt) {
@@ -138,20 +139,11 @@ namespace VSKingdom {
 					return false;
 				}
 				// Try NavigateTo instead of WalkTowards?
-				GoToPos(serverPos2?.XYZ ?? serverPos1.XYZ, (float)entity.moveSpeed, (float)entity.weapRange);
-			} else {
-				StopNow();
+				//pathTraverser.WalkTowards(serverPos2?.XYZ.Clone() ?? serverPos1.XYZ.Clone(), (float)entity.moveSpeed, (float)entity.weapRange, OnGoals, OnStuck);
 			}
 			if (!entity.AnimManager.GetAnimationState(prevAnims).Running && flag) {
 				entity.StopAnimation(prevAnims);
 				AttackTarget();
-			} else {
-				/** TODO: Flee system here to kite around heavier armored enemies or rush light enemies.**/
-				Random rnd = new Random();
-				if (rnd.Next(0, 1) == 0) {
-					Vec3d kitePos = new Vec3d(serverPos2.X + rnd.Next(-3, 3), serverPos2.Y + rnd.Next(-3, 3), serverPos2.Z + rnd.Next(-3, 3));
-					GoToPos(kitePos, (float)entity.moveSpeed, 0);
-				}
 			}
 			return lastSearchMs + durationOfMs > entity.World.ElapsedMilliseconds;
 		}
@@ -191,23 +183,14 @@ namespace VSKingdom {
 
 		public void OnAllyAttacked(Entity targetEnt) {
 			// Prioritize attacks of other people. Assess threat level in future.
-			if (targetEntity is null || !targetEntity.Alive || (targetEnt is EntityHumanoid && targetEntity is not EntityHumanoid)) {
+			if (targetEntity == null || !targetEntity.Alive || (targetEnt is EntityHumanoid && targetEntity is not EntityHumanoid)) {
 				targetEntity = targetEnt;
 			}
 			ShouldExecute();
 		}
 
-		private void GoToPos(Vec3d targetPos, float movementSpeed, float distanceRange) {
-			// Try NavigateTo instead of WalkTowards?
-			pathTraverser.NavigateTo(targetPos, movementSpeed, distanceRange, OnGoals, OnStuck);
-			pathTraverser.CurrentTarget.X = targetPos.X;
-			pathTraverser.CurrentTarget.Y = targetPos.Y;
-			pathTraverser.CurrentTarget.Z = targetPos.Z;
-		}
-
 		private void OnStuck() {
 			updateTargetPosFleeMode(entity.Pos.XYZ);
-			pathTraverser.Retarget();
 		}
 
 		private void OnGoals() {
@@ -215,9 +198,9 @@ namespace VSKingdom {
 		}
 
 		private void StopNow() {
-			entity.Controls.StopAllMovement();
+			searchTask.SetTargetEnts(null);
+			entity.ServerControls.StopAllMovement();
 			entity.StopAnimation(prevAnims);
-			pathTraverser.Stop();
 		}
 
 		private bool IsTargetEntity(string testPath) {

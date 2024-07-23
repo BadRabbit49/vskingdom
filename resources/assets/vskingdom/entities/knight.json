@@ -13,7 +13,6 @@
 		"gearSpawn": [ "game:clothes-upperbody-tattered-linen-shirt" ],
 		"pantSpawn": [ "game:clothes-lowerbody-commoner-trousers", "game:clothes-lowerbody-survivor", "game:clothes-lowerbody-raw-hide-trousers" ],
 		"shoeSpawn": [ "game:clothes-foot-survivor", "game:clothes-foot-peasent-slippers" ],
-		"randomIdleAnimations": [ "yawn", "stretch", "cough", "headscratch" ],
 		"skinnableParts": [
 			{
 				"code": "baseskin",
@@ -339,9 +338,7 @@
 			{ "code": "repulseagents" },
 			{ "code": "controlledphysics", "stepHeight": 1.2 },
 			{ "code": "health", "currenthealth": 20, "maxhealth": 20 },
-			{ "code": "bodytemperature" },
 			{ "code": "extraskinnable" },
-			{ "code": "idleanimations" },
 			{ "code": "KingdomFullNames" },
 			{ "code": "KingdomLoyalties" },
 			{ "code": "SoldierDecayBody", "hoursToDecay": 96, "skeletonBody": [ "humanoid1", "humanoid2" ] },
@@ -350,9 +347,8 @@
 				"aitasks": [
 					{
 						"code": "SentryAttack",
-						"entityCodes": [ "player", "archer-*", "knight-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "looter", "bandit-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
 						"priority": 2.0,
-						"seekingRange": 12,
+						"entityCodes": [ "player", "archer-*", "knight-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "looter", "bandit-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
 						"mincooldown": 500,
 						"maxcooldown": 1500,
 						"animCodes": [ "hit", "spearstabs", "swordswing", "swordsmash", "swordslash", "swordstabs" ],
@@ -360,8 +356,8 @@
 					},
 					{
 						"code": "SentrySearch",
-						"entityCodes": [ "player", "archer-*", "knight-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "looter", "bandit-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
 						"priority": 1.5,
+						"entityCodes": [ "player", "archer-*", "knight-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "looter", "bandit-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
 						"mincooldown": 1000,
 						"maxcooldown": 1500,
 						"seekingRange": 20,
@@ -391,23 +387,9 @@
 						"priority": 1.0
 					},
 					{
-						"code": "idle",
-						"priority": 0.5,
-						"minduration": 2500,
-						"maxduration": 2500,
-						"mincooldown": 2000,
-						"maxcooldown": 10000,
-						"animation": "idle"
-					},
-					{
 						"code": "lookaround",
 						"priority": 0.5,
 						"animation": "idle1"
-					},
-					{
-						"code": "lookaround",
-						"priority": 0.5,
-						"animation": "idle2"
 					}
 				]
 			}

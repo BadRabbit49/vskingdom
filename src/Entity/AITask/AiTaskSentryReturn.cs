@@ -12,7 +12,7 @@ namespace VSKingdom {
 		protected bool cancelReturn = false;
 		protected long lastCheckTotalMs;
 		protected long lastWasInRangeMs;
-		protected long lastCheckCooldown = 500L;
+		protected long lastCheckCooldown = 1500L;
 		protected Vec3d postBlock { get => entity.Loyalties.GetBlockPos("outpost_xyzd").ToVec3d(); }
 
 		public override bool ShouldExecute() {
@@ -27,7 +27,7 @@ namespace VSKingdom {
 		}
 
 		public override void StartExecute() {
-			pathTraverser.NavigateTo_Async(postBlock, (float)entity.moveSpeed, (float)entity.postRange, OnGoals, OnStuck, NoPaths);
+			pathTraverser.NavigateTo(postBlock, (float)entity.moveSpeed, (float)entity.postRange, OnGoals, OnStuck, true);
 			base.StartExecute();
 		}
 
@@ -36,7 +36,7 @@ namespace VSKingdom {
 				cancelReturn = true;
 				return false;
 			}
-			if (lastCheckCooldown + 500 < entity.World.ElapsedMilliseconds && postBlock is not null && entity.MountedOn is null) {
+			if (lastCheckCooldown + 500 < entity.World.ElapsedMilliseconds && postBlock != null && entity.MountedOn is null) {
 				lastCheckCooldown = entity.World.ElapsedMilliseconds;
 			}
 			return true;
@@ -49,10 +49,6 @@ namespace VSKingdom {
 		private void OnGoals() {
 			cancelReturn = true;
 			pathTraverser.Retarget();
-		}
-
-		private void NoPaths() {
-			bool teleport = CheckTeleport();
 		}
 
 		private void UpdateOrders(bool @returning) {

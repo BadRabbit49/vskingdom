@@ -12,26 +12,25 @@ namespace VSKingdom {
 		protected bool cancelWander;
 		protected bool doorIsBehind;
 		protected long failedWanders;
-		protected float execChance;
-		protected float maxHeights;
-		protected float targetDist;
+		protected float wanderChance;
+		protected float wanderHeight;
+		protected float targetRanges;
 		protected Vec3d mainTarget;
 		protected NatFloat wanderRangeHor = NatFloat.createStrongerInvexp(3, 40);
 		protected NatFloat wanderRangeVer = NatFloat.createStrongerInvexp(3, 10);
 
-		protected int FailedPathfinds {
+		protected int failedPathfinds {
 			get => entity.WatchedAttributes.GetInt("failedConsecutivePathfinds", 0);
 			set => entity.WatchedAttributes.SetInt("failedConsecutivePathfinds", value);
 		}
-
-		protected float WanderRangeMul { get => entity.WatchedAttributes.GetFloat("wanderRangeMul", 1); }
-		protected Vec3d postBlock { get => entity.Loyalties.GetBlockPos("outpost_xyzd").ToVec3d(); }
+		protected float wanderRangedMul { get => entity.WatchedAttributes.GetFloat("wanderRangeMul", 1); }
+		protected Vec3d outpostBlock { get => entity.Loyalties.GetBlockPos("outpost_xyzd").ToVec3d(); }
 
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);
-			targetDist = taskConfig["targetRanges"].AsFloat(0.12f);
-			maxHeights = taskConfig["wanderHeight"].AsFloat(7f);
-			execChance = taskConfig["wanderChance"].AsFloat(0.005f);
+			targetRanges = taskConfig["targetRanges"].AsFloat(0.12f);
+			wanderHeight = taskConfig["wanderHeight"].AsFloat(7f);
+			wanderChance = taskConfig["wanderChance"].AsFloat(0.005f);
 		}
 
 		public override bool ShouldExecute() {
@@ -39,7 +38,7 @@ namespace VSKingdom {
 				cancelWander = true;
 				return false;
 			}
-			if (rand.NextDouble() > (double)((failedWanders > 0) ? (1f - execChance * 4f * (float)failedWanders) : execChance)) {
+			if (rand.NextDouble() > (double)((failedWanders > 0) ? (1f - wanderChance * 4f * (float)failedWanders) : wanderChance)) {
 				failedWanders = 0;
 				return false;
 			}
@@ -51,13 +50,13 @@ namespace VSKingdom {
 			base.StartExecute();
 			cancelWander = false;
 			wanderRangeHor = NatFloat.createInvexp(3f, (float)entity.postRange);
-			bool ok = pathTraverser.NavigateTo_Async(mainTarget, (float)entity.walkSpeed, targetDist, OnGoals, OnStuck, NoPaths);
+			bool ok = pathTraverser.WalkTowards(mainTarget, (float)entity.walkSpeed, targetRanges, OnGoals, OnStuck);
 		}
 
 		public override bool ContinueExecute(float dt) {
 			// If we are a climber dude and encountered a wall, let's not try to get behind the wall.
 			// We do that by removing the coord component that would make the entity want to walk behind the wall.
-			if (entity.Controls.IsClimbing && entity.Properties.CanClimbAnywhere && entity.ClimbingIntoFace != null) {
+			if (entity.ServerControls.IsClimbing && entity.Properties.CanClimbAnywhere && entity.ClimbingIntoFace != null) {
 				BlockFacing facing = entity.ClimbingIntoFace;
 				if (Math.Sign(facing.Normali.X) == Math.Sign(pathTraverser.CurrentTarget.X - entity.ServerPos.X)) {
 					pathTraverser.CurrentTarget.X = entity.ServerPos.X;
@@ -71,7 +70,6 @@ namespace VSKingdom {
 			}
 			// If the entity is close enough to the primary target then leave it there.
 			if (mainTarget.HorizontalSquareDistanceTo(entity.ServerPos.X, entity.ServerPos.Z) < 0.5) {
-				pathTraverser.Stop();
 				return false;
 			}
 			return !cancelWander;
@@ -80,8 +78,9 @@ namespace VSKingdom {
 		public override void FinishExecute(bool cancelled) {
 			base.FinishExecute(cancelled);
             if (cancelled) {
-				entity.Controls.StopAllMovement();
 				pathTraverser.Stop();
+				entity.ServerControls.StopAllMovement();
+				entity.Controls.StopAllMovement();
 			}
 		}
 
@@ -93,15 +92,15 @@ namespace VSKingdom {
 		private Vec3d LoadNextWanderTarget() {
 			bool canFallDamage = entity.Api.World.Config.GetAsBool("FallDamageOn");
 			int num = 9;
-			float rangeMul = WanderRangeMul;
+			float rangeMul = wanderRangedMul;
 			Vec4d bestTarget = null;
 			Vec4d currTarget = new Vec4d();
-			if (FailedPathfinds > 10) {
-				rangeMul = Math.Max(0.1f, WanderRangeMul * 0.9f);
+			if (failedPathfinds > 10) {
+				rangeMul = Math.Max(0.1f, wanderRangedMul * 0.9f);
 			} else {
-				rangeMul = Math.Min(1f, WanderRangeMul * 1.1f);
+				rangeMul = Math.Min(1f, wanderRangedMul * 1.1f);
 				if (rand.NextDouble() < 0.05) {
-					rangeMul = Math.Min(1f, WanderRangeMul * 1.5f);
+					rangeMul = Math.Min(1f, wanderRangedMul * 1.5f);
 				}
 			}
 			if (rand.NextDouble() < 0.05) {
@@ -117,7 +116,7 @@ namespace VSKingdom {
 				currTarget.W = 1.0;
 				// Return to spawn area or outpost if there is one.
 				if (entity.ruleOrder[6]) {
-					currTarget.W = 1.0 - (double)currTarget.SquareDistanceTo(postBlock) / entity.postRange;
+					currTarget.W = 1.0 - (double)currTarget.SquareDistanceTo(outpostBlock) / entity.postRange;
 				}
 				currTarget.Y = MoveDownToFloor((int)currTarget.X, (int)currTarget.Y, (int)currTarget.Z);
 				if (currTarget.Y < 0.0) {
@@ -172,10 +171,10 @@ namespace VSKingdom {
 				}
 			}
 			if (bestTarget.W > 0.0) {
-				FailedPathfinds = Math.Max(FailedPathfinds - 3, 0);
+				failedPathfinds = Math.Max(failedPathfinds - 3, 0);
 				return bestTarget.XYZ;
 			}
-			FailedPathfinds++;
+			failedPathfinds++;
 			return null;
 		}
 		

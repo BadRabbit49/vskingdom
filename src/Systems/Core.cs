@@ -46,6 +46,7 @@ namespace VSKingdom {
 			AiTaskRegistry.Register<AiTaskSentryEscape>("SentryEscape");
 			AiTaskRegistry.Register<AiTaskSentryFollow>("SentryFollow");
 			AiTaskRegistry.Register<AiTaskSentryHealth>("SentryHealth");
+			AiTaskRegistry.Register<AiTaskSentryIdling>("SentryIdling");
 			AiTaskRegistry.Register<AiTaskSentryRanged>("SentryRanged");
 			AiTaskRegistry.Register<AiTaskSentryReturn>("SentryReturn");
 			AiTaskRegistry.Register<AiTaskSentrySearch>("SentrySearch");
@@ -57,8 +58,6 @@ namespace VSKingdom {
 			}
 			// Create chat commands for creation, deletion, invitation, and so of kingdoms.
 			api.ChatCommands.Create("kingdom")
-				.WithAdditionalInformation(LangUtility.Get(""))
-				.WithDescription(LangUtility.Get(""))
 				.RequiresPrivilege(Privilege.chat)
 				.RequiresPlayer()
 				.WithArgs(api.ChatCommands.Parsers.Word("commands", new string[] { "create", "delete", "update", "invite", "remove", "become", "depart", "revolt", "rebels", "attack", "treaty", "outlaw", "pardon", "wanted", "accept", "reject", "ballot", "voting" }), api.ChatCommands.Parsers.OptionalAll("argument"))
@@ -371,13 +370,23 @@ namespace VSKingdom {
 			EntitySentry sentry = serverAPI.World.GetEntityById(sentryOrders.entityUID) as EntitySentry;
 			ITreeAttribute loyalties = sentry.Loyalties ?? sentry.WatchedAttributes.GetTreeAttribute("loyalties");
 			// WATCHED VARIABLES ONLY CAN BE SET FROM SERVER (I.E. HERE).
-			loyalties.SetBool("command_wander", sentryOrders.wandering ?? loyalties.GetBool("command_wander", true));
-			loyalties.SetBool("command_follow", sentryOrders.following ?? loyalties.GetBool("command_follow", false));
-			loyalties.SetBool("command_firing", sentryOrders.attacking ?? loyalties.GetBool("command_firing", true));
-			loyalties.SetBool("command_pursue", sentryOrders.pursueing ?? loyalties.GetBool("command_pursue", true));
-			loyalties.SetBool("command_shifts", sentryOrders.shifttime ?? loyalties.GetBool("command_shifts", false));
-			loyalties.SetBool("command_nights", sentryOrders.nighttime ?? loyalties.GetBool("command_nights", false));
-			loyalties.SetBool("command_return", sentryOrders.returning ?? loyalties.GetBool("command_nights", false));
+			bool[] prevOrders = {
+				loyalties.GetBool("command_wander"),
+				loyalties.GetBool("command_follow"),
+				loyalties.GetBool("command_firing"),
+				loyalties.GetBool("command_pursue"),
+				loyalties.GetBool("command_shifts"),
+				loyalties.GetBool("command_nights"),
+				loyalties.GetBool("command_nights")
+			};
+			loyalties.SetBool("command_wander", sentryOrders.wandering ?? prevOrders[0]);
+			loyalties.SetBool("command_follow", sentryOrders.following ?? prevOrders[1]);
+			loyalties.SetBool("command_firing", sentryOrders.attacking ?? prevOrders[2]);
+			loyalties.SetBool("command_pursue", sentryOrders.pursueing ?? prevOrders[3]);
+			loyalties.SetBool("command_shifts", sentryOrders.shifttime ?? prevOrders[4]);
+			loyalties.SetBool("command_nights", sentryOrders.nighttime ?? prevOrders[5]);
+			loyalties.SetBool("command_return", sentryOrders.returning ?? prevOrders[6]);
+			sentry.WatchedAttributes.MarkPathDirty("loyalties");
 			// Additional arguments go here broken up by commas as: (type), (name), (value).
 			if (sentryOrders.attribute != null) {
 				try {
@@ -394,15 +403,14 @@ namespace VSKingdom {
 					}
 				} catch { }
 			}
-			sentry.WatchedAttributes.MarkPathDirty("loyalties");
 			sentry.ruleOrder = new bool[] {
-				loyalties.GetBool("command_wander"),
-				loyalties.GetBool("command_follow"),
-				loyalties.GetBool("command_firing"),
-				loyalties.GetBool("command_pursue"),
-				loyalties.GetBool("command_shifts"),
-				loyalties.GetBool("command_nights"),
-				loyalties.GetBool("command_return")
+				sentryOrders.wandering ?? prevOrders[0],
+				sentryOrders.following ?? prevOrders[1],
+				sentryOrders.attacking ?? prevOrders[2],
+				sentryOrders.pursueing ?? prevOrders[3],
+				sentryOrders.shifttime ?? prevOrders[4],
+				sentryOrders.nighttime ?? prevOrders[5],
+				sentryOrders.returning ?? prevOrders[6]
 			};
 			// Stopping kind of redundant other than to make sure variables are updated passed. Needs testing.
 			serverAPI.Network.BroadcastEntityPacket(sentryOrders.entityUID, 1503, SerializerUtil.Serialize<SentryOrders>(sentryOrders));
@@ -1361,14 +1369,14 @@ namespace VSKingdom {
 	[ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
 	public class SentryOrders {
 		public long entityUID;
-		public bool? wandering;
-		public bool? following;
-		public bool? attacking;
-		public bool? pursueing;
-		public bool? nighttime;
-		public bool? shifttime;
-		public bool? returning;
-		public string attribute;
+		public bool? wandering = null;
+		public bool? following = null;
+		public bool? attacking = null;
+		public bool? pursueing = null;
+		public bool? nighttime = null;
+		public bool? shifttime = null;
+		public bool? returning = null;
+		public string attribute = null;
 	}
 	[ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
 	public class WeaponAnims {

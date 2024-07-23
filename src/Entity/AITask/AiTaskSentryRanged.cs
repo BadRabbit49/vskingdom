@@ -37,6 +37,8 @@ namespace VSKingdom {
 		protected AssetLocation drawingsound = null;
 		protected AssetLocation hittingsound = null;
 		protected AssetLocation ammoLocation = null;
+		protected AiTaskSentrySearch searchTask => entity.GetBehavior<EntityBehaviorTaskAI>().TaskManager.GetTask<AiTaskSentrySearch>();
+		protected AiTaskSentryEscape escapeTask => entity.GetBehavior<EntityBehaviorTaskAI>().TaskManager.GetTask<AiTaskSentryEscape>();
 
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);
@@ -68,8 +70,7 @@ namespace VSKingdom {
 				return false;
 			}
 			if (totalDurationMs + totalCooldownMs < entity.World.ElapsedMilliseconds) {
-				Entity target = targetEntity;
-				if (target is null || !target.Alive) {
+				if (targetEntity == null || !targetEntity.Alive) {
 					goto IL_0095;
 				}
 			}
@@ -79,14 +80,19 @@ namespace VSKingdom {
 			goto IL_00d6;
 			IL_0095:
 			totalDurationMs = entity.World.ElapsedMilliseconds;
-			targetEntity = partitionUtil.GetNearestInteractableEntity(entity.ServerPos.XYZ, maxDist * 3f, (Entity ent) => IsTargetableEntity(ent, maxDist * 4f) && hasDirectContact(ent, maxDist * 4f, minDist));
+			if (rand.Next(0, 1) == 0) {
+				targetEntity = partitionUtil.GetNearestInteractableEntity(entity.ServerPos.XYZ, maxDist * 2f, (Entity ent) => IsTargetableEntity(ent, maxDist) && hasDirectContact(ent, maxDist, minDist));
+			} else {
+				var targetList = entity.World.GetEntitiesAround(entity.ServerPos.XYZ, maxDist, maxDist * 2f, (Entity ent) => IsTargetableEntity(ent, maxDist) && hasDirectContact(ent, maxDist, minDist));
+				targetEntity = targetList[rand.Next(0, targetList.Length - 1)];
+			}
 			goto IL_00d6;
 			IL_00d6:
 			return targetEntity?.Alive ?? false;
 		}
 
 		public override bool IsTargetableEntity(Entity ent, float range, bool ignoreEntityCode = false) {
-			if (ent is null || ent == entity || !ent.Alive) {
+			if (ent == null || ent == entity || !ent.Alive) {
 				return false;
 			}
 			if (ent is EntityProjectile projectile && projectile.FiredBy != null) {
@@ -116,8 +122,7 @@ namespace VSKingdom {
 			// Get and initialize the item's attributes to the weapon.
 			drawingsound = ItemsProperties.wepnAimAudio.Get(entity.RightHandItemSlot?.Itemstack?.Collectible?.Code);
 			List<AssetLocation> hitAudio = ItemsProperties.wepnHitAudio.Get(entity.RightHandItemSlot?.Itemstack?.Collectible?.Code);
-			Random rnd = new Random();
-			hittingsound = hitAudio[rnd.Next(0, hitAudio.Count - 1)];
+			hittingsound = hitAudio[rand.Next(0, hitAudio.Count - 1)];
 			ammoLocation = entity.GearInventory[18]?.Itemstack?.Collectible?.Code;
 			// Start switching the renderVariant to change to aiming.
 			entity.RightHandItemSlot?.Itemstack?.Attributes?.SetInt("renderVariant", 1);
@@ -136,7 +141,8 @@ namespace VSKingdom {
 			}
 			curTurnAnglePerSec = minTurnAnglePerSec + (float)entity.World.Rand.NextDouble() * (maxTurnAnglePerSec - minTurnAnglePerSec);
 			curTurnAnglePerSec *= GameMath.DEG2RAD * 50 * 0.02f;
-			entity.ServerControls.IsAiming = true;
+			searchTask.SetTargetEnts(targetEntity);
+			searchTask.StartExecute();
 		}
 
 		public override bool ContinueExecute(float dt) {
@@ -146,7 +152,9 @@ namespace VSKingdom {
 			}
 			// Retreat if target is too close!
 			if (entity.ServerPos.SquareDistanceTo(targetEntity.ServerPos.XYZ) <= 16) {
-				Retreat(false);
+				entity.World.FrameProfiler.Mark("task-sentryescape-startexecute-init");
+				escapeTask.SetTargetEnts(targetEntity);
+				escapeTask.StartExecute();
 			}
 			// Calculate aiming at targetEntity!
 			Vec3f targetVec = targetEntity.ServerPos.XYZFloat.Sub(entity.ServerPos.XYZFloat);
@@ -205,7 +213,8 @@ namespace VSKingdom {
 			if (source.GetCauseEntity().ServerPos.SquareDistanceTo(entity.ServerPos) < minDist * minDist) {
 				cancelAttack = true;
 				FinishExecute(true);
-				Retreat(true);
+				escapeTask.SetTargetEnts(targetEntity);
+
 			} else {
 				base.OnEntityHurt(source, damage);
 			}
@@ -213,7 +222,7 @@ namespace VSKingdom {
 
 		public void OnAllyAttacked(Entity byEntity) {
 			if (byEntity != entity) {
-				if (targetEntity is null || !targetEntity.Alive) {
+				if (targetEntity == null || !targetEntity.Alive) {
 					targetEntity = byEntity;
 				}
 			}
@@ -231,7 +240,6 @@ namespace VSKingdom {
 			Vec3d aheadPos = targetEntity.ServerPos.XYZ.AddCopy(0, targetEntity.LocalEyePos.Y, 0);
 			double distf = Math.Pow(pos.SquareDistanceTo(aheadPos), 0.1);
 			Vec3d velocity = (aheadPos - pos + new Vec3d(0, pos.DistanceTo(aheadPos) / 16, 0)).Normalize() * GameMath.Clamp(distf - 1f, 0.1f, 1f);
-
 			// Set final projectile parameters, position, velocity, from point, and rotation.
 			projectile.ServerPos.SetPos(entity.ServerPos.AheadCopy(0.5).XYZ.Add(0, entity.LocalEyePos.Y, 0));
 			projectile.ServerPos.Motion.Set(velocity);
@@ -245,27 +253,6 @@ namespace VSKingdom {
 				entity.GearInventory[18]?.MarkDirty();
 			}
 			return true;
-		}
-		
-		private void OnStuck() {
-			updateTargetPosFleeMode(entity.Pos.XYZ);
-		}
-
-		private void OnGoals() {
-			pathTraverser.Retarget();
-		}
-
-		private void Retreat(bool full) {
-			try {
-				Vec3d targetPos = new Vec3d();
-				updateTargetPosFleeMode(targetPos);
-				entity.AnimManager.StopAnimation(animMeta.Code);
-				pathTraverser.CurrentTarget.X = targetPos.X;
-				pathTraverser.CurrentTarget.Y = targetPos.Y;
-				pathTraverser.CurrentTarget.Z = targetPos.Z;
-				pathTraverser.Retarget();
-				pathTraverser.NavigateTo_Async(targetPos, full ? (float)entity.moveSpeed : (float)entity.walkSpeed, (targetEntity?.SelectionBox.XSize + 0.2f) ?? 5f, OnGoals, OnStuck);
-			} catch { }
 		}
 
 		private bool IsEnemy(Entity target) {

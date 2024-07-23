@@ -7,6 +7,7 @@ using Vintagestory.API.Server;
 using Vintagestory.API.MathTools;
 using Vintagestory.GameContent;
 using Vintagestory.API.Config;
+using Newtonsoft.Json.Linq;
 
 namespace VSKingdom {
 	public class EntityBehaviorLoyalties : EntityBehavior {
@@ -141,7 +142,8 @@ namespace VSKingdom {
 			if (byEntity is EntityPlayer player && mode == EnumInteractMode.Interact && entity is not EntityPlayer) {
 				// Remind them to join their leaders kingdom if they aren't already in it.
 				if (leadersGUID == player.PlayerUID && kingdomGUID != player.GetBehavior<EntityBehaviorLoyalties>()?.kingdomGUID) {
-					kingdomGUID = byEntity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdom_guid") ?? kingdomGUID;
+					(entity.Api as ICoreServerAPI)?.World.GetEntityById(entity.EntityId).WatchedAttributes.GetTreeAttribute("loyalties").SetString("kingdom_guid", byEntity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdom_guid") ?? kingdomGUID);
+					(entity.Api as ICoreServerAPI)?.World.GetEntityById(entity.EntityId).WatchedAttributes.MarkPathDirty("loyalties");
 				}
 				// While a STRANGER has something in their ACTIVE SLOT try commands.
 				if (enlistedStatus == EnlistedStatus.CIVILIAN && entity.Alive && leadersGUID == null && itemslot.Itemstack != null && player.Controls.Sneak) {

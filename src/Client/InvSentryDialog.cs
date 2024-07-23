@@ -25,7 +25,7 @@ namespace VSKingdom {
 		protected InventorySentry inventory;
 		protected EntitySentry entity;
 		protected EntityPlayer player;
-		protected ITreeAttribute loyalties => entity.WatchedAttributes.GetTreeAttribute("loyalties");
+		protected ITreeAttribute loyalties => entity.Loyalties;
 
 		public InvSentryDialog(InventorySentry inventory, EntitySentry entity, ICoreClientAPI capi) : base(capi) {
 			this.inventory = inventory;
@@ -154,11 +154,11 @@ namespace VSKingdom {
 			switch (orders) {
 				case "command_wander":
 					newOrders.wandering = toggle;
-					newOrders.attribute = string.Join(',', "f", "wanderRangeMul", toggle ? 2 : 1);
+					newOrders.attribute = string.Join(',', "f", "wanderRangeMul", (toggle ? 2 : 1).ToString());
 					break;
 				case "command_follow":
 					newOrders.following = toggle;
-					newOrders.attribute = string.Join(',', "l", "guardedEntityId", toggle ? player.EntityId : 0);
+					newOrders.attribute = string.Join(',', "l", "guardedEntityId", (toggle ? player.EntityId : 0).ToString());
 					(entity.Api as ICoreServerAPI)?.Network.GetChannel("sentrynetwork").SendPacket<PlayerUpdate>(new PlayerUpdate() { entityUID = player.EntityId, followers = new long[] { entity.EntityId } }, player.Player as IServerPlayer);
 					break;
 				case "command_firing":
@@ -178,9 +178,10 @@ namespace VSKingdom {
 					newOrders.returning = toggle;
 					break;
 			}
-			(entity.Api as ICoreServerAPI)?.Network.GetChannel("sentrynetwork").SendPacket<SentryOrders>(newOrders, player.Player as IServerPlayer);
-			capi.ShowChatMessage(LangUtility.GetL(langCodes, new string($"entries-keyword-{orders.Replace("command_", "")}-{loyalties.GetBool(orders).ToString().ToLower()}")));
+			(player.Api as ICoreServerAPI)?.Network.GetChannel("sentrynetwork").SendPacket<SentryOrders>(newOrders, player.Player as IServerPlayer);
+			string message = $"gui-{orders.Replace('_', '-')}-{loyalties.GetBool(orders).ToString().ToLower()}";
 			TryClose();
+			capi.ShowChatMessage(LangUtility.GetL(langCodes, message));
 			return true;
 		}
 

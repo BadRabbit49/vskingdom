@@ -18,7 +18,6 @@ namespace VSKingdom {
 		protected bool cancelEscape;
 		protected long fleeingStartMs;
 		protected long fleeDurationMs = 5000L;
-		protected float seekRange = 25f;
 		protected float fleeRange = 30f;
 		protected Vec3d targetPos = new Vec3d();
 
@@ -28,7 +27,7 @@ namespace VSKingdom {
 
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);
-			fleeRange = taskConfig["fleeRange"].AsFloat(seekRange + 15f);
+			fleeRange = taskConfig["fleeRange"].AsFloat(30f);
 			fleeDurationMs = taskConfig["fleeDurationMs"].AsInt(5000);
 			JsonObject jsonObject = taskConfig["animation"];
 			if (jsonObject.Exists) {
@@ -53,34 +52,27 @@ namespace VSKingdom {
 		}
 
 		public override bool ShouldExecute() {
-			soundChance = Math.Min(1.01f, soundChance + 1 / 500f);
 			// If this flee behavior is due to the 'fleeondamage' condition, then lets make it react 4 times quicker!
 			if (rand.NextDouble() > 3 * 0.1) {
 				return false;
 			}
-			if (noEntityCodes && (attackedByEntity is null || !retaliateAttacks)) {
+			/**if (noEntityCodes && (attackedByEntity is null || !retaliateAttacks)) {
 				return false;
 			}
-			entity.World.FrameProfiler.Mark("task-fleeentity-shouldexecute-entitysearch");
-			if (targetEntity is null || targetEntity?.Alive == false) {
-				return false;
-			} else {
-				updateTargetPosFleeMode(targetEntity.Pos.XYZ);
+			entity.World.FrameProfiler.Mark("task-fleeentity-shouldexecute-init");
+			entity.World.FrameProfiler.Mark("task-fleeentity-shouldexecute-entitysearch");**/
+			if (targetEntity != null) {
+				updateTargetPosFleeMode(targetPos);
+				return true;
 			}
-			if (targetEntity.WatchedAttributes.HasAttribute("loyalties")) {
-				if (targetEntity is EntitySentry sent) {
-					return entity.enemiesID.Contains(sent.kingdomID);
-				}
-				return entity.enemiesID.Contains(targetEntity.WatchedAttributes.GetTreeAttribute("loyalties").GetString("kingdom_guid"));
-			}
-			return false;
+			return targetEntity != null && targetEntity.Alive;
 		}
 
 		public override void StartExecute() {
 			base.StartExecute();
 			cancelEscape = false;
 			soundChance = Math.Max(0.025f, soundChance - 0.2f);
-			pathTraverser.NavigateTo_Async(targetPos, (float)entity.moveSpeed, targetEntity.SelectionBox.XSize + 0.2f, OnGoals, OnStuck);
+			pathTraverser.NavigateTo(targetPos, (float)entity.moveSpeed, targetEntity.SelectionBox.XSize + 0.2f, OnGoals, OnStuck);
 			fleeingStartMs = entity.World.ElapsedMilliseconds;
 		}
 
@@ -95,7 +87,7 @@ namespace VSKingdom {
 			if (entity.ServerPos.SquareDistanceTo(targetEntity.ServerPos) > fleeRange * fleeRange) {
 				return false;
 			}
-			return !cancelEscape && targetEntity.Alive && (entity.World.ElapsedMilliseconds - fleeingStartMs < fleeDurationMs) && !cancelEscape && pathTraverser.Active;
+			return !cancelEscape && targetEntity != null && targetEntity.Alive && (entity.World.ElapsedMilliseconds - fleeingStartMs < fleeDurationMs) && pathTraverser.Active;
 		}
 
 		public override void OnEntityHurt(DamageSource source, float damage) {
@@ -104,8 +96,8 @@ namespace VSKingdom {
 		}
 
 		public override void FinishExecute(bool cancelled) {
-			pathTraverser.Stop();
 			cancelEscape = true;
+			targetEntity = null;
 			base.FinishExecute(cancelled);
 		}
 
@@ -127,6 +119,10 @@ namespace VSKingdom {
 			return true;
 		}
 
+		public void SetTargetEnts(Entity target) {
+			targetEntity = target;
+		}
+
 		private void OnStuck() {
 			cancelEscape = true;
 		}
@@ -138,6 +134,9 @@ namespace VSKingdom {
 		private bool ShouldFleeTarget() {
 			if (targetEntity == null || !targetEntity.Alive) {
 				return false;
+			}
+			if (entity.weapClass == "range" && hasDirectContact(targetEntity, 4f, 4f)) {
+				return true;
 			}
 			if (targetEntity.HasBehavior<EntityBehaviorHealth>()) {
 				Vec3d targetPosOffset = new Vec3d().Set(entity.World.Rand.NextDouble() * 2.0 - 1.0, 0.0, entity.World.Rand.NextDouble() * 2.0 - 1.0);

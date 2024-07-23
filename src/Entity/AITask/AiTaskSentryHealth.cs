@@ -9,7 +9,8 @@ namespace VSKingdom {
 
 		protected bool animStarted;
 		protected float healingFactor;
-		
+		protected EntityBehaviorHealth healthBehavior;
+
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			animMeta = new AnimationMetaData() {
 				Code = "BandageSelf".ToLowerInvariant(),
@@ -18,18 +19,21 @@ namespace VSKingdom {
 			}.Init();
 		}
 
+		public override void AfterInitialize() {
+			base.AfterInitialize();
+			healthBehavior = entity.GetBehavior<EntityBehaviorHealth>();
+		}
+
 		public override bool ShouldExecute() {
 			// Determine if the entity is injured, and if so, how badly.
-			if (entity.GetBehavior<EntityBehaviorHealth>().Health < entity.GetBehavior<EntityBehaviorHealth>().MaxHealth) {
-				float curHealth = entity.GetBehavior<EntityBehaviorHealth>().Health;
-				float maxHealth = entity.GetBehavior<EntityBehaviorHealth>().MaxHealth;
+			if (healthBehavior.Health < healthBehavior.MaxHealth) {
 				if (entity is EntitySentry thisEnt && !thisEnt.HealItemSlot.Empty && thisEnt.HealItemSlot.Itemstack.Collectible.Attributes["health"].Exists) {
-					if ((curHealth / maxHealth) < 0.75) {
+					if ((healthBehavior.Health / healthBehavior.MaxHealth) < 0.75) {
 						return true;
 					}
 				}
 			}
-			// Healing is for pussies!
+			// Healing is for wussies!
 			return false;
 		}
 

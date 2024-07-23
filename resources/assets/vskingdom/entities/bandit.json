@@ -7,8 +7,8 @@
 	"deadHitboxSize": {"x": 0.75, "y": 0.5},
 	"eyeHeight": 1.7,
 	"attributes": {
-		"moveSpeed": 0.035,
-		"walkSpeed": 0.018,
+		"moveSpeed": 0.03,
+		"walkSpeed": 0.015,
 		"weapClass": "melee",
 		"baseGroup": "xxxxxxxx",
 		"weapSpawn": [ "game:blade-scrap-scrap", "game:blade-arming-ruined", "game:blade-claymore-ruined", "game:spear-scrap-scrap", "game:club-scrap-scrap", "game:club-generic-wood" ],
@@ -293,7 +293,7 @@
 				"code": "idle",
 				"animation": "idle",
 				"blendMode": "Average",
-				"triggeredBy": { "onControls": [ "Idle" ], "matchExact": true, "defaultAnim": true }
+				"triggeredBy": { "onControls": [ "Idle" ], "defaultAnim": true }
 			},
 			{
 				"code": "walk",
@@ -354,9 +354,8 @@
 				"aitasks": [
 					{
 						"code": "SentryAttack",
-						"entityCodes": [ "player", "archer-*", "knight-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "looter", "bandit-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
 						"priority": 2.0,
-						"seekingRange": 15,
+						"entityCodes": [ "player", "archer-*", "knight-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "looter", "bandit-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
 						"mincooldown": 500,
 						"maxcooldown": 1500,
 						"animCodes": [ "hit", "spearstabs", "swordswing", "swordsmash", "swordslash", "swordstabs" ],
@@ -365,8 +364,8 @@
 					},
 					{
 						"code": "SentrySearch",
-						"entityCodes": [ "player", "archer-*", "knight-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "looter", "bandit-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
 						"priority": 1.5,
+						"entityCodes": [ "player", "archer-*", "knight-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "looter", "bandit-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
 						"mincooldown": 1000,
 						"maxcooldown": 1500,
 						"seekingRange": 20,
@@ -376,7 +375,6 @@
 					{
 						"code": "SentryHealth",
 						"priority": 1.2,
-						"animation": "move",
 						"mincooldown": 1000,
 						"maxcooldown": 1500,
 						"seekingRange": 20

@@ -379,6 +379,15 @@ namespace VSKingdom {
 				loyalties.GetBool("command_nights"),
 				loyalties.GetBool("command_nights")
 			};
+			sentry.ruleOrder = new bool[] {
+				sentryOrders.wandering ?? prevOrders[0],
+				sentryOrders.following ?? prevOrders[1],
+				sentryOrders.attacking ?? prevOrders[2],
+				sentryOrders.pursueing ?? prevOrders[3],
+				sentryOrders.shifttime ?? prevOrders[4],
+				sentryOrders.nighttime ?? prevOrders[5],
+				sentryOrders.returning ?? prevOrders[6]
+			};
 			loyalties.SetBool("command_wander", sentryOrders.wandering ?? prevOrders[0]);
 			loyalties.SetBool("command_follow", sentryOrders.following ?? prevOrders[1]);
 			loyalties.SetBool("command_firing", sentryOrders.attacking ?? prevOrders[2]);
@@ -387,6 +396,9 @@ namespace VSKingdom {
 			loyalties.SetBool("command_nights", sentryOrders.nighttime ?? prevOrders[5]);
 			loyalties.SetBool("command_return", sentryOrders.returning ?? prevOrders[6]);
 			sentry.WatchedAttributes.MarkPathDirty("loyalties");
+			if (sentryOrders.playermsg != null) {
+				serverAPI.SendMessage(fromPlayer, 0, sentryOrders.playermsg, EnumChatType.OwnMessage);
+			}
 			// Additional arguments go here broken up by commas as: (type), (name), (value).
 			if (sentryOrders.attribute != null) {
 				try {
@@ -403,17 +415,6 @@ namespace VSKingdom {
 					}
 				} catch { }
 			}
-			sentry.ruleOrder = new bool[] {
-				sentryOrders.wandering ?? prevOrders[0],
-				sentryOrders.following ?? prevOrders[1],
-				sentryOrders.attacking ?? prevOrders[2],
-				sentryOrders.pursueing ?? prevOrders[3],
-				sentryOrders.shifttime ?? prevOrders[4],
-				sentryOrders.nighttime ?? prevOrders[5],
-				sentryOrders.returning ?? prevOrders[6]
-			};
-			// Stopping kind of redundant other than to make sure variables are updated passed. Needs testing.
-			serverAPI.Network.BroadcastEntityPacket(sentryOrders.entityUID, 1503, SerializerUtil.Serialize<SentryOrders>(sentryOrders));
 		}
 
 		private TextCommandResult OnKingdomCommand(TextCommandCallingArgs args) {
@@ -1377,6 +1378,7 @@ namespace VSKingdom {
 		public bool? shifttime = null;
 		public bool? returning = null;
 		public string attribute = null;
+		public string playermsg = null;
 	}
 	[ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
 	public class WeaponAnims {

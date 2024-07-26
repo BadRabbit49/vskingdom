@@ -285,34 +285,8 @@
 			{
 				"code": "idle",
 				"animation": "idle",
-				"blendMode": "Average",
-				"triggeredBy": { "onControls": [ "Idle" ], "matchExact": true, "defaultAnim": true }
-			},
-			{
-				"code": "walk",
-				"animation": "walk",
-				"blendMode": "Average",
-				"mulWithWalkSpeed": true,
-				"triggeredBy": { "onControls": [ "Move" ] }
-			},
-			{
-				"code": "move",
-				"animation": "move",
-				"blendMode": "Average",
-				"mulWithWalkSpeed": true,
-				"triggeredBy": { "onControls": [ "SprintMode" ] }
-			},
-			{
-				"code": "jump",
-				"animation": "jump",
-				"blendMode": "Average",
-				"triggeredBy": { "onControls": [ "Jump" ] }
-			},
-			{
-				"code": "swim",
-				"animation": "swim",
-				"blendMode": "Average",
-				"triggeredBy": { "onControls": [ "Swim" ] }
+				"blendMode": "Add",
+				"animationSpeed": 1
 			},
 			{
 				"code": "dies",
@@ -339,6 +313,8 @@
 			{ "code": "controlledphysics", "stepHeight": 1.2 },
 			{ "code": "health", "currenthealth": 20, "maxhealth": 20 },
 			{ "code": "extraskinnable" },
+			{ "code": "breathe" },
+			{ "code": "emotionstates", "states": [ { "code": "aggressiveondamage", "duration": 7, "chance": 1.00, "slot": 0, "priority": 2, "accumType": "noaccum" }, { "code": "fleeondamage", "duration": 3, "chance": 0.50, "slot": 2, "priority": 5, "accumType": "max", "whenHealthRelBelow": 0.15 } ] },
 			{ "code": "KingdomFullNames" },
 			{ "code": "KingdomLoyalties" },
 			{ "code": "SoldierDecayBody", "hoursToDecay": 96, "skeletonBody": [ "humanoid1", "humanoid2" ] },
@@ -348,7 +324,7 @@
 					{
 						"code": "SentryRanged",
 						"priority": 2.0,
-						"entityCodes": [ "player", "archer-*", "knight-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "looter", "bandit-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
+						"entityCodes": [ "player", "archer-*", "knight-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "looter-*", "bandit-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
 						"seekingRange": 20,
 						"mincooldown": 500,
 						"maxcooldown": 1500,
@@ -357,51 +333,23 @@
 					{
 						"code": "SentrySearch",
 						"priority": 1.5,
-						"entityCodes": [ "player", "archer-*", "knight-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "looter", "bandit-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
 						"mincooldown": 1000,
 						"maxcooldown": 1500,
-						"animationSpeed": 1.75
+						"seekingRange": 20,
+						"animationSpeed": 1.75,
+						"isArcher": true
 					},
 					{
 						"code": "SentryEscape",
-						"priority": 1.8,
-						"entityCodes": [ "player", "archer-*", "knight-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "looter", "bandit-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
-						"animation": "move",
-						"animationSpeed": 1.75
+						"priority": 1.5
 					},
 					{
 						"code": "SentryFollow",
 						"priority": 1.5
 					},
 					{
-						"code": "SentryHealth",
-						"priority": 1.2,
-						"mincooldown": 1000,
-						"maxcooldown": 1500,
-						"seekingRange": 20
-					},
-					{
-						"code": "SentryWaters",
-						"priority": 1.2
-					},
-					{
-						"code": "SentryReturn",
-						"priority": 1.0,
-						"animation": "walk"
-					},
-					{
 						"code": "SentryWander",
-						"priority": 1.0,
-						"animation": "walk"
-					},
-					{
-						"code": "idle",
-						"priority": 0.5,
-						"minduration": 2500,
-						"maxduration": 2500,
-						"mincooldown": 2000,
-						"maxcooldown": 10000,
-						"animation": "idle"
+						"priority": 1.0
 					},
 					{
 						"code": "SentryIdling",

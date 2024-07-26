@@ -17,27 +17,33 @@ namespace VSKingdom {
 		protected bool cancelAttack = false;
 		protected bool turnToTarget = true;
 		protected bool doorIsBehind = false;
-		protected bool banditryBehavior = false;
+		protected bool banditPilled = false;
 		protected long durationOfMs = 1500L;
 		protected long lastSearchMs;
+		protected long lastHelpedMs;
 		protected float maxDist = 20f;
 		protected float minDist = 0.5f;
 		protected float curTurn;
-		protected string prevAnims;
+		protected string prevAnim;
+		protected string currAnim;
+		protected string[] animCodes;
 		protected AnimationMetaData[] animMetas;
 		protected AiTaskSentrySearch searchTask => entity.GetBehavior<EntityBehaviorTaskAI>().TaskManager.GetTask<AiTaskSentrySearch>();
+
+		protected static readonly string bandituid = "xxxxxxxx";
+		protected static readonly string loyalties = "loyalties";
 
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);
 			// Initialize ALL of the provided melee attacks.
-			banditryBehavior = taskConfig["isBandit"].AsBool(false);
-			string[] animCodes = taskConfig["animCodes"]?.AsArray<string>(new string[] { "hit", "spearstabs" });
+			banditPilled = taskConfig["isBandit"].AsBool(false);
+			animCodes = taskConfig["animCodes"]?.AsArray<string>(new string[] { "hit", "spearstabs" });
 			animMetas = new AnimationMetaData[animCodes.Length];
 			for (int i = 0; i < animCodes.Length; i++) {
 				animMetas[i] = new AnimationMetaData() {
 					Animation = animCodes[i].ToLowerInvariant(),
 					Code = animCodes[i].ToLowerInvariant(),
-					BlendMode = EnumAnimationBlendMode.Average
+					BlendMode = EnumAnimationBlendMode.Add,
 				}.Init();
 			}
 			maxDist = taskConfig["maxDist"].AsFloat(20f);
@@ -77,14 +83,14 @@ namespace VSKingdom {
 			if (ent is EntityProjectile projectile && projectile.FiredBy is not null) {
 				targetEntity = projectile.FiredBy;
 			}
-			if (ent.WatchedAttributes.HasAttribute("loyalties")) {
-				if (banditryBehavior) {
-					return ent is EntityPlayer || (ent is EntitySentry sentry && sentry.kingdomID != "xxxxxxxx");
+			if (ent.WatchedAttributes.HasAttribute(loyalties)) {
+				if (banditPilled) {
+					return ent is EntityPlayer || (ent is EntitySentry sentry && sentry.kingdomID != bandituid);
 				}
 				if (ent is EntitySentry sent) {
-					return entity.enemiesID.Contains(sent.kingdomID) || sent.kingdomID == "xxxxxxxx";
+					return entity.enemiesID.Contains(sent.kingdomID) || sent.kingdomID == bandituid;
 				}
-				return entity.enemiesID.Contains(ent.WatchedAttributes.GetTreeAttribute("loyalties").GetString("kingdom_guid"));
+				return entity.enemiesID.Contains(ent.WatchedAttributes.GetTreeAttribute(loyalties).GetString("kingdom_guid"));
 			}
 			if (ignoreEntityCode || IsTargetEntity(ent.Code.Path)) {
 				return CanSense(ent, range);
@@ -94,18 +100,21 @@ namespace VSKingdom {
 		
 		public override void StartExecute() {
 			// Record last animMeta so we can stop it if we need to.
-			prevAnims = animMeta?.Code ?? "hit";
+			/**prevAnim = animMeta?.Code ?? "hit";**/
+			prevAnim = currAnim;
 			// Initialize a random attack animation and sounds!
 			if (entity.RightHandItemSlot.Empty) {
-				animMeta = animMetas[0];
+				/**animMeta = animMetas[0]**/
+				currAnim = animCodes[0];
 			} else {
-				Random rnd = new Random();
 				if (entity.RightHandItemSlot.Itemstack.Item.Code.PathStartsWith("spear-")) {
-					animMeta = animMetas[1];
+					/**animMeta = animMetas[1];**/
+					currAnim = animCodes[1];
 				} else {
-					animMeta = animMetas[rnd.Next(0, animMetas.Length - 1)];
+					/**animMeta = animMetas[rnd.Next(0, animMetas.Length - 1)];**/
+					currAnim = animCodes[entity.World.Rand.Next(0, animCodes.Length - 1)];
 				}
-				switch (rnd.Next(1, 2)) {
+				switch (entity.World.Rand.Next(1, 2)) {
 					case 1: sound = new AssetLocation("game:sounds/player/strike1"); break;
 					case 2: sound = new AssetLocation("game:sounds/player/strike2"); break;
 				}
@@ -118,6 +127,7 @@ namespace VSKingdom {
 		public override bool ContinueExecute(float dt) {
 			// Don't pursue if there is no target, the target is dead, or the attack has been called off!
 			if (cancelAttack || targetEntity == null || !targetEntity.Alive) {
+				cancelAttack = true;
 				return false;
 			}
 			EntityPos serverPos1 = entity.ServerPos;
@@ -141,29 +151,55 @@ namespace VSKingdom {
 				// Try NavigateTo instead of WalkTowards?
 				//pathTraverser.WalkTowards(serverPos2?.XYZ.Clone() ?? serverPos1.XYZ.Clone(), (float)entity.moveSpeed, (float)entity.weapRange, OnGoals, OnStuck);
 			}
-			if (!entity.AnimManager.GetAnimationState(prevAnims).Running && flag) {
-				entity.StopAnimation(prevAnims);
+			if (prevAnim != null && currAnim != null && !entity.AnimManager.GetAnimationState(prevAnim).Running && flag) {
+				entity.StopAnimation(prevAnim);
 				AttackTarget();
 			}
 			return lastSearchMs + durationOfMs > entity.World.ElapsedMilliseconds;
 		}
 
+		public override void FinishExecute(bool cancelled) {
+			cooldownUntilMs = entity.World.ElapsedMilliseconds + mincooldown + entity.World.Rand.Next(maxcooldown - mincooldown);
+			cooldownUntilTotalHours = entity.World.Calendar.TotalHours + mincooldownHours + entity.World.Rand.NextDouble() * (maxcooldownHours - mincooldownHours);
+			if (currAnim != null) {
+				entity.AnimManager.StopAnimation(currAnim);
+			}
+		}
+
 		public override void OnEntityHurt(DamageSource source, float damage) {
-			if (source.GetCauseEntity() is EntitySentry sentry && entity.kingdomID == sentry.kingdomID) {
+			if (damage < 1 || source.GetCauseEntity() == null || !IsTargetableEntity(source.GetCauseEntity(), (float)source.GetSourcePosition().DistanceTo(entity.ServerPos.XYZ))) {
 				return;
 			}
-			if (damage > 1 && source.GetCauseEntity() is not EntityHumanoid) {
+			if (source.Type != EnumDamageType.Heal && lastHelpedMs + 5000 < entity.World.ElapsedMilliseconds) {
 				targetEntity = source.GetCauseEntity();
+				lastHelpedMs = entity.World.ElapsedMilliseconds;
+				// Alert all surrounding units! We're under attack!
+				foreach (EntitySentry soldier in entity.World.GetEntitiesAround(entity.ServerPos.XYZ, 20, 4, entity => (entity is EntitySentry))) {
+					if (entity.kingdomID == soldier.kingdomID) {
+						var taskManager = soldier.GetBehavior<EntityBehaviorTaskAI>().TaskManager;
+						taskManager.GetTask<AiTaskSentryAttack>()?.OnAllyAttacked(source.SourceEntity);
+						taskManager.GetTask<AiTaskSentryRanged>()?.OnAllyAttacked(source.SourceEntity);
+					}
+				}
 			}
 			base.OnEntityHurt(source, damage);
 		}
 
-		protected virtual void AttackTarget() {
+		public void OnAllyAttacked(Entity targetEnt) {
+			// Prioritize attacks of other people. Assess threat level in future.
+			if (targetEntity == null || !targetEntity.Alive || (targetEnt is EntityHumanoid && targetEntity is not EntityHumanoid)) {
+				targetEntity = targetEnt;
+				searchTask.SetTargetEnts(targetEnt);
+			}
+			ShouldExecute();
+		}
+
+		private void AttackTarget() {
 			if (!hasDirectContact(targetEntity, (float)entity.weapRange, (float)entity.weapRange)) {
 				return;
 			}
-			entity.AnimManager.StartAnimation(animMeta);
-			entity.World.PlaySoundAt(sound, entity.ServerPos.X, entity.ServerPos.Y, entity.ServerPos.Z, null, randomizePitch: true, soundRange);
+			entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = currAnim, Code = currAnim }.Init());
+			entity.World.PlaySoundAt(sound, entity, null, true, soundRange);
 			float damage = entity.RightHandItemSlot?.Itemstack?.Item?.AttackPower ?? 1f;
 			bool alive = targetEntity.Alive;
 			targetEntity.ReceiveDamage(new DamageSource {
@@ -181,14 +217,6 @@ namespace VSKingdom {
 			}
 		}
 
-		public void OnAllyAttacked(Entity targetEnt) {
-			// Prioritize attacks of other people. Assess threat level in future.
-			if (targetEntity == null || !targetEntity.Alive || (targetEnt is EntityHumanoid && targetEntity is not EntityHumanoid)) {
-				targetEntity = targetEnt;
-			}
-			ShouldExecute();
-		}
-
 		private void OnStuck() {
 			updateTargetPosFleeMode(entity.Pos.XYZ);
 		}
@@ -200,7 +228,7 @@ namespace VSKingdom {
 		private void StopNow() {
 			searchTask.SetTargetEnts(null);
 			entity.ServerControls.StopAllMovement();
-			entity.StopAnimation(prevAnims);
+			entity.StopAnimation(prevAnim);
 		}
 
 		private bool IsTargetEntity(string testPath) {

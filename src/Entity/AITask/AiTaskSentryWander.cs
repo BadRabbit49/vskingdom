@@ -2,6 +2,9 @@
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Datastructures;
+using Vintagestory.API.Server;
+using System.Linq;
+using Vintagestory.API.Config;
 
 namespace VSKingdom {
 	public class AiTaskSentryWander : AiTaskBase {
@@ -12,10 +15,13 @@ namespace VSKingdom {
 		protected bool cancelWander;
 		protected bool doorIsBehind;
 		protected long failedWanders;
+		protected long lastCheckedMs;
+		protected long checkCooldown = 1500L;
 		protected float wanderChance;
 		protected float wanderHeight;
 		protected float targetRanges;
-		protected Vec3d mainTarget;
+		protected float curMoveSpeed = 0.03f;
+		protected Vec3d curTargetPos;
 		protected NatFloat wanderRangeHor = NatFloat.createStrongerInvexp(3, 40);
 		protected NatFloat wanderRangeVer = NatFloat.createStrongerInvexp(3, 10);
 
@@ -24,33 +30,53 @@ namespace VSKingdom {
 			set => entity.WatchedAttributes.SetInt("failedConsecutivePathfinds", value);
 		}
 		protected float wanderRangedMul { get => entity.WatchedAttributes.GetFloat("wanderRangeMul", 1); }
-		protected Vec3d outpostBlock { get => entity.Loyalties.GetBlockPos("outpost_xyzd").ToVec3d(); }
+		protected Vec3d outpostPosition { get => entity.Loyalties.GetBlockPos("outpost_xyzd").ToVec3d(); }
+
+		protected static readonly string idleAnimCode = "idle";
+		protected static readonly string walkAnimCode = "walk";
+		protected static readonly string moveAnimCode = "move";
+		protected static readonly string swimAnimCode = "swim";
 
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);
 			targetRanges = taskConfig["targetRanges"].AsFloat(0.12f);
 			wanderHeight = taskConfig["wanderHeight"].AsFloat(7f);
 			wanderChance = taskConfig["wanderChance"].AsFloat(0.005f);
+			whenNotInEmotionState = taskConfig["whenNotInEmotionState"].AsString("aggressiveondamage|fleeondamage");
 		}
 
 		public override bool ShouldExecute() {
-			if (!entity.ruleOrder[0] || entity.ruleOrder[1] || entity.ruleOrder[6]) {
+			if (lastCheckedMs + checkCooldown > entity.World.ElapsedMilliseconds) {
+				return false;
+			}
+			lastCheckedMs = entity.World.ElapsedMilliseconds;
+			if (!entity.ruleOrder[0] || entity.ruleOrder[1]) {
 				cancelWander = true;
+				return false;
+			}
+			if (IsInEmotionState(whenNotInEmotionState)) {
 				return false;
 			}
 			if (rand.NextDouble() > (double)((failedWanders > 0) ? (1f - wanderChance * 4f * (float)failedWanders) : wanderChance)) {
 				failedWanders = 0;
 				return false;
 			}
-			mainTarget = LoadNextWanderTarget();
-			return mainTarget != null;
+			if (entity.ruleOrder[6] || entity.ServerPos.DistanceTo(outpostPosition) > entity.postRange) {
+				curTargetPos = outpostPosition.Clone();
+			} else if (entity.InLava || ((entity.Swimming || entity.FeetInLiquid) && entity.World.Rand.NextDouble() < 0.04f)) {
+				curTargetPos = LeaveTheWatersTarget();
+			} else {
+				curTargetPos = LoadNextWanderTarget();
+			}
+			return curTargetPos != null;
 		}
 
 		public override void StartExecute() {
 			base.StartExecute();
 			cancelWander = false;
 			wanderRangeHor = NatFloat.createInvexp(3f, (float)entity.postRange);
-			bool ok = pathTraverser.WalkTowards(mainTarget, (float)entity.walkSpeed, targetRanges, OnGoals, OnStuck);
+			MoveAnimation();
+			bool ok = pathTraverser.WalkTowards(curTargetPos, curMoveSpeed, targetRanges, OnGoals, OnStuck);
 		}
 
 		public override bool ContinueExecute(float dt) {
@@ -69,19 +95,48 @@ namespace VSKingdom {
 				}
 			}
 			// If the entity is close enough to the primary target then leave it there.
-			if (mainTarget.HorizontalSquareDistanceTo(entity.ServerPos.X, entity.ServerPos.Z) < 0.5) {
+			if (curTargetPos.HorizontalSquareDistanceTo(entity.ServerPos.X, entity.ServerPos.Z) < 0.5) {
 				return false;
 			}
 			return !cancelWander;
 		}
 
 		public override void FinishExecute(bool cancelled) {
-			base.FinishExecute(cancelled);
-            if (cancelled) {
-				pathTraverser.Stop();
-				entity.ServerControls.StopAllMovement();
-				entity.Controls.StopAllMovement();
+			cooldownUntilMs = entity.World.ElapsedMilliseconds + mincooldown + entity.World.Rand.Next(maxcooldown - mincooldown);
+			cooldownUntilTotalHours = entity.World.Calendar.TotalHours + mincooldownHours + entity.World.Rand.NextDouble() * (maxcooldownHours - mincooldownHours);
+			entity.AnimManager.StopAnimation(walkAnimCode);
+			entity.AnimManager.StopAnimation(moveAnimCode);
+			pathTraverser.Stop();
+			if (!entity.Swimming && entity.AnimManager.IsAnimationActive(swimAnimCode)) {
+				entity.AnimManager.StopAnimation(swimAnimCode);
 			}
+			if (entity.ruleOrder[6] && entity.ServerPos.DistanceTo(outpostPosition) < entity.postRange) {
+				entity.ruleOrder[6] = false;
+				HasReturnedTo();
+			}
+		}
+
+		private Vec3d LeaveTheWatersTarget() {
+			Vec3d exitPosition = new Vec3d();
+			BlockPos pos = new BlockPos(Dimensions.NormalWorld);
+			exitPosition.Y = entity.ServerPos.Y;
+			int tries = 6;
+			int px = (int)entity.ServerPos.X;
+			int pz = (int)entity.ServerPos.Z;
+			IBlockAccessor blockAccessor = entity.World.BlockAccessor;
+			while (tries-- > 0) {
+				pos.X = px + rand.Next(21) - 10;
+				pos.Z = pz + rand.Next(21) - 10;
+				pos.Y = blockAccessor.GetTerrainMapheightAt(pos);
+				Cuboidf[] blockBoxes = blockAccessor.GetBlock(pos).GetCollisionBoxes(blockAccessor, pos);
+				pos.Y--;
+				Cuboidf[] belowBoxes = blockAccessor.GetBlock(pos).GetCollisionBoxes(blockAccessor, pos);
+				if ((blockBoxes == null || blockBoxes.Max((cuboid) => cuboid.Y2) <= 1f) && (belowBoxes != null && belowBoxes.Length > 0)) {
+					exitPosition.Set(pos.X + 0.5, pos.Y + 1, pos.Z + 0.5);
+					return exitPosition;
+				}
+			}
+			return null;
 		}
 
 		// Requirements:
@@ -114,11 +169,7 @@ namespace VSKingdom {
 				currTarget.Y = entity.ServerPos.Y + dy;
 				currTarget.Z = entity.ServerPos.Z + dz;
 				currTarget.W = 1.0;
-				// Return to spawn area or outpost if there is one.
-				if (entity.ruleOrder[6]) {
-					currTarget.W = 1.0 - (double)currTarget.SquareDistanceTo(outpostBlock) / entity.postRange;
-				}
-				currTarget.Y = MoveDownToFloor((int)currTarget.X, (int)currTarget.Y, (int)currTarget.Z);
+				currTarget.Y = ToFloor((int)currTarget.X, (int)currTarget.Y, (int)currTarget.Z);
 				if (currTarget.Y < 0.0) {
 					currTarget.W = 0.0;
 				} else {
@@ -127,15 +178,15 @@ namespace VSKingdom {
 						bool mustStop = false;
 						bool willFall = false;
 						float angleHor = (float)Math.Atan2(dx, dz) + GameMath.PIHALF;
-						Vec3d target1BlockAhead = currTarget.XYZ.Ahead(1, 0, angleHor);
+						Vec3d blockAhead = currTarget.XYZ.Ahead(1, 0, angleHor);
 						// Otherwise they are forever stuck if they stand over the edge.
 						Vec3d startAhead = entity.ServerPos.XYZ.Ahead(1, 0, angleHor);
 						// Draw a line from here to there and check ahead to see if we will fall.
-						GameMath.BresenHamPlotLine2d((int)startAhead.X, (int)startAhead.Z, (int)target1BlockAhead.X, (int)target1BlockAhead.Z, (x, z) => {
+						GameMath.BresenHamPlotLine2d((int)startAhead.X, (int)startAhead.Z, (int)blockAhead.X, (int)blockAhead.Z, (x, z) => {
 							if (mustStop) {
 								return;
 							}
-							int nowY = MoveDownToFloor(x, (int)startAhead.Y, z);
+							int nowY = ToFloor(x, (int)startAhead.Y, z);
 							// Not more than 4 blocks down.
 							if (nowY < 0 || startAhead.Y - nowY > 4) {
 								willFall = true;
@@ -184,7 +235,7 @@ namespace VSKingdom {
 		}
 
 		private void OnGoals() {
-			cancelWander = true;
+			pathTraverser.Retarget();
 			failedWanders = 0;
 		}
 
@@ -192,7 +243,7 @@ namespace VSKingdom {
 			cancelWander = true;
 		}
 
-		private int MoveDownToFloor(int x, int y, int z) {
+		private int ToFloor(int x, int y, int z) {
 			int tries = 5;
 			while (tries-- > 0) {
 				if (world.BlockAccessor.IsSideSolid(x, y, z, BlockFacing.UP)) {
@@ -201,6 +252,36 @@ namespace VSKingdom {
 				y--;
 			}
 			return -1;
+		}
+
+		private void HasReturnedTo() {
+			SentryOrders updatedOrders = new SentryOrders() { entityUID = entity.EntityId, returning = false };
+			IServerPlayer nearestPlayer = entity.ServerAPI.World.NearestPlayer(entity.ServerPos.X, entity.ServerPos.Y, entity.ServerPos.Z) as IServerPlayer;
+			entity.ServerAPI?.Network.GetChannel("sentrynetwork").SendPacket<SentryOrders>(updatedOrders, nearestPlayer);
+		}
+
+		private void MoveAnimation() {
+			if (cancelWander) {
+				curMoveSpeed = 0;
+				entity.AnimManager.StopAnimation(walkAnimCode);
+				entity.AnimManager.StopAnimation(moveAnimCode);
+				entity.AnimManager.StopAnimation(swimAnimCode);
+			} else if (entity.Swimming) {
+				curMoveSpeed = (float)entity.moveSpeed;
+				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = swimAnimCode, Code = swimAnimCode, BlendMode = EnumAnimationBlendMode.Average }.Init());
+				entity.AnimManager.StopAnimation(walkAnimCode);
+				entity.AnimManager.StopAnimation(moveAnimCode);
+			} else if (entity.ServerPos.SquareDistanceTo(curTargetPos) > 9 * 9) {
+				curMoveSpeed = (float)entity.moveSpeed;
+				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = moveAnimCode, Code = moveAnimCode, MulWithWalkSpeed = true, BlendMode = EnumAnimationBlendMode.Average }.Init());
+				entity.AnimManager.StopAnimation(walkAnimCode);
+				entity.AnimManager.StopAnimation(swimAnimCode);
+			} else {
+				curMoveSpeed = (float)entity.walkSpeed;
+				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = walkAnimCode, Code = walkAnimCode, MulWithWalkSpeed = true, BlendMode = EnumAnimationBlendMode.Average, EaseOutSpeed = 1f }.Init());
+				entity.AnimManager.StopAnimation(moveAnimCode);
+				entity.AnimManager.StopAnimation(swimAnimCode);
+			}
 		}
 	}
 }

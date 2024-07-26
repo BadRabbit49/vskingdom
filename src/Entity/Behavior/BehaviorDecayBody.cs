@@ -56,13 +56,13 @@ namespace VSKingdom {
 				// If the killer can, try looting the player corpse right away, take what is better.
 				for (int i = 12; i < 14; i++) {
 					float ownGearDmgRed = (killer.GearInventory[i]?.Itemstack?.Item as ItemWearable)?.ProtectionModifiers.FlatDamageReduction ?? 0;
-					if (!victim.GearInventory[i].Empty && victim.GearInventory[i].Itemstack.Item is ItemWearable gear && gear.ProtectionModifiers.FlatDamageReduction > ownGearDmgRed) {
+					if (!victim.GearInventory[i].Empty && victim.GearInventory[i].Itemstack.Item is ItemWearable gear && gear?.ProtectionModifiers.FlatDamageReduction > ownGearDmgRed) {
 						try {
-							var badStack = killer.GearInventory[i]?.TakeOut(1);
-							victim.GearInventory[i].TryPutInto(entity.World, killer.gearInv[i], victim.GearInventory[i].StackSize);
+							var badStack = killer.GearInventory[i]?.TakeOut(killer.GearInventory[i].StackSize) ?? null;
+							victim.GearInventory[i].TryPutInto(entity.World, killer.GearInventory[i], killer.GearInventory[i].StackSize);
 							killer.GearInvSlotModified(i);
 							victim.GearInventory[i].Itemstack = badStack;
-							victim.GearInventory.MarkSlotDirty(i);
+							victim.GearInvSlotModified(i);
 						} catch { }
 					}
 				}
@@ -74,7 +74,7 @@ namespace VSKingdom {
 								victim.RightHandItemSlot.TryPutInto(entity.World, killer.gearInv[16], victim.RightHandItemSlot.StackSize);
 								killer.GearInvSlotModified(16);
 								victim.RightHandItemSlot.Itemstack = badStack;
-								victim.RightHandItemSlot.MarkDirty();
+								victim.GearInvSlotModified(16);
 							}
 						} catch { }
 					}

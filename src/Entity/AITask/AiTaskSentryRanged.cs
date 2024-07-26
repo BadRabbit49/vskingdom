@@ -48,12 +48,39 @@ namespace VSKingdom {
 			drawBowsMeta = new AnimationMetaData() {
 				Code = "bowdraw",
 				Animation = "bowdraw",
-				BlendMode = EnumAnimationBlendMode.Add
+				BlendMode = EnumAnimationBlendMode.Add,
+				ElementWeight = new Dictionary<string, float> {
+					{ "UpperArmR", 90f },
+					{ "LowerArmR", 90f },
+					{ "UpperArmL", 90f },
+					{ "LowerArmL", 90f },
+					{ "ItemAnchor", 90f }
+				},
+				ElementBlendMode = new Dictionary<string, EnumAnimationBlendMode> {
+					{ "UpperArmR", EnumAnimationBlendMode.AddAverage },
+					{ "LowerArmR", EnumAnimationBlendMode.AddAverage },
+					{ "UpperArmL", EnumAnimationBlendMode.AddAverage },
+					{ "LowerArmL", EnumAnimationBlendMode.AddAverage },
+					{ "ItemAnchor", EnumAnimationBlendMode.AddAverage }
+				}
 			}.Init();
 			fireBowsMeta = new AnimationMetaData() {
 				Code = "bowfire",
 				Animation = "bowfire",
-				BlendMode = EnumAnimationBlendMode.Add
+				BlendMode = EnumAnimationBlendMode.Add,
+				EaseInSpeed = 999f,
+				ElementWeight = new Dictionary<string, float> {
+					{ "UpperArmR", 20f },
+					{ "LowerArmR", 20f },
+					{ "UpperArmL", 20f },
+					{ "LowerArmL", 20f }
+				},
+				ElementBlendMode = new Dictionary<string, EnumAnimationBlendMode> {
+					{ "UpperArmR", EnumAnimationBlendMode.AddAverage },
+					{ "LowerArmR", EnumAnimationBlendMode.AddAverage },
+					{ "UpperArmL", EnumAnimationBlendMode.AddAverage },
+					{ "LowerArmL", EnumAnimationBlendMode.AddAverage }
+				}
 			}.Init();
 			loadBowsMeta = new AnimationMetaData() {
 				Code = "bowload",
@@ -155,6 +182,7 @@ namespace VSKingdom {
 				entity.World.FrameProfiler.Mark("task-sentryescape-startexecute-init");
 				escapeTask.SetTargetEnts(targetEntity);
 				escapeTask.StartExecute();
+				searchTask.FinishExecute(true);
 			}
 			// Calculate aiming at targetEntity!
 			Vec3f targetVec = targetEntity.ServerPos.XYZFloat.Sub(entity.ServerPos.XYZFloat);

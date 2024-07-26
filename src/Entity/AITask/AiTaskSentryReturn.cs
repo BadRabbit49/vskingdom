@@ -13,7 +13,12 @@ namespace VSKingdom {
 		protected long lastCheckTotalMs;
 		protected long lastWasInRangeMs;
 		protected long lastCheckCooldown = 1500L;
+		protected float curMoveSpeed = 0.03f;
 		protected Vec3d postBlock { get => entity.Loyalties.GetBlockPos("outpost_xyzd").ToVec3d(); }
+
+		protected static readonly string walkAnimCode = "walk";
+		protected static readonly string moveAnimCode = "move";
+		protected static readonly string swimAnimCode = "swim";
 
 		public override bool ShouldExecute() {
 			if (lastCheckTotalMs + lastCheckCooldown > entity.World.ElapsedMilliseconds) {
@@ -27,19 +32,34 @@ namespace VSKingdom {
 		}
 
 		public override void StartExecute() {
-			pathTraverser.NavigateTo(postBlock, (float)entity.moveSpeed, (float)entity.postRange, OnGoals, OnStuck, true);
+			cancelReturn = false;
+			MoveAnimation();
+			pathTraverser.NavigateTo(postBlock, curMoveSpeed, (float)entity.postRange, OnGoals, OnStuck, true);
 			base.StartExecute();
 		}
 
 		public override bool ContinueExecute(float dt) {
-			if (entity.ruleOrder[1] || CheckDistance() || cancelReturn) {
-				cancelReturn = true;
+			if (cancelReturn || entity.ruleOrder[1] || CheckDistance()) {
 				return false;
 			}
 			if (lastCheckCooldown + 500 < entity.World.ElapsedMilliseconds && postBlock != null && entity.MountedOn is null) {
 				lastCheckCooldown = entity.World.ElapsedMilliseconds;
 			}
 			return true;
+		}
+
+		public override void FinishExecute(bool cancelled) {
+			cancelReturn = true;
+			cooldownUntilMs = entity.World.ElapsedMilliseconds + mincooldown + entity.World.Rand.Next(maxcooldown - mincooldown);
+			cooldownUntilTotalHours = entity.World.Calendar.TotalHours + mincooldownHours + entity.World.Rand.NextDouble() * (maxcooldownHours - mincooldownHours);
+			entity.AnimManager.StopAnimation(walkAnimCode);
+			entity.AnimManager.StopAnimation(moveAnimCode);
+			if (!entity.Swimming && entity.AnimManager.IsAnimationActive(swimAnimCode)) {
+				entity.AnimManager.StopAnimation(swimAnimCode);
+			}
+			pathTraverser.Stop();
+			entity.ServerControls.StopAllMovement();
+			entity.Controls.StopAllMovement();
 		}
 
 		private void OnStuck() {
@@ -49,6 +69,30 @@ namespace VSKingdom {
 		private void OnGoals() {
 			cancelReturn = true;
 			pathTraverser.Retarget();
+		}
+
+		private void MoveAnimation() {
+			if (cancelReturn) {
+				curMoveSpeed = 0;
+				entity.AnimManager.StopAnimation(walkAnimCode);
+				entity.AnimManager.StopAnimation(moveAnimCode);
+				entity.AnimManager.StopAnimation(swimAnimCode);
+			} else if (entity.Swimming) {
+				curMoveSpeed = (float)entity.moveSpeed;
+				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = swimAnimCode, Code = swimAnimCode, BlendMode = EnumAnimationBlendMode.Average }.Init());
+				entity.AnimManager.StopAnimation(walkAnimCode);
+				entity.AnimManager.StopAnimation(moveAnimCode);
+			} else if (entity.ServerPos.SquareDistanceTo(postBlock) > 3 * 3) {
+				curMoveSpeed = (float)entity.moveSpeed;
+				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = moveAnimCode, Code = moveAnimCode, MulWithWalkSpeed = true, BlendMode = EnumAnimationBlendMode.Average }.Init());
+				entity.AnimManager.StopAnimation(walkAnimCode);
+				entity.AnimManager.StopAnimation(swimAnimCode);
+			} else {
+				curMoveSpeed = (float)entity.walkSpeed;
+				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = walkAnimCode, Code = walkAnimCode, MulWithWalkSpeed = true, BlendMode = EnumAnimationBlendMode.Average, EaseOutSpeed = 1f }.Init());
+				entity.AnimManager.StopAnimation(moveAnimCode);
+				entity.AnimManager.StopAnimation(swimAnimCode);
+			}
 		}
 
 		private void UpdateOrders(bool @returning) {

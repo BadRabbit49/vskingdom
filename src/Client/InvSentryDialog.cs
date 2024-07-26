@@ -148,41 +148,39 @@ namespace VSKingdom {
 
 		protected bool OnGiveCommand(string orders) {
 			// This is a brute-force way of doing this. I didn't want it to come to this but here it is.
-			bool toggle = !loyalties.GetBool(orders);
+			bool toggled = !loyalties.GetBool(orders);
 			SentryOrders newOrders = new SentryOrders();
 			newOrders.entityUID = entity.EntityId;
 			switch (orders) {
 				case "command_wander":
-					newOrders.wandering = toggle;
-					newOrders.attribute = string.Join(',', "f", "wanderRangeMul", (toggle ? 2 : 1).ToString());
+					newOrders.wandering = toggled;
+					newOrders.attribute = string.Join(',', "f", "wanderRangeMul", (toggled ? 2 : 1).ToString());
 					break;
 				case "command_follow":
-					newOrders.following = toggle;
-					newOrders.attribute = string.Join(',', "l", "guardedEntityId", (toggle ? player.EntityId : 0).ToString());
+					newOrders.following = toggled;
+					newOrders.attribute = string.Join(',', "l", "guardedEntityId", (toggled ? player.EntityId : 0).ToString());
 					(entity.Api as ICoreServerAPI)?.Network.GetChannel("sentrynetwork").SendPacket<PlayerUpdate>(new PlayerUpdate() { entityUID = player.EntityId, followers = new long[] { entity.EntityId } }, player.Player as IServerPlayer);
 					break;
 				case "command_firing":
-					newOrders.attacking = toggle;
+					newOrders.attacking = toggled;
 					break;
 				case "command_pursue":
-					newOrders.pursueing = toggle;
-					newOrders.attribute = string.Join(',', "f", "pursueRangeMul", toggle ? 2 : 1);
+					newOrders.pursueing = toggled;
+					newOrders.attribute = string.Join(',', "f", "pursueRangeMul", toggled ? 2 : 1);
 					break;
 				case "command_shifts":
-					newOrders.shifttime = toggle;
+					newOrders.shifttime = toggled;
 					break;
 				case "command_nights":
-					newOrders.nighttime = toggle;
+					newOrders.nighttime = toggled;
 					break;
 				case "command_return":
-					newOrders.returning = toggle;
+					newOrders.returning = toggled;
 					break;
 			}
+			newOrders.playermsg = LangUtility.GetL(langCodes, $"gui-{orders.Replace('_', '-')}-{toggled.ToString().ToLower()}");
 			(player.Api as ICoreServerAPI)?.Network.GetChannel("sentrynetwork").SendPacket<SentryOrders>(newOrders, player.Player as IServerPlayer);
-			string message = $"gui-{orders.Replace('_', '-')}-{loyalties.GetBool(orders).ToString().ToLower()}";
-			TryClose();
-			capi.ShowChatMessage(LangUtility.GetL(langCodes, message));
-			return true;
+			return TryClose();
 		}
 
 		protected void OnCloseDialog() {

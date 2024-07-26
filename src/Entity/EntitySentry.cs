@@ -105,7 +105,16 @@ namespace VSKingdom {
 			SentryUpdate update = new SentryUpdate() { entityUID = this.EntityId, kingdomID = this.kingdomID };
 			(Api as ICoreServerAPI)?.Network.GetChannel("sentrynetwork").SendPacket<SentryUpdate>(update, World.NearestPlayer(ServerPos.X, ServerPos.Y, ServerPos.Z) as IServerPlayer);
 			UpdateStats();
-			UpdateTasks(null);
+			/**UpdateTasks(null);**/
+			ruleOrder = new bool[] {
+				Loyalties.GetBool("command_wander", true),
+				Loyalties.GetBool("command_follow", false),
+				Loyalties.GetBool("command_firing", true),
+				Loyalties.GetBool("command_pursue", true),
+				Loyalties.GetBool("command_shifts", false),
+				Loyalties.GetBool("command_nights", false),
+				Loyalties.GetBool("command_return", false)
+			};
 		}
 
 		public override void OnEntityDespawn(EntityDespawnData despawn) {
@@ -182,22 +191,11 @@ namespace VSKingdom {
 		public override void Revive() {
 			this.Alive = true;
 			ReceiveDamage(new DamageSource { SourceEntity = this, CauseEntity = this, Source = EnumDamageSource.Revive, Type = EnumDamageType.Heal }, 9999f);
-			AnimManager?.StopAnimation("dies");
+			AnimManager.StopAnimation("dies");
 			IsOnFire = false;
 			foreach (EntityBehavior behavior in SidedProperties.Behaviors) {
 				behavior.OnEntityRevive();
 			}
-		}
-
-		public override void StartAnimation(string code) {
-			// Set the animation to sprint if walking but controls are set to sprint.
-			if (code == "walk" && ServerControls.Sprint) {
-				AnimManager.StartAnimation("move");
-			}
-			if (code == "walk" && ServerControls.Sneak) {
-				AnimManager.StartAnimation("sneak");
-			}
-			base.StartAnimation(code);
 		}
 
 		public virtual ITreeAttribute GetInventoryTree() {
@@ -261,7 +259,6 @@ namespace VSKingdom {
 				EntitySentry thisEnt = (Api as ICoreServerAPI)?.World.GetEntityById(this.EntityId) as EntitySentry;
 				ItemStack weapon = RightHandItemSlot?.Itemstack ?? null;
 				// Set weapon class, movement speed, and ranges to distinguish behaviors.
-				thisEnt.postRange = Loyalties?.GetDouble("outpost_size") ?? 6.0;
 				thisEnt.weapValue = (double)((weapon?.Collectible?.Durability ?? 1f) * (weapon?.Collectible.AttackPower ?? weapon?.Collectible.Attributes?["damage"].AsFloat() ?? 1f));
 				thisEnt.weapRange = RightHandItemSlot?.Itemstack?.Item?.AttackRange ?? 1.5;
 				thisEnt.massTotal = 0;
@@ -274,8 +271,9 @@ namespace VSKingdom {
 						thisEnt.weapRates += (armor?.StatModifers?.rangedWeaponsSpeed ?? 0);
 					}
 				}
-				thisEnt.moveSpeed = Properties.Attributes["moveSpeed"].AsDouble(0.030) + (massTotal * 2);
+				thisEnt.moveSpeed = Properties.Attributes["moveSpeed"].AsDouble(0.030) + massTotal;
 				thisEnt.walkSpeed = Properties.Attributes["walkSpeed"].AsDouble(0.015) + massTotal;
+				thisEnt.postRange = GetBehavior<EntityBehaviorLoyalties>()?.outpostSIZE ?? 6.0;
 			} catch (NullReferenceException e) {
 				World.Logger.Error(e.ToString());
 			}
@@ -292,6 +290,7 @@ namespace VSKingdom {
 		}
 
 		public virtual void UpdateTasks(byte[] data) {
+			/**WatchedAttributes.MarkPathDirty("loyalties");
 			if (data != null) {
 				SentryOrders orders = SerializerUtil.Deserialize<SentryOrders>(data);
 				ruleOrder = new bool[] {
@@ -313,7 +312,7 @@ namespace VSKingdom {
 					Loyalties.GetBool("command_nights", false),
 					Loyalties.GetBool("command_return", false)
 				};
-			}
+			}**/
 		}
 
 		public virtual void UpdateTrees(byte[] data) {

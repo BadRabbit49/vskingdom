@@ -100,23 +100,25 @@ namespace VSKingdom {
 				}
 			}
 			if (Api is ICoreServerAPI sapi) {
-				sapi.ModLoader.GetModSystem<POIRegistry>().RemovePOI(this);
+				sapi.ModLoader.GetModSystem<POIRegistry>()?.RemovePOI(this);
 			}
+			GetBehavior<BlockBehaviorResupply>()?.ToggleAmbientSounds(false);
 			base.OnBlockBroken(byPlayer);
 		}
 
 		public override void OnBlockRemoved() {
 			if (Api is ICoreServerAPI sapi) {
-				sapi.ModLoader.GetModSystem<POIRegistry>().RemovePOI(this);
+				sapi.ModLoader.GetModSystem<POIRegistry>()?.RemovePOI(this);
 			}
+			GetBehavior<BlockBehaviorResupply>()?.ToggleAmbientSounds(false);
 			base.OnBlockRemoved();
 		}
 
 		public override void GetBlockInfo(IPlayer forPlayer, StringBuilder dsc) {
-			dsc.AppendLine("Respawns: " + respawns + "/" + maxpawns);
-			dsc.AppendLine("AreaSize: " + areasize);
-			dsc.AppendLine("FuelLeft: " + maxBTime + "/" + burnTime);
-			dsc.AppendLine("Capacity: " + EntityUIDs.Count + "/" + capacity);
+			dsc.AppendLine($"Respawns: {respawns}/{maxpawns}");
+			dsc.AppendLine($"AreaSize: {areasize}");
+			dsc.AppendLine($"FuelLeft: {maxBTime}/{burnTime}");
+			dsc.AppendLine($"Capacity: {EntityUIDs.Count}/{capacity}");
 			base.GetBlockInfo(forPlayer, dsc);
 		}
 

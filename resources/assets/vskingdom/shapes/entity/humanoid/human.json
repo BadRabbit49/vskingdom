@@ -8285,8 +8285,8 @@
 			]
 		},
 		{
-			"name": "Raiseshield-left",
-			"code": "raiseshield-left",
+			"name": "Raiseshield",
+			"code": "raiseshield",
 			"quantityframes": 30,
 			"onActivityStopped": "EaseOut",
 			"onAnimationEnd": "Repeat",

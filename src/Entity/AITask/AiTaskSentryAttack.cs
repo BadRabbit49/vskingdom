@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
@@ -15,39 +16,34 @@ namespace VSKingdom {
 		public EntitySentry entity;
 		#pragma warning restore CS0108
 		protected bool cancelAttack = false;
+		protected bool animsRunning = false;
 		protected bool turnToTarget = true;
-		protected bool doorIsBehind = false;
 		protected bool banditPilled = false;
+		protected bool usingAShield = false;
 		protected long durationOfMs = 1500L;
-		protected long lastSearchMs;
+		protected long lastAttackMs;
 		protected long lastHelpedMs;
-		protected float maxDist = 20f;
-		protected float minDist = 0.5f;
-		protected float curTurn;
-		protected string prevAnim;
+		protected float maximumRange = 20f;
+		protected float minimumRange = 0.5f;
+		protected float curTurnAngle;
+		protected string lastAnim;
 		protected string currAnim;
-		protected string[] animCodes;
-		protected AnimationMetaData[] animMetas;
+		protected string shieldAnim;
+		protected string[] animations;
 		protected AiTaskSentrySearch searchTask => entity.GetBehavior<EntityBehaviorTaskAI>().TaskManager.GetTask<AiTaskSentrySearch>();
-
+		
 		protected static readonly string bandituid = "xxxxxxxx";
 		protected static readonly string loyalties = "loyalties";
 
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);
-			// Initialize ALL of the provided melee attacks.
-			banditPilled = taskConfig["isBandit"].AsBool(false);
-			animCodes = taskConfig["animCodes"]?.AsArray<string>(new string[] { "hit", "spearstabs" });
-			animMetas = new AnimationMetaData[animCodes.Length];
-			for (int i = 0; i < animCodes.Length; i++) {
-				animMetas[i] = new AnimationMetaData() {
-					Animation = animCodes[i].ToLowerInvariant(),
-					Code = animCodes[i].ToLowerInvariant(),
-					BlendMode = EnumAnimationBlendMode.Add,
-				}.Init();
-			}
-			maxDist = taskConfig["maxDist"].AsFloat(20f);
-			minDist = taskConfig["minDist"].AsFloat(0.5f);
+			this.banditPilled = taskConfig["isBandit"].AsBool(false);
+			this.animations = taskConfig["animations"]?.AsArray<string>(new string[] { "hit", "spearstabs" });
+			this.shieldAnim = taskConfig["shieldAnim"]?.AsString("raiseshield");
+			this.mincooldown = taskConfig["mincooldown"].AsInt(500);
+			this.maxcooldown = taskConfig["maxcooldown"].AsInt(1500);
+			this.maximumRange = taskConfig["maximumRange"].AsFloat(20f);
+			this.minimumRange = taskConfig["minimumRange"].AsFloat(0.5f);
 		}
 
 		public override bool ShouldExecute() {
@@ -55,24 +51,24 @@ namespace VSKingdom {
 				return false;
 			}
 			long elapsedMilliseconds = entity.World.ElapsedMilliseconds;
-			if (elapsedMilliseconds - lastSearchMs < durationOfMs || cooldownUntilMs > elapsedMilliseconds) {
+			if (elapsedMilliseconds - lastAttackMs < durationOfMs || cooldownUntilMs > elapsedMilliseconds) {
 				return false;
 			}
 			if (elapsedMilliseconds - attackedByEntityMs > 30000) {
 				attackedByEntity = null;
 			}
-			if (retaliateAttacks && attackedByEntity != null && attackedByEntity.Alive && attackedByEntity.IsInteractable && IsTargetableEntity(attackedByEntity, maxDist, ignoreEntityCode: true) && hasDirectContact(attackedByEntity, maxDist, maxDist / 2f)) {
+			if (retaliateAttacks && attackedByEntity != null && attackedByEntity.Alive && attackedByEntity.IsInteractable && IsTargetableEntity(attackedByEntity, maximumRange, ignoreEntityCode: true) && hasDirectContact(attackedByEntity, maximumRange, maximumRange / 2f)) {
 				targetEntity = attackedByEntity;
 			} else {
 				Vec3d position = entity.ServerPos.XYZ.Add(0.0, entity.SelectionBox.Y2 / 2f, 0.0).Ahead(entity.SelectionBox.XSize / 2f, 0f, entity.ServerPos.Yaw);
 				if (rand.Next(0, 1) == 0) {
-					targetEntity = entity.World.GetNearestEntity(position, maxDist, maxDist / 2f, (Entity ent) => IsTargetableEntity(ent, maxDist) && hasDirectContact(ent, maxDist, maxDist / 2f));
+					targetEntity = entity.World.GetNearestEntity(position, maximumRange, maximumRange / 2f, (Entity ent) => IsTargetableEntity(ent, maximumRange) && hasDirectContact(ent, maximumRange, maximumRange / 2f));
 				} else {
-					var targetList = entity.World.GetEntitiesAround(position, maxDist, maxDist / 2f, (Entity ent) => IsTargetableEntity(ent, maxDist) && hasDirectContact(ent, maxDist, maxDist / 2f));
+					var targetList = entity.World.GetEntitiesAround(position, maximumRange, maximumRange / 2f, (Entity ent) => IsTargetableEntity(ent, maximumRange) && hasDirectContact(ent, maximumRange, maximumRange / 2f));
 					targetEntity = targetList[rand.Next(0, targetList.Length - 1)];
 				}
 			}
-			lastSearchMs = entity.World.ElapsedMilliseconds;
+			lastAttackMs = entity.World.ElapsedMilliseconds;
 			return targetEntity != null;
 		}
 
@@ -100,19 +96,15 @@ namespace VSKingdom {
 		
 		public override void StartExecute() {
 			// Record last animMeta so we can stop it if we need to.
-			/**prevAnim = animMeta?.Code ?? "hit";**/
-			prevAnim = currAnim;
+			lastAnim = currAnim;
 			// Initialize a random attack animation and sounds!
 			if (entity.RightHandItemSlot.Empty) {
-				/**animMeta = animMetas[0]**/
-				currAnim = animCodes[0];
+				currAnim = animations[0];
 			} else {
 				if (entity.RightHandItemSlot.Itemstack.Item.Code.PathStartsWith("spear-")) {
-					/**animMeta = animMetas[1];**/
-					currAnim = animCodes[1];
+					currAnim = animations[1];
 				} else {
-					/**animMeta = animMetas[rnd.Next(0, animMetas.Length - 1)];**/
-					currAnim = animCodes[entity.World.Rand.Next(0, animCodes.Length - 1)];
+					currAnim = animations[entity.World.Rand.Next(0, animations.Length - 1)];
 				}
 				switch (entity.World.Rand.Next(1, 2)) {
 					case 1: sound = new AssetLocation("game:sounds/player/strike1"); break;
@@ -120,7 +112,9 @@ namespace VSKingdom {
 				}
 			}
 			cancelAttack = false;
-			curTurn = pathTraverser.curTurnRadPerSec;
+			animsRunning = false;
+			usingAShield = !entity.LeftHandItemSlot.Empty && (entity.LeftHandItemSlot.Itemstack?.Item is ItemShield);
+			curTurnAngle = pathTraverser.curTurnRadPerSec;
 			searchTask.SetTargetEnts(targetEntity);
 		}
 
@@ -135,9 +129,9 @@ namespace VSKingdom {
 			bool flag = true;
 			if (turnToTarget) {
 				float num = GameMath.AngleRadDistance(entity.ServerPos.Yaw, (float)Math.Atan2(serverPos2.X - serverPos1.X, serverPos2.Z - serverPos1.Z));
-				entity.ServerPos.Yaw += GameMath.Clamp(num, (0f - curTurn) * dt * GlobalConstants.OverallSpeedMultiplier, curTurn * dt * GlobalConstants.OverallSpeedMultiplier);
+				entity.ServerPos.Yaw += GameMath.Clamp(num, (0f - curTurnAngle) * dt * GlobalConstants.OverallSpeedMultiplier, curTurnAngle * dt * GlobalConstants.OverallSpeedMultiplier);
 				entity.ServerPos.Yaw = entity.ServerPos.Yaw % (MathF.PI * 2f);
-				flag = Math.Abs(num) < maxDist * (MathF.PI / 180f);
+				flag = Math.Abs(num) < maximumRange * (MathF.PI / 180f);
 			}
 			// Get closer if target is too far, but if they're super far then give up!
 			if (serverPos1.DistanceTo(serverPos2) > entity.weapRange) {
@@ -145,25 +139,55 @@ namespace VSKingdom {
 				if (!entity.ruleOrder[3] && entity.Loyalties.GetBlockPos("outpost_xyzd").DistanceTo(serverPos2.AsBlockPos) > entity.postRange) {
 					targetEntity = null;
 					cancelAttack = true;
-					StopNow();
+					searchTask.SetTargetEnts(null);
+					entity.ServerControls.StopAllMovement();
+					entity.StopAnimation(lastAnim);
 					return false;
 				}
-				// Try NavigateTo instead of WalkTowards?
-				//pathTraverser.WalkTowards(serverPos2?.XYZ.Clone() ?? serverPos1.XYZ.Clone(), (float)entity.moveSpeed, (float)entity.weapRange, OnGoals, OnStuck);
 			}
-			if (prevAnim != null && currAnim != null && !entity.AnimManager.GetAnimationState(prevAnim).Running && flag) {
-				entity.StopAnimation(prevAnim);
-				AttackTarget();
+			animsRunning = lastAnim != null ? entity.AnimManager.GetAnimationState(lastAnim).Running : false;
+			if (!animsRunning && currAnim != null && flag) {
+				animsRunning = AttackTarget();
 			}
-			return lastSearchMs + durationOfMs > entity.World.ElapsedMilliseconds;
+			if (usingAShield) {
+				bool closeToTarget = entity.ServerPos.SquareDistanceTo(targetEntity.ServerPos) < 16f;
+				bool targetsRanged = false;
+				if (targetEntity is EntityHumanoid humanoidEnt) {
+					if (!humanoidEnt.RightHandItemSlot.Empty) {
+						Item targetWeapon = humanoidEnt.RightHandItemSlot.Itemstack.Item;
+						targetsRanged = (targetWeapon is ItemBow || targetWeapon is ItemSling);
+					}
+				}
+				bool shouldShield = (closeToTarget && !targetsRanged) || (!closeToTarget && targetsRanged);
+				if (shouldShield && !entity.AnimManager.IsAnimationActive(shieldAnim)) {
+					entity.AnimManager.StartAnimation(new AnimationMetaData() {
+						Animation = shieldAnim,
+						Code = shieldAnim,
+						BlendMode = EnumAnimationBlendMode.Add,
+						EaseInSpeed = 1f,
+						ElementWeight = new Dictionary<string, float> {
+							{ "UpperArmL", 100f },
+							{ "LowerArmL", 100f }
+						},
+						ElementBlendMode = new Dictionary<string, EnumAnimationBlendMode> {
+							{ "UpperArmL", EnumAnimationBlendMode.AddAverage },
+							{ "LowerArmL", EnumAnimationBlendMode.AddAverage }
+						}
+					}.Init());
+				}
+				if (!shouldShield) {
+					entity.AnimManager.StopAnimation(shieldAnim);
+				}
+			}
+			return lastAttackMs + durationOfMs > entity.World.ElapsedMilliseconds;
 		}
 
 		public override void FinishExecute(bool cancelled) {
 			cooldownUntilMs = entity.World.ElapsedMilliseconds + mincooldown + entity.World.Rand.Next(maxcooldown - mincooldown);
-			cooldownUntilTotalHours = entity.World.Calendar.TotalHours + mincooldownHours + entity.World.Rand.NextDouble() * (maxcooldownHours - mincooldownHours);
 			if (currAnim != null) {
 				entity.AnimManager.StopAnimation(currAnim);
 			}
+			entity.AnimManager.StopAnimation(shieldAnim);
 		}
 
 		public override void OnEntityHurt(DamageSource source, float damage) {
@@ -194,10 +218,11 @@ namespace VSKingdom {
 			ShouldExecute();
 		}
 
-		private void AttackTarget() {
+		private bool AttackTarget() {
 			if (!hasDirectContact(targetEntity, (float)entity.weapRange, (float)entity.weapRange)) {
-				return;
+				return false;
 			}
+			entity.AnimManager.StopAnimation(lastAnim);
 			entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = currAnim, Code = currAnim }.Init());
 			entity.World.PlaySoundAt(sound, entity, null, true, soundRange);
 			float damage = entity.RightHandItemSlot?.Itemstack?.Item?.AttackPower ?? 1f;
@@ -213,22 +238,9 @@ namespace VSKingdom {
 			if (alive && !targetEntity.Alive) {
 				targetEntity = null;
 				cancelAttack = true;
-				return;
+				return false;
 			}
-		}
-
-		private void OnStuck() {
-			updateTargetPosFleeMode(entity.Pos.XYZ);
-		}
-
-		private void OnGoals() {
-			pathTraverser.Retarget();
-		}
-
-		private void StopNow() {
-			searchTask.SetTargetEnts(null);
-			entity.ServerControls.StopAllMovement();
-			entity.StopAnimation(prevAnim);
+			return true;
 		}
 
 		private bool IsTargetEntity(string testPath) {
@@ -250,66 +262,5 @@ namespace VSKingdom {
 			}
 			return false;
 		}
-		
-		/**private void CheckDoors(Vec3d target) {
-			if (target != null) {
-				// Check if there is a door in the way.
-				BlockSelection blockSel = new BlockSelection();
-				EntitySelection entitySel = new EntitySelection();
-
-				entity.World.RayTraceForSelection(entity.ServerPos.XYZ.AddCopy(entity.LocalEyePos), entity.ServerPos.BehindCopy(4).XYZ, ref blockSel, ref entitySel);
-				if (blockSel != null && doorIsBehind && blockSel.Block is BlockBaseDoor rearBlock && rearBlock.IsOpened()) {
-					doorIsBehind = ToggleDoor(blockSel.Position);
-				}
-
-				entity.World.RayTraceForSelection(entity.ServerPos.XYZ.AddCopy(entity.LocalEyePos), target, ref blockSel, ref entitySel);
-				if (blockSel != null && blockSel.Block is BlockBaseDoor baseBlock && !baseBlock.IsOpened()) {
-					doorIsBehind = ToggleDoor(blockSel.Position);
-				} else if (blockSel.Block is BlockDoor doorBlock && !doorBlock.IsOpened() && doorBlock.IsUpperHalf()) {
-					BlockPos realBlock = new BlockPos(blockSel.Position.X, blockSel.Position.Y - 1, blockSel.Position.Z, blockSel.Position.dimension);
-					doorIsBehind = ToggleDoor(realBlock);
-				}
-			}
-		}
-
-		private bool ToggleDoor(BlockPos pos) {
-			if (pos.HorizontalManhattenDistance(entity.ServerPos.AsBlockPos) > 3) {
-				return false;
-			}
-			if (entity.World.BlockAccessor.GetBlock(pos) is not BlockBaseDoor doorBlock) {
-				return false;
-			}
-
-			var doorBehavior = BlockBehaviorDoor.getDoorAt(entity.World, pos);
-			bool stateOpened = doorBlock.IsOpened();
-			bool canBeOpened = TestAccess(pos);
-
-			if (canBeOpened && doorBehavior != null) {
-				doorBehavior.ToggleDoorState(null, stateOpened);
-				doorBlock.OnBlockInteractStart(entity.World, null, new BlockSelection(pos, BlockFacing.UP, doorBlock));
-				return true;
-			}
-			return false;
-		}
-
-		private bool DamageDoor(BlockPos pos) {
-			// Break down door over time.
-			return false;
-		}
-
-		private bool TestAccess(BlockPos pos) {
-			if (entity.World.Claims.Get(pos).Length <= 0) {
-				return true;
-			}
-			if (entity.World.Claims.TestAccess(entity.World.PlayerByUid(entity.leadersID), pos, EnumBlockAccessFlags.Use) == EnumWorldAccessResponse.Granted) {
-				return true;
-			}
-			foreach (var claim in entity.World.Claims.Get(pos)) {
-				if (entity.World.PlayerByUid(claim.OwnedByPlayerUid)?.Entity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdom_guid") == entity.kingdomID) {
-					return true;
-				}
-			}
-			return false;
-		}**/
 	}
 }

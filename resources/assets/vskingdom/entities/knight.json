@@ -325,18 +325,13 @@
 						"code": "SentryAttack",
 						"priority": 2.0,
 						"entityCodes": [ "player", "archer-*", "knight-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "looter-*", "bandit-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
-						"mincooldown": 500,
-						"maxcooldown": 1500,
-						"animCodes": [ "hit", "spearstabs", "swordswing", "swordsmash", "swordslash", "swordstabs" ],
-						"damageTier": 3
+						"animations": [ "hit", "spearstabs", "swordswing", "swordsmash", "swordslash", "swordstabs" ],
+						"damageTier": 3,
+						"isBandit": false
 					},
 					{
 						"code": "SentrySearch",
 						"priority": 1.5,
-						"mincooldown": 1000,
-						"maxcooldown": 1500,
-						"seekingRange": 20,
-						"animationSpeed": 1.75,
 						"isArcher": false
 					},
 					{

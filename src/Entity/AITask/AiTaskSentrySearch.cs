@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Datastructures;
-using Vintagestory.API.Util;
 
 namespace VSKingdom {
 	public class AiTaskSentrySearch : AiTaskBaseTargetable {
@@ -14,30 +13,26 @@ namespace VSKingdom {
 		#pragma warning disable CS0108
 		public EntitySentry entity;
 		#pragma warning restore CS0108
-		protected bool archerPilled = false;
-		protected bool banditPilled = false;
+		protected bool archerPilled;
 		protected bool cancelSearch;
-		protected bool jumpAtAnimOn;
 		protected bool lastPathfind;
-		protected bool leapAtTarget;
-		protected long lastJumpingsAtMS;
 		protected long lastAttackedAtMs;
 		protected long lastHurtByTarget;
 		protected long lastFinishedAtMs;
 		protected long lastRetreatsAtMs;
+		protected float extraTargetOffset;
+		protected float currentUpdateTime;
 		protected float currentFollowTime;
-		protected float extraTargetDistance;
-		protected float lastPathUpdateSeconds;
-		protected float maxFollowTime = 60f;
-		protected float minRange;
-		protected float retreatRange = 20f;
+		protected float maximumFollowTime = 60f;
+		protected float retreatRange = 30f;
 		protected float seekingRange = 25f;
 		protected float curMoveSpeed = 0.03f;
 		protected Vec3d lastGoalReachedPos;
 		protected Vec3d targetPos;
 		protected Dictionary<long, int> futilityCounters;
 		protected EnumAttackPattern attackPattern;
-		protected bool RecentlyHurt => entity.World.ElapsedMilliseconds - lastHurtByTarget < 10000;
+		protected bool InTheReachOfTargets => targetEntity.ServerPos.SquareDistanceTo(entity.ServerPos.XYZ) < (extraTargetOffset * extraTargetOffset);
+		protected bool RecentlyTookDamages => entity.World.ElapsedMilliseconds - lastHurtByTarget < 10000;
 		protected bool RemainInRetreatMode => entity.World.ElapsedMilliseconds - lastRetreatsAtMs < 20000;
 		protected bool RemainInOffenseMode => entity.World.ElapsedMilliseconds - lastAttackedAtMs < 20000;
 
@@ -48,11 +43,16 @@ namespace VSKingdom {
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);
 			this.partitionUtil = entity.Api.ModLoader.GetModSystem<EntityPartitioning>();
-			this.retaliateAttacks = taskConfig["retaliateAttacks"].AsBool(defaultValue: true);
-			this.triggerEmotionState = taskConfig["triggerEmotionState"].AsString();
+			this.mincooldown = taskConfig["mincooldown"].AsInt(1000);
+			this.maxcooldown = taskConfig["maxcooldown"].AsInt(1500);
+			this.retaliateAttacks = taskConfig["retaliateAttacks"].AsBool(true);
+			this.extraTargetOffset = taskConfig["extraTargetOffset"].AsFloat(1f);
+			this.seekingRange = taskConfig["seekingRange"].AsFloat(25f);
 			this.skipEntityCodes = taskConfig["skipEntityCodes"].AsArray<string>()?.Select((string str) => AssetLocation.Create(str, entity.Code.Domain)).ToArray();
 			this.archerPilled = taskConfig["isArcher"].AsBool(false);
-			this.banditPilled = taskConfig["isBandit"].AsBool(false);
+			if (archerPilled) {
+				extraTargetOffset *= 4f;
+			}
 		}
 
 		public override bool ShouldExecute() {
@@ -63,11 +63,11 @@ namespace VSKingdom {
 			cancelSearch = false;
 			currentFollowTime = 0f;
 			targetPos = targetEntity.ServerPos.XYZ;
-			var navigateAction = DoSieged;
 			if (RemainInRetreatMode) {
 				Retreats();
 				return;
 			}
+			var navigateAction = DoSieged;
 			if (archerPilled) {
 				bool safeSpot = !NotSafe();
 				bool runfight = !safeSpot && world.Rand.NextDouble() < 0.5;
@@ -95,32 +95,39 @@ namespace VSKingdom {
 			if (currentFollowTime == 0f && world.Rand.NextDouble() < 0.25) {
 				base.StartExecute();
 			}
-			if (archerPilled && InReach()) {
+			if (archerPilled && InTheReachOfTargets) {
 				attackPattern = EnumAttackPattern.TacticalRetreat;
 			}
 			retreatRange = Math.Max(20f, retreatRange - dt / 4f);
 			currentFollowTime += dt;
-			lastPathUpdateSeconds += dt;
-			if (attackPattern == EnumAttackPattern.TacticalRetreat && world.Rand.NextDouble() < 0.2) {
-				updateTargetPosFleeMode(targetPos);
-				pathTraverser.CurrentTarget.X = targetPos.X;
-				pathTraverser.CurrentTarget.Y = targetPos.Y;
-				pathTraverser.CurrentTarget.Z = targetPos.Z;
+			currentUpdateTime += dt;
+			if (entity.Swimming) {
+				curMoveSpeed = (float)entity.moveSpeed;
+				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = swimAnimCode, Code = swimAnimCode, BlendMode = EnumAnimationBlendMode.Average }.Init());
+				entity.AnimManager.StopAnimation(walkAnimCode);
+				entity.AnimManager.StopAnimation(moveAnimCode);
 			}
 			if (attackPattern != EnumAttackPattern.TacticalRetreat) {
-				if (RecentlyHurt && !lastPathfind) {
+				if (RecentlyTookDamages && (!lastPathfind || IsInEmotionState("fleeondamage"))) {
 					Retreats();
 				}
-				if (attackPattern == EnumAttackPattern.DirectAttack && lastPathUpdateSeconds >= 0.75f && targetPos.SquareDistanceTo(targetEntity.ServerPos.XYZ) >= 9f) {
+				if (attackPattern == EnumAttackPattern.DirectAttack && currentUpdateTime >= 0.75f && targetPos.SquareDistanceTo(targetEntity.ServerPos.XYZ) >= 9f) {
 					targetPos.Set(targetEntity.ServerPos.X + targetEntity.ServerPos.Motion.X * 10.0, targetEntity.ServerPos.Y, targetEntity.ServerPos.Z + targetEntity.ServerPos.Motion.Z * 10.0);
-					pathTraverser.WalkTowards(targetPos, (float)entity.moveSpeed, TargetDist(), OnGoals, OnStuck);
-					lastPathUpdateSeconds = 0f;
+					MoveAnimation();
+					pathTraverser.WalkTowards(targetPos, curMoveSpeed, TargetDist(), OnGoals, OnStuck);
+					currentUpdateTime = 0f;
 				}
 				if (attackPattern == EnumAttackPattern.DirectAttack || attackPattern == EnumAttackPattern.BesiegeTarget) {
 					pathTraverser.CurrentTarget.X = targetEntity.ServerPos.X;
 					pathTraverser.CurrentTarget.Y = targetEntity.ServerPos.Y;
 					pathTraverser.CurrentTarget.Z = targetEntity.ServerPos.Z;
 				}
+			} else if (attackPattern == EnumAttackPattern.TacticalRetreat && world.Rand.NextDouble() < 0.2) {
+				updateTargetPosFleeMode(targetPos);
+				pathTraverser.CurrentTarget.X = targetPos.X;
+				pathTraverser.CurrentTarget.Y = targetPos.Y;
+				pathTraverser.CurrentTarget.Z = targetPos.Z;
+				MoveAnimation();
 			}
 			Vec3d vec = entity.ServerPos.XYZ.Add(0.0, entity.SelectionBox.Y2 / 2f, 0.0).Ahead(entity.SelectionBox.XSize / 2f, 0f, entity.ServerPos.Yaw);
 			double num1 = targetEntity.SelectionBox.ToDouble().Translate(targetEntity.ServerPos.XYZ).ShortestDistanceFrom(vec);
@@ -131,7 +138,7 @@ namespace VSKingdom {
 				}
 				return false;
 			}
-			if (flag3 && currentFollowTime < maxFollowTime && num1 < seekingRange) {
+			if (flag3 && currentFollowTime < maximumFollowTime && num1 < seekingRange) {
 				if (!(num1 > TargetDist())) {
 					if (targetEntity is EntityAgent entityAgent) {
 						return entityAgent?.ServerControls?.TriesToMove ?? false;
@@ -234,7 +241,7 @@ namespace VSKingdom {
 
 		private void Retreats() {
 			// Unable to perform circle attack pattern, trying retreat!
-			if (!RemainInOffenseMode && (RecentlyHurt || RemainInRetreatMode)) {
+			if (!RemainInOffenseMode && (RecentlyTookDamages || RemainInRetreatMode)) {
 				updateTargetPosFleeMode(targetPos);
 				MoveAnimation();
 				pathTraverser.WalkTowards(targetPos, curMoveSpeed, targetEntity.SelectionBox.XSize + 0.2f, OnGoals, OnStuck);
@@ -316,14 +323,6 @@ namespace VSKingdom {
 			return !noCrossing;
 		}
 
-		private bool InReach() {
-			double num = targetEntity.ServerPos.SquareDistanceTo(entity.ServerPos.XYZ);
-			if (archerPilled) {
-				return num < (2d * 2d) && entity.RightHandItemSlot?.Itemstack?.Item is ItemBow && !entity.AmmoItemSlot.Empty;
-			}
-			return num > (minRange * minRange);
-		}
-
 		private int OnFloor(int x, int y, int z) {
 			int tries = 5;
 			while (tries-- > 0) {
@@ -336,7 +335,7 @@ namespace VSKingdom {
 		}
 
 		private float TargetDist() {
-			return extraTargetDistance + Math.Max(0.1f, targetEntity.SelectionBox.XSize / 2f + entity.SelectionBox.XSize / 4f);
+			return extraTargetOffset + Math.Max(0.1f, targetEntity.SelectionBox.XSize / 2f + entity.SelectionBox.XSize / 4f);
 		}
 	}
 }

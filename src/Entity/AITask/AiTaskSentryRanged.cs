@@ -17,19 +17,18 @@ namespace VSKingdom {
 		protected bool animsStarted = false;
 		protected bool cancelAttack = false;
 		protected bool renderSwitch = false;
-		protected bool banditryBehavior = false;
-		protected bool projectiledFired = false;
-		protected int durationOfMs = 1200;
-		protected int releasesAtMs = 1000;
+		protected bool releasedShot = false;
+		protected bool banditPilled = false;
 		protected long totalDurationMs;
+		protected long durationOfMs = 1200;
+		protected long releasesAtMs = 1000;
 		protected long totalCooldownMs = 1000L;
-		protected float maxDist;
-		protected float minDist;
+		protected float maximumRange = 20f;
+		protected float minimumRange = 4f;
 		protected float accum = 0;
 		protected float minTurnAnglePerSec;
 		protected float maxTurnAnglePerSec;
 		protected float curTurnAnglePerSec;
-		
 		protected AnimationMetaData drawBowsMeta;
 		protected AnimationMetaData fireBowsMeta;
 		protected AnimationMetaData loadBowsMeta;
@@ -38,14 +37,18 @@ namespace VSKingdom {
 		protected AssetLocation hittingsound = null;
 		protected AssetLocation ammoLocation = null;
 		protected AiTaskSentrySearch searchTask => entity.GetBehavior<EntityBehaviorTaskAI>().TaskManager.GetTask<AiTaskSentrySearch>();
-		protected AiTaskSentryEscape escapeTask => entity.GetBehavior<EntityBehaviorTaskAI>().TaskManager.GetTask<AiTaskSentryEscape>();
+
+		protected static readonly string bandituid = "xxxxxxxx";
+		protected static readonly string loyalties = "loyalties";
 
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);
-			maxDist = taskConfig["maxDist"].AsFloat(20f);
-			minDist = taskConfig["minDist"].AsFloat(3f);
-			banditryBehavior = taskConfig["isBandit"].AsBool(false);
-			drawBowsMeta = new AnimationMetaData() {
+			this.mincooldown = taskConfig["mincooldown"].AsInt(500);
+			this.maxcooldown = taskConfig["maxcooldown"].AsInt(1500);
+			this.minimumRange = taskConfig["minimumRange"].AsFloat(4f);
+			this.maximumRange = taskConfig["maximumRange"].AsFloat(20f);
+			this.banditPilled = taskConfig["isBandit"].AsBool(false);
+			this.drawBowsMeta = new AnimationMetaData() {
 				Code = "bowdraw",
 				Animation = "bowdraw",
 				BlendMode = EnumAnimationBlendMode.Add,
@@ -64,7 +67,7 @@ namespace VSKingdom {
 					{ "ItemAnchor", EnumAnimationBlendMode.AddAverage }
 				}
 			}.Init();
-			fireBowsMeta = new AnimationMetaData() {
+			this.fireBowsMeta = new AnimationMetaData() {
 				Code = "bowfire",
 				Animation = "bowfire",
 				BlendMode = EnumAnimationBlendMode.Add,
@@ -82,10 +85,24 @@ namespace VSKingdom {
 					{ "LowerArmL", EnumAnimationBlendMode.AddAverage }
 				}
 			}.Init();
-			loadBowsMeta = new AnimationMetaData() {
+			this.loadBowsMeta = new AnimationMetaData() {
 				Code = "bowload",
 				Animation = "bowload",
-				BlendMode = EnumAnimationBlendMode.Add
+				BlendMode = EnumAnimationBlendMode.Add,
+				ElementWeight = new Dictionary<string, float> {
+					{ "UpperArmR", 90f },
+					{ "LowerArmR", 90f },
+					{ "UpperArmL", 90f },
+					{ "LowerArmL", 90f },
+					{ "ItemAnchor", 90f }
+				},
+				ElementBlendMode = new Dictionary<string, EnumAnimationBlendMode> {
+					{ "UpperArmR", EnumAnimationBlendMode.AddAverage },
+					{ "LowerArmR", EnumAnimationBlendMode.AddAverage },
+					{ "UpperArmL", EnumAnimationBlendMode.AddAverage },
+					{ "LowerArmL", EnumAnimationBlendMode.AddAverage },
+					{ "ItemAnchor", EnumAnimationBlendMode.AddAverage }
+				}
 			}.Init();
 		}
 
@@ -108,9 +125,9 @@ namespace VSKingdom {
 			IL_0095:
 			totalDurationMs = entity.World.ElapsedMilliseconds;
 			if (rand.Next(0, 1) == 0) {
-				targetEntity = partitionUtil.GetNearestInteractableEntity(entity.ServerPos.XYZ, maxDist * 2f, (Entity ent) => IsTargetableEntity(ent, maxDist) && hasDirectContact(ent, maxDist, minDist));
+				targetEntity = partitionUtil.GetNearestInteractableEntity(entity.ServerPos.XYZ, maximumRange * 2f, (Entity ent) => IsTargetableEntity(ent, maximumRange) && hasDirectContact(ent, maximumRange, minimumRange));
 			} else {
-				var targetList = entity.World.GetEntitiesAround(entity.ServerPos.XYZ, maxDist, maxDist * 2f, (Entity ent) => IsTargetableEntity(ent, maxDist) && hasDirectContact(ent, maxDist, minDist));
+				var targetList = entity.World.GetEntitiesAround(entity.ServerPos.XYZ, maximumRange, maximumRange * 2f, (Entity ent) => IsTargetableEntity(ent, maximumRange) && hasDirectContact(ent, maximumRange, minimumRange));
 				targetEntity = targetList[rand.Next(0, targetList.Length - 1)];
 			}
 			goto IL_00d6;
@@ -125,14 +142,14 @@ namespace VSKingdom {
 			if (ent is EntityProjectile projectile && projectile.FiredBy != null) {
 				targetEntity = projectile.FiredBy;
 			}
-			if (ent.WatchedAttributes.HasAttribute("loyalties")) {
-				if (banditryBehavior) {
-					return ent is EntityPlayer || (ent is EntitySentry sentry && sentry.kingdomID != "xxxxxxxx");
+			if (ent.WatchedAttributes.HasAttribute(loyalties)) {
+				if (banditPilled) {
+					return ent is EntityPlayer || (ent is EntitySentry sentry && sentry.kingdomID != bandituid);
 				}
 				if (ent is EntitySentry sent) {
-					return entity.enemiesID.Contains(sent.kingdomID) || sent.kingdomID == "xxxxxxxx";
+					return entity.enemiesID.Contains(sent.kingdomID) || sent.kingdomID == bandituid;
 				}
-				return entity.enemiesID.Contains(ent.WatchedAttributes.GetTreeAttribute("loyalties").GetString("kingdom_guid"));
+				return entity.enemiesID.Contains(ent.WatchedAttributes.GetTreeAttribute(loyalties).GetString("kingdom_guid"));
 			}
 			if (ignoreEntityCode || IsTargetEntity(ent.Code.Path)) {
 				return CanSense(ent, range);
@@ -145,7 +162,7 @@ namespace VSKingdom {
 			animsStarted = false;
 			cancelAttack = false;
 			renderSwitch = false;
-			projectiledFired = false;
+			releasedShot = false;
 			// Get and initialize the item's attributes to the weapon.
 			drawingsound = ItemsProperties.wepnAimAudio.Get(entity.RightHandItemSlot?.Itemstack?.Collectible?.Code);
 			List<AssetLocation> hitAudio = ItemsProperties.wepnHitAudio.Get(entity.RightHandItemSlot?.Itemstack?.Collectible?.Code);
@@ -177,13 +194,6 @@ namespace VSKingdom {
 			if (cancelAttack || targetEntity is null || !targetEntity.Alive || entity.Swimming) {
 				return false;
 			}
-			// Retreat if target is too close!
-			if (entity.ServerPos.SquareDistanceTo(targetEntity.ServerPos.XYZ) <= 16) {
-				entity.World.FrameProfiler.Mark("task-sentryescape-startexecute-init");
-				escapeTask.SetTargetEnts(targetEntity);
-				escapeTask.StartExecute();
-				searchTask.FinishExecute(true);
-			}
 			// Calculate aiming at targetEntity!
 			Vec3f targetVec = targetEntity.ServerPos.XYZFloat.Sub(entity.ServerPos.XYZFloat);
 			targetVec.Set((float)(targetEntity.ServerPos.X - entity.ServerPos.X), (float)(targetEntity.ServerPos.Y - entity.ServerPos.Y), (float)(targetEntity.ServerPos.Z - entity.ServerPos.Z));
@@ -213,14 +223,14 @@ namespace VSKingdom {
 				renderSwitch = true;
 			}
 			// Do after aiming time is finished.
-			if (accum > releasesAtMs / 1000f && !projectiledFired && !EntityInTheWay() && HasRanged()) {
-				projectiledFired = FireProjectile();
+			if (accum > releasesAtMs / 1000f && !releasedShot && !EntityInTheWay() && HasRanged()) {
+				releasedShot = FireProjectile();
 				// Don't play anything when the hittingSound is incorrectly set.
 				if (hittingsound != null) {
 					entity.World.PlaySoundAt(hittingsound, entity, null, false);
 				}
 			}
-			return accum < (float)durationOfMs / 1000f && !cancelAttack;
+			return accum < durationOfMs / 1000f && !cancelAttack;
 		}
 
 		public override void FinishExecute(bool cancelled) {
@@ -238,10 +248,10 @@ namespace VSKingdom {
 				cancelAttack = true;
 			}
 			// Interrupt attack and flee! Enemy is close!
-			if (source.GetCauseEntity().ServerPos.SquareDistanceTo(entity.ServerPos) < minDist * minDist) {
+			if (source.GetCauseEntity().ServerPos.SquareDistanceTo(entity.ServerPos) < minimumRange * minimumRange) {
 				cancelAttack = true;
 				FinishExecute(true);
-				escapeTask.SetTargetEnts(targetEntity);
+				searchTask.SetTargetEnts(targetEntity);
 
 			} else {
 				base.OnEntityHurt(source, damage);
@@ -284,7 +294,7 @@ namespace VSKingdom {
 		}
 
 		private bool IsEnemy(Entity target) {
-			if (entity.enemiesID.Contains(target.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdom_guid"))) {
+			if (entity.enemiesID.Contains(target.WatchedAttributes.GetTreeAttribute(loyalties)?.GetString("kingdom_guid"))) {
 				return true;
 			}
 			if (target is EntityPlayer player) {
@@ -339,7 +349,7 @@ namespace VSKingdom {
 					return false;
 				}
 				// Determine if the entity in the way is a friend or foe, if they're an enemy then disregard and shoot anyway.
-				if (entitySel?.Entity?.WatchedAttributes.HasAttribute("loyalties") ?? false) {
+				if (entitySel?.Entity?.WatchedAttributes.HasAttribute(loyalties) ?? false) {
 					return !IsEnemy(entitySel.Entity);
 				}
 				return true;

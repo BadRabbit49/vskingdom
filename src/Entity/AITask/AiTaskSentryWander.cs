@@ -32,17 +32,16 @@ namespace VSKingdom {
 		protected float wanderRangedMul { get => entity.WatchedAttributes.GetFloat("wanderRangeMul", 1); }
 		protected Vec3d outpostPosition { get => entity.Loyalties.GetBlockPos("outpost_xyzd").ToVec3d(); }
 
-		protected static readonly string idleAnimCode = "idle";
 		protected static readonly string walkAnimCode = "walk";
 		protected static readonly string moveAnimCode = "move";
 		protected static readonly string swimAnimCode = "swim";
 
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);
-			targetRanges = taskConfig["targetRanges"].AsFloat(0.12f);
-			wanderHeight = taskConfig["wanderHeight"].AsFloat(7f);
-			wanderChance = taskConfig["wanderChance"].AsFloat(0.005f);
-			whenNotInEmotionState = taskConfig["whenNotInEmotionState"].AsString("aggressiveondamage|fleeondamage");
+			this.targetRanges = taskConfig["targetRanges"].AsFloat(0.12f);
+			this.wanderHeight = taskConfig["wanderHeight"].AsFloat(7f);
+			this.wanderChance = taskConfig["wanderChance"].AsFloat(0.005f);
+			this.whenNotInEmotionState = taskConfig["whenNotInEmotionState"].AsString("aggressiveondamage|fleeondamage");
 		}
 
 		public override bool ShouldExecute() {
@@ -283,5 +282,66 @@ namespace VSKingdom {
 				entity.AnimManager.StopAnimation(swimAnimCode);
 			}
 		}
+
+		/**private void CheckDoors(Vec3d target) {
+			if (target != null) {
+				// Check if there is a door in the way.
+				BlockSelection blockSel = new BlockSelection();
+				EntitySelection entitySel = new EntitySelection();
+
+				entity.World.RayTraceForSelection(entity.ServerPos.XYZ.AddCopy(entity.LocalEyePos), entity.ServerPos.BehindCopy(4).XYZ, ref blockSel, ref entitySel);
+				if (blockSel != null && doorIsBehind && blockSel.Block is BlockBaseDoor rearBlock && rearBlock.IsOpened()) {
+					doorIsBehind = ToggleDoor(blockSel.Position);
+				}
+
+				entity.World.RayTraceForSelection(entity.ServerPos.XYZ.AddCopy(entity.LocalEyePos), target, ref blockSel, ref entitySel);
+				if (blockSel != null && blockSel.Block is BlockBaseDoor baseBlock && !baseBlock.IsOpened()) {
+					doorIsBehind = ToggleDoor(blockSel.Position);
+				} else if (blockSel.Block is BlockDoor doorBlock && !doorBlock.IsOpened() && doorBlock.IsUpperHalf()) {
+					BlockPos realBlock = new BlockPos(blockSel.Position.X, blockSel.Position.Y - 1, blockSel.Position.Z, blockSel.Position.dimension);
+					doorIsBehind = ToggleDoor(realBlock);
+				}
+			}
+		}
+
+		private bool ToggleDoor(BlockPos pos) {
+			if (pos.HorizontalManhattenDistance(entity.ServerPos.AsBlockPos) > 3) {
+				return false;
+			}
+			if (entity.World.BlockAccessor.GetBlock(pos) is not BlockBaseDoor doorBlock) {
+				return false;
+			}
+
+			var doorBehavior = BlockBehaviorDoor.getDoorAt(entity.World, pos);
+			bool stateOpened = doorBlock.IsOpened();
+			bool canBeOpened = TestAccess(pos);
+
+			if (canBeOpened && doorBehavior != null) {
+				doorBehavior.ToggleDoorState(null, stateOpened);
+				doorBlock.OnBlockInteractStart(entity.World, null, new BlockSelection(pos, BlockFacing.UP, doorBlock));
+				return true;
+			}
+			return false;
+		}
+
+		private bool DamageDoor(BlockPos pos) {
+			// Break down door over time.
+			return false;
+		}
+
+		private bool TestAccess(BlockPos pos) {
+			if (entity.World.Claims.Get(pos).Length <= 0) {
+				return true;
+			}
+			if (entity.World.Claims.TestAccess(entity.World.PlayerByUid(entity.leadersID), pos, EnumBlockAccessFlags.Use) == EnumWorldAccessResponse.Granted) {
+				return true;
+			}
+			foreach (var claim in entity.World.Claims.Get(pos)) {
+				if (entity.World.PlayerByUid(claim.OwnedByPlayerUid)?.Entity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdom_guid") == entity.kingdomID) {
+					return true;
+				}
+			}
+			return false;
+		}**/
 	}
 }

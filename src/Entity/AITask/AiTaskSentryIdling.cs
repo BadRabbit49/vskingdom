@@ -31,13 +31,6 @@ namespace VSKingdom {
 		protected string[] animsLate;
 		protected string[] animsCold;
 		protected string[] animsSwim;
-
-		/**protected AnimationMetaData basicIdle;
-		protected AnimationMetaData[] animsIdle;
-		protected AnimationMetaData[] animsHurt;
-		protected AnimationMetaData[] animsLate;
-		protected AnimationMetaData[] animsCold;
-		protected AnimationMetaData[] animsSwim;**/
 		protected EntityBehaviorHealth healthBehavior;
 		protected EntityPartitioning partitionUtil;
 		protected AssetLocation onBlockBelowCode;
@@ -58,56 +51,6 @@ namespace VSKingdom {
 			this.animsLate = taskConfig["animsLate"].AsArray<string>(new string[] { "yawn", "stretch" });
 			this.animsCold = taskConfig["animsCold"].AsArray<string>(new string[] { "coldidle" });
 			this.animsSwim = taskConfig["animsSwim"].AsArray<string>(new string[] { "swimidle" });
-			/**this.basicIdle = new AnimationMetaData() {
-				Animation = (string)taskConfig["animation"]?.AsString("idle").ToLowerInvariant(),
-				Code = (string)taskConfig["animation"]?.AsString("idle").ToLowerInvariant(),
-				BlendMode = EnumAnimationBlendMode.Average
-			}.Init();
-			string[] animIdleCodes = (string[])taskConfig["animsIdle"]?.AsArray<string>(new string[] { "idle1", "idle2" });
-			this.animsIdle = new AnimationMetaData[animIdleCodes.Length];
-			for (int i = 0; i < animIdleCodes.Length; i++) {
-				animsIdle[i] = new AnimationMetaData() {
-					Animation = animIdleCodes[i].ToLowerInvariant(),
-					Code = animIdleCodes[i].ToLowerInvariant(),
-					BlendMode = EnumAnimationBlendMode.Average
-				}.Init();
-			}
-			string[] animHurtCodes = taskConfig["animsHurt"].AsArray<string>(new string[] { "hurtidle" });
-			this.animsHurt = new AnimationMetaData[animHurtCodes.Length];
-			for (int i = 0; i < animHurtCodes.Length; i++) {
-				animsHurt[i] = new AnimationMetaData() {
-					Animation = animHurtCodes[i].ToLowerInvariant(),
-					Code = animHurtCodes[i].ToLowerInvariant(),
-					BlendMode = EnumAnimationBlendMode.Average
-				}.Init();
-			}
-			string[] animLateCodes = taskConfig["animsLate"].AsArray<string>(new string[] { "yawn", "stretch" });
-			this.animsLate = new AnimationMetaData[animLateCodes.Length];
-			for (int i = 0; i < animLateCodes.Length; i++) {
-				animsLate[i] = new AnimationMetaData() {
-					Animation = animLateCodes[i].ToLowerInvariant(),
-					Code = animLateCodes[i].ToLowerInvariant(),
-					BlendMode = EnumAnimationBlendMode.Average
-				}.Init();
-			}
-			string[] animColdCodes = taskConfig["animsCold"].AsArray<string>(new string[] { "coldidle" });
-			this.animsCold = new AnimationMetaData[animColdCodes.Length];
-			for (int i = 0; i < animColdCodes.Length; i++) {
-				animsCold[i] = new AnimationMetaData() {
-					Animation = animColdCodes[i].ToLowerInvariant(),
-					Code = animColdCodes[i].ToLowerInvariant(),
-					BlendMode = EnumAnimationBlendMode.Average
-				}.Init();
-			}
-			string[] animSwimCodes = taskConfig["animsSwim"].AsArray<string>(new string[] { "swimidle" });
-			this.animsSwim = new AnimationMetaData[animSwimCodes.Length];
-			for (int i = 0; i < animSwimCodes.Length; i++) {
-				animsSwim[i] = new AnimationMetaData() {
-					Animation = animSwimCodes[i].ToLowerInvariant(),
-					Code = animSwimCodes[i].ToLowerInvariant(),
-					BlendMode = EnumAnimationBlendMode.Average
-				}.Init();
-			}**/
 			idleUntilMs = entity.World.ElapsedMilliseconds + minduration + entity.World.Rand.Next(maxduration - minduration);
 			base.LoadConfig(taskConfig, aiConfig);
 		}
@@ -213,12 +156,8 @@ namespace VSKingdom {
 
 		public override void FinishExecute(bool cancelled) {
 			cooldownUntilMs = entity.World.ElapsedMilliseconds + mincooldown + entity.World.Rand.Next(maxcooldown - mincooldown);
-			cooldownUntilTotalHours = entity.World.Calendar.TotalHours + mincooldownHours + entity.World.Rand.NextDouble() * (maxcooldownHours - mincooldownHours);
 			if (currAnims != null && currAnims != "idle") {
 				entity.AnimManager.StopAnimation(currAnims);
-			}
-			if (finishSound != null) {
-				entity.World.PlaySoundAt(finishSound, entity.ServerPos.X, entity.ServerPos.Y, entity.ServerPos.Z, null, randomizePitch: true, soundRange);
 			}
 		}
 

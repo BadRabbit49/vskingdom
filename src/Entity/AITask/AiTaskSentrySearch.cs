@@ -51,7 +51,7 @@ namespace VSKingdom {
 			this.skipEntityCodes = taskConfig["skipEntityCodes"].AsArray<string>()?.Select((string str) => AssetLocation.Create(str, entity.Code.Domain)).ToArray();
 			this.archerPilled = taskConfig["isArcher"].AsBool(false);
 			if (archerPilled) {
-				extraTargetOffset *= 4f;
+				extraTargetOffset *= 5f;
 			}
 		}
 
@@ -79,6 +79,10 @@ namespace VSKingdom {
 		}
 
 		public override bool CanContinueExecute() {
+			if (targetEntity == null) {
+				cancelSearch = true;
+				return false;
+			}
 			if (pathTraverser.Ready) {
 				lastAttackedAtMs = entity.World.ElapsedMilliseconds;
 				lastPathfind = true;
@@ -89,7 +93,7 @@ namespace VSKingdom {
 		}
 
 		public override bool ContinueExecute(float dt) {
-			if (targetEntity == null || !targetEntity.Alive || cancelSearch) {
+			if (cancelSearch || !targetEntity.Alive) {
 				return false;
 			}
 			if (currentFollowTime == 0f && world.Rand.NextDouble() < 0.25) {
@@ -154,17 +158,17 @@ namespace VSKingdom {
 			cooldownUntilMs = entity.World.ElapsedMilliseconds + mincooldown + entity.World.Rand.Next(maxcooldown - mincooldown);
 			cooldownUntilTotalHours = entity.World.Calendar.TotalHours + mincooldownHours + entity.World.Rand.NextDouble() * (maxcooldownHours - mincooldownHours);
 			lastFinishedAtMs = entity.World.ElapsedMilliseconds;
-			if (targetEntity == null || !targetEntity.Alive) {
+			if (targetEntity == null) {
+				targetPos = null;
+				cancelSearch = true;
+				pathTraverser.Stop();
+			} else if (!targetEntity.Alive) {
 				targetEntity = null;
 				targetPos = null;
 				cancelSearch = true;
 				pathTraverser.Stop();
 			}
-			entity.AnimManager.StopAnimation(walkAnimCode);
-			entity.AnimManager.StopAnimation(moveAnimCode);
-			if (!entity.Swimming && entity.AnimManager.IsAnimationActive(swimAnimCode)) {
-				entity.AnimManager.StopAnimation(swimAnimCode);
-			}
+			MoveAnimation();
 		}
 
 		public override bool Notify(string key, object data) {
@@ -243,6 +247,9 @@ namespace VSKingdom {
 			// Unable to perform circle attack pattern, trying retreat!
 			if (!RemainInOffenseMode && (RecentlyTookDamages || RemainInRetreatMode)) {
 				updateTargetPosFleeMode(targetPos);
+				pathTraverser.CurrentTarget.X = targetPos.X;
+				pathTraverser.CurrentTarget.Y = targetPos.Y;
+				pathTraverser.CurrentTarget.Z = targetPos.Z;
 				MoveAnimation();
 				pathTraverser.WalkTowards(targetPos, curMoveSpeed, targetEntity.SelectionBox.XSize + 0.2f, OnGoals, OnStuck);
 				if (attackPattern != EnumAttackPattern.TacticalRetreat) {
@@ -255,6 +262,7 @@ namespace VSKingdom {
 
 		private void OnStuck() {
 			cancelSearch = true;
+			StopAnimation();
 		}
 
 		private void OnGoals() {
@@ -275,20 +283,19 @@ namespace VSKingdom {
 			}
 			lastGoalReachedPos = new Vec3d(entity.Pos);
 			pathTraverser.Retarget();
+			StopAnimation();
 		}
 
 		private void MoveAnimation() {
 			if (cancelSearch) {
 				curMoveSpeed = 0;
-				entity.AnimManager.StopAnimation(walkAnimCode);
-				entity.AnimManager.StopAnimation(moveAnimCode);
-				entity.AnimManager.StopAnimation(swimAnimCode);
+				StopAnimation();
 			} else if (entity.Swimming) {
 				curMoveSpeed = (float)entity.moveSpeed;
 				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = swimAnimCode, Code = swimAnimCode, BlendMode = EnumAnimationBlendMode.Average }.Init());
 				entity.AnimManager.StopAnimation(walkAnimCode);
 				entity.AnimManager.StopAnimation(moveAnimCode);
-			} else if (entity.ServerPos.SquareDistanceTo(targetPos) > 4 * 4) {
+			} else if (entity.ServerPos.SquareDistanceTo(targetPos) > 36f) {
 				curMoveSpeed = (float)entity.moveSpeed;
 				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = moveAnimCode, Code = moveAnimCode, MulWithWalkSpeed = true, BlendMode = EnumAnimationBlendMode.Average }.Init());
 				entity.AnimManager.StopAnimation(walkAnimCode);
@@ -301,8 +308,16 @@ namespace VSKingdom {
 			}
 		}
 
+		private void StopAnimation() {
+			entity.AnimManager.StopAnimation(walkAnimCode);
+			entity.AnimManager.StopAnimation(moveAnimCode);
+			if (!entity.Swimming && entity.AnimManager.IsAnimationActive(swimAnimCode)) {
+				entity.AnimManager.StopAnimation(swimAnimCode);
+			}
+		}
+
 		private bool NotSafe() {
-			if (targetEntity.ServerPos.SquareHorDistanceTo(entity.ServerPos.XYZ) > 4 * 4) {
+			if (targetEntity.ServerPos.SquareHorDistanceTo(entity.ServerPos.XYZ) > 16f) {
 				return false;
 			}
 			if (entity.ServerPos.Y - targetEntity.ServerPos.Y > 4) {

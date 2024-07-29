@@ -84,7 +84,7 @@ namespace VSKingdom {
 					{ "UpperArmL", EnumAnimationBlendMode.AddAverage },
 					{ "LowerArmL", EnumAnimationBlendMode.AddAverage }
 				}
-			}.Init();
+			};
 			this.loadBowsMeta = new AnimationMetaData() {
 				Code = "bowload",
 				Animation = "bowload",
@@ -103,7 +103,7 @@ namespace VSKingdom {
 					{ "LowerArmL", EnumAnimationBlendMode.AddAverage },
 					{ "ItemAnchor", EnumAnimationBlendMode.AddAverage }
 				}
-			}.Init();
+			};
 		}
 
 		public override bool ShouldExecute() {
@@ -190,8 +190,10 @@ namespace VSKingdom {
 		}
 
 		public override bool ContinueExecute(float dt) {
-			// Can't shoot if there is no target, the attack has been cancelled, the shooter is swimming, or the target is too close!
-			if (cancelAttack || targetEntity is null || !targetEntity.Alive || entity.Swimming) {
+			if (targetEntity == null) {
+				return false;
+			}
+			if (cancelAttack || !targetEntity.Alive || entity.Swimming) {
 				return false;
 			}
 			// Calculate aiming at targetEntity!
@@ -207,8 +209,7 @@ namespace VSKingdom {
 			// Start animations if not already doing so.
 			if (!animsStarted) {
 				animsStarted = true;
-				animMeta = drawBowsMeta;
-				entity.AnimManager.StartAnimation(animMeta);
+				entity.AnimManager.StartAnimation(drawBowsMeta.Init());
 				if (drawingsound != null) {
 					entity.World.PlaySoundAt(drawingsound, entity, null, false);
 				}
@@ -218,7 +219,7 @@ namespace VSKingdom {
 
 			// Draw back the weapon to its render variant if it has one. 
 			if (!renderSwitch && accum > durationOfMs / 2000f) {
-				entity.RightHandItemSlot?.Itemstack?.Attributes?.SetInt("renderVariant", 3);
+				entity.RightHandItemSlot.Itemstack?.Attributes?.SetInt("renderVariant", 3);
 				entity.RightHandItemSlot.MarkDirty();
 				renderSwitch = true;
 			}
@@ -234,9 +235,10 @@ namespace VSKingdom {
 		}
 
 		public override void FinishExecute(bool cancelled) {
+			cooldownUntilMs = entity.World.ElapsedMilliseconds + mincooldown + entity.World.Rand.Next(maxcooldown - mincooldown);
 			entity.RightHandItemSlot?.Itemstack?.Attributes?.SetInt("renderVariant", 0);
 			entity.RightHandItemSlot?.MarkDirty();
-			base.FinishExecute(cancelled);
+			entity.AnimManager.StopAnimation(drawBowsMeta.Code);
 		}
 		
 		public override void OnEntityHurt(DamageSource source, float damage) {

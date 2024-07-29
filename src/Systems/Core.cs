@@ -333,17 +333,18 @@ namespace VSKingdom {
 					List<long> currentFollowers = new List<long>();
 					foreach (var follower in followers) {
 						var entity = serverAPI.World.GetEntityById(follower);
-						if (entity != null) {
-							// If the entity is too far away and cannot see the player. 
-							if (!entity.Alive || (entity.ServerPos.XYZ.DistanceTo(player.ServerPos.XYZ) > 20f && MathUtility.CanSeeEnt(entity, player))) {
-								entity.WatchedAttributes.GetTreeAttribute("loyalties").SetBool("command_follow", false);
-								entity.WatchedAttributes.SetLong("guardedEntityId", 0);
-								if (entity is EntitySentry sentry) {
-									sentry.ruleOrder[1] = false;
-								}
-							} else {
-								currentFollowers.Add(follower);
+						if (entity == null) {
+							continue;
+						}
+						// If the entity is too far away and cannot see the player. 
+						if (!entity.Alive || (entity.ServerPos.XYZ.DistanceTo(player.ServerPos.XYZ) > 20f && MathUtility.CanSeeEnt(entity, player))) {
+							entity.WatchedAttributes.GetTreeAttribute("loyalties").SetBool("command_follow", false);
+							entity.WatchedAttributes.SetLong("guardedEntityId", 0);
+							if (entity is EntitySentry sentry) {
+								sentry.ruleOrder[1] = false;
 							}
+						} else {
+							currentFollowers.Add(follower);
 						}
 					}
 					player.WatchedAttributes.SetAttribute("followerEntityUids", new LongArrayAttribute(currentFollowers.ToArray<long>()));
@@ -353,16 +354,27 @@ namespace VSKingdom {
 
 		private void OnSentryUpdated(IServerPlayer fromPlayer, SentryUpdate sentryUpdate) {
 			EntitySentry sentry = serverAPI.World.GetEntityById(sentryUpdate.entityUID) as EntitySentry;
-			ITreeAttribute loyalties = sentry.WatchedAttributes.GetTreeAttribute("loyalties");
 			var kingdom = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == sentryUpdate.kingdomID);
+			var culture = cultureList.Find(cultureMatch => cultureMatch.CultureGUID == sentryUpdate.cultureID);
 			var entGUID = sentryUpdate.entityUID;
 			// NEEDS TO BE DONE ON THE SERVER SIDE HERE.
 			sentry.kingdomID = sentryUpdate.kingdomID ?? sentry.baseGroup ?? "00000000";
+			sentry.kingdomNM = kingdom.KingdomNAME;
+			sentry.cultureID = sentryUpdate.cultureID ?? "00000000";
+			sentry.cultureNM = culture.CultureNAME;
 			sentry.friendsID = kingdom.FriendsGUID.ToArray();
 			sentry.enemiesID = kingdom.EnemiesGUID.ToArray();
 			sentry.outlawsID = kingdom.OutlawsGUID.ToArray();
 			// To ensure the Client-side gets the same variables to prevent desync we will still send an update there. Might not need to in the future though.
-			sentryUpdate = new SentryUpdate() { friendsID = kingdom.FriendsGUID.ToArray(), enemiesID = kingdom.EnemiesGUID.ToArray(), outlawsID = kingdom.OutlawsGUID.ToArray() };
+			sentryUpdate = new SentryUpdate() {
+				kingdomID = kingdom.KingdomGUID,
+				kingdomNM = kingdom.KingdomNAME,
+				cultureID = culture.CultureGUID,
+				cultureNM = culture.CultureNAME,
+				friendsID = kingdom.FriendsGUID.ToArray(),
+				enemiesID = kingdom.EnemiesGUID.ToArray(),
+				outlawsID = kingdom.OutlawsGUID.ToArray()
+			};
 			serverAPI.Network.BroadcastEntityPacket(entGUID, 1502, SerializerUtil.Serialize<SentryUpdate>(sentryUpdate));
 		}
 
@@ -395,7 +407,7 @@ namespace VSKingdom {
 			loyalties.SetBool("command_shifts", sentryOrders.shifttime ?? prevOrders[4]);
 			loyalties.SetBool("command_nights", sentryOrders.nighttime ?? prevOrders[5]);
 			loyalties.SetBool("command_return", sentryOrders.returning ?? prevOrders[6]);
-			sentry.WatchedAttributes.MarkPathDirty("loyalties");
+			//sentry.WatchedAttributes.MarkPathDirty("loyalties");
 			if (sentryOrders.playermsg != null) {
 				serverAPI.SendMessage(fromPlayer, 0, sentryOrders.playermsg, EnumChatType.OwnMessage);
 			}
@@ -1363,6 +1375,9 @@ namespace VSKingdom {
 	public class SentryUpdate {
 		public long entityUID;
 		public string kingdomID;
+		public string cultureID;
+		public string kingdomNM;
+		public string cultureNM;
 		public string[] friendsID;
 		public string[] enemiesID;
 		public string[] outlawsID;

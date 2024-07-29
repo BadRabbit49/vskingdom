@@ -1,12 +1,17 @@
+﻿using System;
 using System.IO;
-using System;
+using System.Linq;
 using Vintagestory.API.Client;
-using Vintagestory.API.Common.Entities;
-using Vintagestory.API.Common;
-using Vintagestory.API.Datastructures;
 using Vintagestory.API.Server;
+using Vintagestory.API.Config;
+using Vintagestory.API.Common;
+using Vintagestory.API.Common.Entities;
+using Vintagestory.API.Datastructures;
 using Vintagestory.API.Util;
+using Vintagestory.API.MathTools;
 using Vintagestory.GameContent;
+using System.Text;
+using System.Collections.Generic;
 
 namespace VSKingdom {
 	public class EntitySentry : EntityHumanoid {
@@ -23,7 +28,9 @@ namespace VSKingdom {
 		public virtual double postRange { get; set; }
 		public virtual string baseGroup { get; set; }
 		public virtual string kingdomID { get; set; }
+		public virtual string kingdomNM { get; set; }
 		public virtual string cultureID { get; set; }
+		public virtual string cultureNM { get; set; }
 		public virtual string leadersID { get; set; }
 		public virtual string[] friendsID { get; set; } = new string[] { };
 		public virtual string[] enemiesID { get; set; } = new string[] { };
@@ -60,28 +67,18 @@ namespace VSKingdom {
 				WatchedAttributes.RegisterModifiedListener("inventory", ReadInventoryFromAttributes);
 				GetBehavior<EntityBehaviorHealth>().onDamaged += (dmg, dmgSource) => HealthUtility.handleDamaged(World.Api, this, dmg, dmgSource);
 			}
-			Loyalties = WatchedAttributes.GetOrAddTreeAttribute("loyalties");
-			ruleOrder = new bool[7] { true, false, true, true, false, false, false, };
-			moveSpeed = properties.Attributes["moveSpeed"].AsDouble(0.030);
-			walkSpeed = properties.Attributes["walkSpeed"].AsDouble(0.015);
-			weapClass = properties.Attributes["weapClass"].AsString("melee").ToLowerInvariant();
-			baseGroup = properties.Attributes["baseGroup"].AsString("00000000");
-			kingdomID = Loyalties.GetString("kingdom_guid") ?? properties.Attributes["baseGroup"].AsString("00000000");
-			cultureID = Loyalties.GetString("culture_guid") ?? "00000000";
-			leadersID = Loyalties.GetString("leaders_guid", null);
-			friendsID = new string[] { };
-			enemiesID = new string[] { };
-			outlawsID = new string[] { };
-			if (baseGroup == "xxxxxxxx") {
-				Loyalties.SetString("kingdom_guid", "xxxxxxxx");
-				Loyalties.SetString("leaders_guid", null);
-				WatchedAttributes.MarkPathDirty("loyalties");
-				kingdomID = "xxxxxxxx";
-				leadersID = null;
+			if (Api.Side != EnumAppSide.Client) {
+				moveSpeed = properties.Attributes["moveSpeed"].AsDouble(0.030);
+				walkSpeed = properties.Attributes["walkSpeed"].AsDouble(0.015);
+				weapClass = properties.Attributes["weapClass"].AsString("melee").ToLowerInvariant();
+				baseGroup = properties.Attributes["baseGroup"].AsString("00000000");
+				friendsID = new string[] { };
+				enemiesID = new string[] { };
+				outlawsID = new string[] { };
+				ReadInventoryFromAttributes();
 			}
-			ReadInventoryFromAttributes();
 		}
-
+		
 		public override void OnEntitySpawn() {
 			base.OnEntitySpawn();
 			// Consult EnumCharacterDressType for details on which is which.
@@ -102,19 +99,162 @@ namespace VSKingdom {
 					} catch { }
 				}
 			}
-			SentryUpdate update = new SentryUpdate() { entityUID = this.EntityId, kingdomID = this.kingdomID };
-			(Api as ICoreServerAPI)?.Network.GetChannel("sentrynetwork").SendPacket<SentryUpdate>(update, World.NearestPlayer(ServerPos.X, ServerPos.Y, ServerPos.Z) as IServerPlayer);
+			SendUpdates();
 			UpdateStats();
-			/**UpdateTasks(null);**/
-			ruleOrder = new bool[] {
-				Loyalties.GetBool("command_wander", true),
-				Loyalties.GetBool("command_follow", false),
-				Loyalties.GetBool("command_firing", true),
-				Loyalties.GetBool("command_pursue", true),
-				Loyalties.GetBool("command_shifts", false),
-				Loyalties.GetBool("command_nights", false),
-				Loyalties.GetBool("command_return", false)
-			};
+		}
+		
+		public override WorldInteraction[] GetInteractionHelp(IClientWorldAccessor world, EntitySelection es, IClientPlayer player) {
+			try {
+				if (!WatchedAttributes.HasAttribute("loyalties")) {
+					return base.GetInteractionHelp(world, es, player);
+				}
+				if (Loyalties.HasAttribute("leaders_guid") && Loyalties.GetString("leaders_guid") == player.PlayerUID) {
+					string[] actions = { "wander", "follow", "firing", "pursue", "shifts", "nights", "return" };
+					string actionLangCode = $"{Lang.Get("vskingdom:entries-keyword-orders")}:\n";
+					for (int i = 0; i < actions.Length; i++) {
+						actionLangCode += $"{Lang.Get($"vskingdom:entries-keyword-{actions[i]}")} {new string(ruleOrder[i] ? "✔" : "✘")}\n";
+					}
+					return new WorldInteraction[] { new WorldInteraction() { ActionLangCode = actionLangCode, RequireFreeHand = true, MouseButton = EnumMouseButton.Right } };
+				}
+			} catch (NullReferenceException e) {
+				World.Logger.Error(e);
+			}
+			return base.GetInteractionHelp(world, es, player);
+		}
+
+		public override string GetInfoText() {
+			try {
+				StringBuilder infotext = new StringBuilder();
+				if (!Alive && WatchedAttributes.HasAttribute("deathByPlayer")) {
+					infotext.AppendLine(Lang.Get("Killed by Player: {0}", WatchedAttributes.GetString("deathByPlayer")));
+				}
+				if (World.Side == EnumAppSide.Client) {
+					IClientPlayer player = (World as IClientWorldAccessor).Player;
+					if (player != null) {
+						string playerKingdom = player.Entity.WatchedAttributes.GetTreeAttribute("loyalties").GetString("kingdom_guid");
+						string colourKingdom = "#ffffff";
+						if (kingdomID == playerKingdom) {
+							colourKingdom = "#5CC5FF";
+						} else if (enemiesID.Contains(playerKingdom)) {
+							colourKingdom = "#ff2525";
+						} else if (outlawsID.Contains(player.PlayerUID)) {
+							colourKingdom = "#ff8625";
+						} else if (kingdomID == "xxxxxxxx") {
+							colourKingdom = "#ff9300";
+						}
+						if (player.WorldData?.CurrentGameMode == EnumGameMode.Creative) {
+							ITreeAttribute healAttribute = WatchedAttributes.GetTreeAttribute("health");
+							if (healAttribute != null) {
+								infotext.AppendLine($"<font color=\"#ff8888\">Health: {healAttribute.GetFloat("currenthealth")}/{healAttribute.GetFloat("maxhealth")}</font>");
+							}
+							infotext.AppendLine("<font color=\"#bbbbbb\">Guid: " + EntityId + "</font>");
+							if (kingdomID != null) {
+								infotext.AppendLine($"<font color=\"{colourKingdom}\">{LangUtility.Get("entries-keyword-kingdom")}: {kingdomID}</font>");
+							}
+							if (cultureID != null) {
+								infotext.AppendLine($"{LangUtility.Get("entries-keyword-culture")}: {cultureID}");
+							}
+							if (leadersID != null) {
+								infotext.AppendLine($"{LangUtility.Get("entries-keyword-leaders")}: {leadersID}");
+							}
+						} else if (player != null && player.WorldData?.CurrentGameMode == EnumGameMode.Survival) {
+							ITreeAttribute nameAttribute = WatchedAttributes.GetTreeAttribute("nametag");
+							if (nameAttribute != null) {
+								if (nameAttribute.HasAttribute("name")) {
+									infotext.AppendLine($"<font color=\"#bbbbbb\">Name: {nameAttribute.GetString("name")}</font>");
+								}
+								if (nameAttribute.HasAttribute("last")) {
+									infotext.AppendLine($"<font color=\"#bbbbbb\">Last: {nameAttribute.GetString("last")}</font>");
+								}
+							}
+							if (kingdomNM != null) {
+								infotext.AppendLine($"<font color=\"{colourKingdom}\">{LangUtility.Get("entries-keyword-kingdom")}: {kingdomNM}</font>");
+							}
+							if (cultureNM != null) {
+								infotext.AppendLine($"{LangUtility.Get("entries-keyword-culture")}: {cultureNM}");
+							}
+							if (leadersID != null) {
+								infotext.AppendLine($"{LangUtility.Get("entries-keyword-leaders")}: {ServerAPI?.World.PlayerByUid(leadersID).PlayerName}");
+							}
+						}
+					}
+				}
+				if (WatchedAttributes.HasAttribute("extraInfoText")) {
+					foreach (KeyValuePair<string, IAttribute> item in WatchedAttributes.GetTreeAttribute("extraInfoText")) {
+						infotext.AppendLine(item.Value.ToString());
+					}
+				}
+				if (Api is ICoreClientAPI coreClientAPI && coreClientAPI.Settings.Bool["extendedDebugInfo"]) {
+					infotext.AppendLine($"<font color=\"#bbbbbb\">Code: {Code?.ToString()}</font>");
+				}
+				return infotext.ToString();
+			} catch {
+				return base.GetInfoText();
+			}
+		}
+
+		public override void OnInteract(EntityAgent byEntity, ItemSlot itemslot, Vec3d hitPosition, EnumInteractMode mode) {
+			base.OnInteract(byEntity, itemslot, hitPosition, mode);
+			if (mode != EnumInteractMode.Interact || byEntity is not EntityPlayer) {
+				return;
+			}
+			EntityPlayer player = byEntity as EntityPlayer;
+			string theirKingdom = player.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdom_guid");
+			// Remind them to join their leaders kingdom if they aren't already in it.
+			if (leadersID == player.PlayerUID && kingdomID != theirKingdom) {
+				ServerAPI?.World.GetEntityById(EntityId).WatchedAttributes.GetTreeAttribute("loyalties").SetString("kingdom_guid", theirKingdom);
+				ServerAPI?.World.GetEntityById(EntityId).WatchedAttributes.MarkPathDirty("loyalties");
+			}
+			if (leadersID == player.PlayerUID && player.ServerControls.Sneak && itemslot.Empty) {
+				ToggleInventoryDialog(player.Player);
+				return;
+			}
+			if (!player.RightHandItemSlot.Empty && player.ServerControls.Sneak) {
+				// TRY TO REVIVE!
+				if (!Alive && itemslot.Itemstack.Item is ItemPoultice) {
+					Revive();
+					ServerAPI?.World.GetEntityById(EntityId).WatchedAttributes.GetTreeAttribute("health").SetFloat("currenthealth", itemslot.Itemstack.ItemAttributes["health"].AsFloat());
+					itemslot.TakeOut(1);
+					itemslot.MarkDirty();
+					return;
+				}
+				// TRY TO EQUIP!
+				if (Alive && leadersID == player.PlayerUID && itemslot.Itemstack.Item is ItemWearable wearable) {
+					itemslot.TryPutInto(World, gearInv[(int)wearable.DressType]);
+					return;
+				}
+				if (itemslot.Itemstack.Collectible.Tool != null || itemslot.Itemstack.ItemAttributes?["toolrackTransform"].Exists == true) {
+					if (player.RightHandItemSlot.TryPutInto(byEntity.World, RightHandItemSlot) == 0) {
+						player.RightHandItemSlot.TryPutInto(byEntity.World, LeftHandItemSlot);
+						return;
+					}
+				}
+				// TRY TO RECRUIT!
+				if (Alive && leadersID == null && itemslot.Itemstack.ItemAttributes["currency"].Exists) {
+					ServerAPI?.World.GetEntityById(EntityId).WatchedAttributes.GetTreeAttribute("loyalties").SetString("enlistedStatus", EnlistedStatus.ENLISTED.ToString());
+					ServerAPI?.World.GetEntityById(EntityId).WatchedAttributes.GetTreeAttribute("loyalties").SetString("leaders_guid", player.PlayerUID);
+					ServerAPI?.World.GetEntityById(EntityId).WatchedAttributes.GetTreeAttribute("loyalties").SetString("kingdom_guid", theirKingdom);
+					ServerAPI?.World.GetEntityById(EntityId).WatchedAttributes.MarkPathDirty("loyalties");
+					itemslot.TakeOut(1);
+					itemslot.MarkDirty();
+					return;
+				}
+				// TRY TO RALLY!
+				if (Alive && kingdomID == theirKingdom && itemslot.Itemstack.Item is ItemBanner) {
+					var followed = (player.WatchedAttributes.GetAttribute("followerEntityUids") as LongArrayAttribute)?.value?.ToList<long>();
+					var sentries = World.GetEntitiesAround(ServerPos.XYZ, 16f, 8f, entity => (entity is EntitySentry sentry && sentry.kingdomID == theirKingdom));
+					foreach (EntitySentry sentry in sentries) {
+						sentry.WatchedAttributes.SetLong("guardedEntityId", player.EntityId);
+						sentry.ruleOrder[1] = true;
+						sentry.GetBehavior<EntityBehaviorTaskAI>()?.TaskManager.GetTask<AiTaskSentryFollow>()?.StartExecute();
+						if (!followed.Contains(sentry.EntityId)) {
+							followed.Add(sentry.EntityId);
+						}
+						ServerAPI?.Network.GetChannel("sentrynetwork").SendPacket<SentryUpdate>(new SentryUpdate() { entityUID = sentry.EntityId, kingdomID = sentry.kingdomID, cultureID = sentry.cultureID }, player.Player as IServerPlayer);
+					}
+					player.WatchedAttributes.SetAttribute("followerEntityUids", new LongArrayAttribute(followed.ToArray<long>()));
+				}
+			}
 		}
 
 		public override void OnEntityDespawn(EntityDespawnData despawn) {
@@ -232,7 +372,7 @@ namespace VSKingdom {
 				ClientAPI.Network.SendEntityPacket(EntityId, 1505);
 			}
 		}
-
+		
 		public virtual void OnInventoryDialogClosed() {
 			ClientAPI.World.Player.InventoryManager.CloseInventory(GearInventory);
 			ClientAPI.Network.SendEntityPacket(EntityId, 1506);
@@ -248,32 +388,36 @@ namespace VSKingdom {
 			}
 			(Properties.Client.Renderer as EntitySkinnableShapeRenderer)?.MarkShapeModified();
 		}
+		
+		public virtual void SendUpdates() {
+			SentryUpdate update = new SentryUpdate() { entityUID = this.EntityId, kingdomID = this.kingdomID, cultureID = this.cultureID };
+			(Api as ICoreServerAPI)?.Network.GetChannel("sentrynetwork").SendPacket<SentryUpdate>(update, World.NearestPlayer(ServerPos.X, ServerPos.Y, ServerPos.Z) as IServerPlayer);
+		}
 
 		public virtual void UpdateStats() {
 			try {
-				if (RightHandItemSlot.Empty && LeftHandItemSlot.Empty) {
-					GetBehavior<EntityBehaviorLoyalties>().enlistedStatus = EnlistedStatus.CIVILIAN;
-				} else {
-					GetBehavior<EntityBehaviorLoyalties>().enlistedStatus = EnlistedStatus.ENLISTED;
-				}
+				Loyalties.SetString("recruit_type", new string((RightHandItemSlot.Empty && LeftHandItemSlot.Empty) ? EnlistedStatus.CIVILIAN.ToString() : EnlistedStatus.ENLISTED.ToString()));
+				WatchedAttributes.MarkPathDirty("loyalties");
 				EntitySentry thisEnt = (Api as ICoreServerAPI)?.World.GetEntityById(this.EntityId) as EntitySentry;
-				ItemStack weapon = RightHandItemSlot?.Itemstack ?? null;
-				// Set weapon class, movement speed, and ranges to distinguish behaviors.
-				thisEnt.weapValue = (double)((weapon?.Collectible?.Durability ?? 1f) * (weapon?.Collectible.AttackPower ?? weapon?.Collectible.Attributes?["damage"].AsFloat() ?? 1f));
-				thisEnt.weapRange = RightHandItemSlot?.Itemstack?.Item?.AttackRange ?? 1.5;
+				if (!RightHandItemSlot.Empty) {
+					ItemStack weapon = RightHandItemSlot.Itemstack;
+					// Set weapon class, movement speed, and ranges to distinguish behaviors.
+					thisEnt.weapValue = (double)((weapon?.Collectible.Durability ?? 1f) * (weapon?.Collectible.AttackPower ?? weapon?.Collectible.Attributes?["damage"].AsFloat()) ?? 0.0);
+					thisEnt.weapRange = (double)(weapon?.Item?.AttackRange ?? 1.5);
+				}
 				thisEnt.massTotal = 0;
 				thisEnt.weapSkill = 1;
 				thisEnt.weapRates = 1;
 				foreach (var slot in gearInv) {
 					if (!slot.Empty && slot.Itemstack.Item is ItemWearable armor) {
-						thisEnt.massTotal += (armor?.StatModifers?.walkSpeed ?? 0);
-						thisEnt.weapSkill += (armor?.StatModifers?.rangedWeaponsAcc ?? 0);
-						thisEnt.weapRates += (armor?.StatModifers?.rangedWeaponsSpeed ?? 0);
+						thisEnt.massTotal += (armor.StatModifers?.walkSpeed ?? 0);
+						thisEnt.weapSkill += (armor.StatModifers?.rangedWeaponsAcc ?? 0);
+						thisEnt.weapRates += (armor.StatModifers?.rangedWeaponsSpeed ?? 0);
 					}
 				}
 				thisEnt.moveSpeed = Properties.Attributes["moveSpeed"].AsDouble(0.030) + massTotal;
 				thisEnt.walkSpeed = Properties.Attributes["walkSpeed"].AsDouble(0.015) + massTotal;
-				thisEnt.postRange = GetBehavior<EntityBehaviorLoyalties>()?.outpostSIZE ?? 6.0;
+				thisEnt.postRange = Loyalties.GetDouble("outpost_size", 6.0);
 			} catch (NullReferenceException e) {
 				World.Logger.Error(e.ToString());
 			}
@@ -281,8 +425,10 @@ namespace VSKingdom {
 
 		public virtual void UpdateInfos(byte[] data) {
 			SentryUpdate update = SerializerUtil.Deserialize<SentryUpdate>(data);
-			kingdomID = Loyalties?.GetString("kingdom_guid") ?? baseGroup ?? "00000000";
-			cultureID = Loyalties?.GetString("culture_guid") ?? "00000000";
+			kingdomID = update.kingdomID ?? Loyalties?.GetString("kingdom_guid") ?? baseGroup ?? "00000000";
+			kingdomNM = update.kingdomNM;
+			cultureID = update.cultureID ?? Loyalties?.GetString("culture_guid") ?? "00000000";
+			cultureNM = update.cultureNM;
 			leadersID = Loyalties?.GetString("leaders_guid") ?? null;
 			friendsID = update.friendsID;
 			enemiesID = update.enemiesID;
@@ -290,6 +436,7 @@ namespace VSKingdom {
 		}
 
 		public virtual void UpdateTasks(byte[] data) {
+			WatchedAttributes.MarkAllDirty();
 			/**WatchedAttributes.MarkPathDirty("loyalties");
 			if (data != null) {
 				SentryOrders orders = SerializerUtil.Deserialize<SentryOrders>(data);

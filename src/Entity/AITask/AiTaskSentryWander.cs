@@ -1,10 +1,10 @@
 ﻿using System;
+using System.Linq;
+using Vintagestory.API.Server;
+using Vintagestory.API.Config;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Datastructures;
-using Vintagestory.API.Server;
-using System.Linq;
-using Vintagestory.API.Config;
 
 namespace VSKingdom {
 	public class AiTaskSentryWander : AiTaskBase {
@@ -31,6 +31,7 @@ namespace VSKingdom {
 		}
 		protected float wanderRangedMul { get => entity.WatchedAttributes.GetFloat("wanderRangeMul", 1); }
 		protected Vec3d outpostPosition { get => entity.Loyalties.GetBlockPos("outpost_xyzd").ToVec3d(); }
+		protected string leaderPlayerUID { get => entity.Loyalties.GetString("leaders_guid"); }
 
 		protected static readonly string walkAnimCode = "walk";
 		protected static readonly string moveAnimCode = "move";
@@ -40,7 +41,7 @@ namespace VSKingdom {
 			base.LoadConfig(taskConfig, aiConfig);
 			this.targetRanges = taskConfig["targetRanges"].AsFloat(0.12f);
 			this.wanderHeight = taskConfig["wanderHeight"].AsFloat(7f);
-			this.wanderChance = taskConfig["wanderChance"].AsFloat(0.005f);
+			this.wanderChance = taskConfig["wanderChance"].AsFloat(0.15f);
 			this.whenNotInEmotionState = taskConfig["whenNotInEmotionState"].AsString("aggressiveondamage|fleeondamage");
 		}
 
@@ -49,18 +50,15 @@ namespace VSKingdom {
 				return false;
 			}
 			lastCheckedMs = entity.World.ElapsedMilliseconds;
-			if (!entity.ruleOrder[0] || entity.ruleOrder[1]) {
+			if (!entity.ruleOrder[0] || entity.ruleOrder[1] || !EmotionStatesSatisifed()) {
 				cancelWander = true;
 				return false;
 			}
-			if (IsInEmotionState(whenNotInEmotionState)) {
-				return false;
-			}
-			if (rand.NextDouble() > (double)((failedWanders > 0) ? (1f - wanderChance * 4f * (float)failedWanders) : wanderChance)) {
+			if (rand.NextDouble() > wanderChance) {
 				failedWanders = 0;
 				return false;
 			}
-			if (entity.ruleOrder[6] || entity.ServerPos.DistanceTo(outpostPosition) > entity.postRange) {
+			if (entity.ruleOrder[6] || entity.ServerPos.SquareDistanceTo(outpostPosition) > entity.postRange * entity.postRange) {
 				curTargetPos = outpostPosition.Clone();
 			} else if (entity.InLava || ((entity.Swimming || entity.FeetInLiquid) && entity.World.Rand.NextDouble() < 0.04f)) {
 				curTargetPos = LeaveTheWatersTarget();
@@ -97,20 +95,22 @@ namespace VSKingdom {
 			if (curTargetPos.HorizontalSquareDistanceTo(entity.ServerPos.X, entity.ServerPos.Z) < 0.5) {
 				return false;
 			}
-			return !cancelWander;
+			if (cancelWander) {
+				return false;
+			} else if (world.AllOnlinePlayers.Length > 0 && world.NearestPlayer(entity.ServerPos.X, entity.ServerPos.Y, entity.ServerPos.Z).Entity is IPlayer player && player.Entity.Alive) {
+				if (player.Entity.ServerPos.SquareDistanceTo(entity.ServerPos) < 4f && player.Entity.EntitySelection != null && player.Entity.EntitySelection.Entity.EntityId == entity.EntityId) {
+					return leaderPlayerUID == player.PlayerUID && player.Entity.ServerControls.RightMouseDown;
+				}
+			}
+			return true;
 		}
 
 		public override void FinishExecute(bool cancelled) {
 			cooldownUntilMs = entity.World.ElapsedMilliseconds + mincooldown + entity.World.Rand.Next(maxcooldown - mincooldown);
 			cooldownUntilTotalHours = entity.World.Calendar.TotalHours + mincooldownHours + entity.World.Rand.NextDouble() * (maxcooldownHours - mincooldownHours);
-			entity.AnimManager.StopAnimation(walkAnimCode);
-			entity.AnimManager.StopAnimation(moveAnimCode);
+			StopAnimation();
 			pathTraverser.Stop();
-			if (!entity.Swimming && entity.AnimManager.IsAnimationActive(swimAnimCode)) {
-				entity.AnimManager.StopAnimation(swimAnimCode);
-			}
-			if (entity.ruleOrder[6] && entity.ServerPos.DistanceTo(outpostPosition) < entity.postRange) {
-				entity.ruleOrder[6] = false;
+			if (entity.ruleOrder[6] && entity.ServerPos.SquareDistanceTo(outpostPosition) < entity.postRange * entity.postRange) {
 				HasReturnedTo();
 			}
 		}
@@ -142,7 +142,8 @@ namespace VSKingdom {
 		// - ✔ Try to not move a lot vertically.
 		// - ✔ Try not to fall from very large heights if entity has FallDamageOn.
 		// - ✔ Must be above a block the entity can stand on.
-		// - ✔ If failed searches is high, reduce wander range.
+		// - ✔ If failed search is high, reduce wander range.
+		// - ✘ If wander ranges are not met.
 		private Vec3d LoadNextWanderTarget() {
 			bool canFallDamage = entity.Api.World.Config.GetAsBool("FallDamageOn");
 			int num = 9;
@@ -231,6 +232,7 @@ namespace VSKingdom {
 		private void OnStuck() {
 			cancelWander = true;
 			failedWanders++;
+			StopAnimation();
 		}
 
 		private void OnGoals() {
@@ -254,6 +256,7 @@ namespace VSKingdom {
 		}
 
 		private void HasReturnedTo() {
+			entity.ruleOrder[6] = false;
 			SentryOrders updatedOrders = new SentryOrders() { entityUID = entity.EntityId, returning = false };
 			IServerPlayer nearestPlayer = entity.ServerAPI.World.NearestPlayer(entity.ServerPos.X, entity.ServerPos.Y, entity.ServerPos.Z) as IServerPlayer;
 			entity.ServerAPI?.Network.GetChannel("sentrynetwork").SendPacket<SentryOrders>(updatedOrders, nearestPlayer);
@@ -262,15 +265,13 @@ namespace VSKingdom {
 		private void MoveAnimation() {
 			if (cancelWander) {
 				curMoveSpeed = 0;
-				entity.AnimManager.StopAnimation(walkAnimCode);
-				entity.AnimManager.StopAnimation(moveAnimCode);
-				entity.AnimManager.StopAnimation(swimAnimCode);
+				StopAnimation();
 			} else if (entity.Swimming) {
 				curMoveSpeed = (float)entity.moveSpeed;
 				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = swimAnimCode, Code = swimAnimCode, BlendMode = EnumAnimationBlendMode.Average }.Init());
 				entity.AnimManager.StopAnimation(walkAnimCode);
 				entity.AnimManager.StopAnimation(moveAnimCode);
-			} else if (entity.ServerPos.SquareDistanceTo(curTargetPos) > 9 * 9) {
+			} else if (entity.ServerPos.SquareDistanceTo(curTargetPos) > 36f) {
 				curMoveSpeed = (float)entity.moveSpeed;
 				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = moveAnimCode, Code = moveAnimCode, MulWithWalkSpeed = true, BlendMode = EnumAnimationBlendMode.Average }.Init());
 				entity.AnimManager.StopAnimation(walkAnimCode);
@@ -279,6 +280,14 @@ namespace VSKingdom {
 				curMoveSpeed = (float)entity.walkSpeed;
 				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = walkAnimCode, Code = walkAnimCode, MulWithWalkSpeed = true, BlendMode = EnumAnimationBlendMode.Average, EaseOutSpeed = 1f }.Init());
 				entity.AnimManager.StopAnimation(moveAnimCode);
+				entity.AnimManager.StopAnimation(swimAnimCode);
+			}
+		}
+
+		private void StopAnimation() {
+			entity.AnimManager.StopAnimation(walkAnimCode);
+			entity.AnimManager.StopAnimation(moveAnimCode);
+			if (!entity.Swimming && entity.AnimManager.IsAnimationActive(swimAnimCode)) {
 				entity.AnimManager.StopAnimation(swimAnimCode);
 			}
 		}

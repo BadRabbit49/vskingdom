@@ -58,10 +58,10 @@ namespace VSKingdom {
 					float ownGearDmgRed = (killer.GearInventory[i]?.Itemstack?.Item as ItemWearable)?.ProtectionModifiers.FlatDamageReduction ?? 0;
 					if (!victim.GearInventory[i].Empty && victim.GearInventory[i].Itemstack.Item is ItemWearable gear && gear?.ProtectionModifiers.FlatDamageReduction > ownGearDmgRed) {
 						try {
-							var badStack = killer.GearInventory[i]?.TakeOut(killer.GearInventory[i].StackSize) ?? null;
+							var badStack = killer.GearInventory[i].Empty ? null : killer.GearInventory[i].Itemstack;
 							victim.GearInventory[i].TryPutInto(entity.World, killer.GearInventory[i], killer.GearInventory[i].StackSize);
 							killer.GearInvSlotModified(i);
-							victim.GearInventory[i].Itemstack = badStack;
+							//victim.GearInventory[i].Itemstack = badStack;
 							victim.GearInvSlotModified(i);
 						} catch { }
 					}
@@ -70,10 +70,10 @@ namespace VSKingdom {
 					if ((killer.weapClass == "range" && victim.RightHandItemSlot.Itemstack.Item is ItemBow) || (killer.weapClass == "melee" && victim.RightHandItemSlot.Itemstack.Item is not ItemBow)) {
 						try {
 							if (victim.weapValue > killer.weapValue) {
-								var badStack = killer.RightHandItemSlot?.TakeOut(1);
+								var badStack = killer.RightHandItemSlot.Empty ? null : killer.RightHandItemSlot.Itemstack;
 								victim.RightHandItemSlot.TryPutInto(entity.World, killer.gearInv[16], victim.RightHandItemSlot.StackSize);
 								killer.GearInvSlotModified(16);
-								victim.RightHandItemSlot.Itemstack = badStack;
+								//victim.RightHandItemSlot.Itemstack = badStack;
 								victim.GearInvSlotModified(16);
 							}
 						} catch { }

@@ -119,9 +119,10 @@ namespace VSKingdom {
 		}
 
 		public override bool ContinueExecute(float dt) {
-			// Don't pursue if there is no target, the target is dead, or the attack has been called off!
-			if (cancelAttack || targetEntity == null || !targetEntity.Alive) {
-				cancelAttack = true;
+			if (targetEntity == null) {
+				return false;
+			}
+			if (cancelAttack || !targetEntity.Alive) {
 				return false;
 			}
 			EntityPos serverPos1 = entity.ServerPos;
@@ -132,18 +133,6 @@ namespace VSKingdom {
 				entity.ServerPos.Yaw += GameMath.Clamp(num, (0f - curTurnAngle) * dt * GlobalConstants.OverallSpeedMultiplier, curTurnAngle * dt * GlobalConstants.OverallSpeedMultiplier);
 				entity.ServerPos.Yaw = entity.ServerPos.Yaw % (MathF.PI * 2f);
 				flag = Math.Abs(num) < maximumRange * (MathF.PI / 180f);
-			}
-			// Get closer if target is too far, but if they're super far then give up!
-			if (serverPos1.DistanceTo(serverPos2) > entity.weapRange) {
-				// Do not pursue if not being told to pursue endlessly and outside range.
-				if (!entity.ruleOrder[3] && entity.Loyalties.GetBlockPos("outpost_xyzd").DistanceTo(serverPos2.AsBlockPos) > entity.postRange) {
-					targetEntity = null;
-					cancelAttack = true;
-					searchTask.SetTargetEnts(null);
-					entity.ServerControls.StopAllMovement();
-					entity.StopAnimation(lastAnim);
-					return false;
-				}
 			}
 			animsRunning = lastAnim != null ? entity.AnimManager.GetAnimationState(lastAnim).Running : false;
 			if (!animsRunning && currAnim != null && flag) {
@@ -174,8 +163,7 @@ namespace VSKingdom {
 							{ "LowerArmL", EnumAnimationBlendMode.AddAverage }
 						}
 					}.Init());
-				}
-				if (!shouldShield) {
+				} else if (!shouldShield && entity.AnimManager.IsAnimationActive(shieldAnim)) {
 					entity.AnimManager.StopAnimation(shieldAnim);
 				}
 			}

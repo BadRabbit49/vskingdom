@@ -7,7 +7,6 @@ using Vintagestory.API.Server;
 using Vintagestory.API.MathTools;
 using Vintagestory.GameContent;
 using Vintagestory.API.Config;
-using Newtonsoft.Json.Linq;
 
 namespace VSKingdom {
 	public class EntityBehaviorLoyalties : EntityBehavior {
@@ -23,18 +22,9 @@ namespace VSKingdom {
 			}
 		}
 
-		public EnlistedStatus enlistedStatus {
-			get {
-				EnlistedStatus level;
-				if (Enum.TryParse<EnlistedStatus>(loyalties.GetString("enlistedStatus"), out level)) {
-					return level;
-				}
-				return EnlistedStatus.CIVILIAN;
-			}
-			set {
-				loyalties.SetString("enlistedStatus", value.ToString());
-				entity.WatchedAttributes.MarkPathDirty("loyalties");
-			}
+		public EnlistedStatus recruitTYPE {
+			get => Enum.Parse<EnlistedStatus>(loyalties.GetString("recruit_type"));
+			set => loyalties.SetString("recruit_type", value.ToString());
 		}
 
 		public string kingdomGUID {
@@ -113,13 +103,27 @@ namespace VSKingdom {
 				if (outpostXYZD is null) {
 					outpostXYZD = entity.ServerPos.AsBlockPos;
 				}
-				commandWANDER = true;
-				commandFOLLOW = false;
-				commandFIRING = true;
-				commandPURSUE = true;
-				commandSHIFTS = false;
-				commandNIGHTS = false;
-				commandRETURN = false;
+				if (onFirstSpawn) {
+					commandWANDER = true;
+					commandFOLLOW = false;
+					commandFIRING = true;
+					commandPURSUE = true;
+					commandSHIFTS = false;
+					commandNIGHTS = false;
+					commandRETURN = false;
+				}
+				sentry.Loyalties = loyalties;
+				sentry.ruleOrder = new bool[7] { commandWANDER, commandFOLLOW, commandFIRING, commandPURSUE, commandSHIFTS, commandNIGHTS, commandRETURN };
+				sentry.kingdomID = kingdomGUID ?? sentry.baseGroup;
+				sentry.cultureID = cultureGUID ?? "00000000";
+				sentry.leadersID = leadersGUID ?? null;
+				if (sentry.baseGroup == "xxxxxxxx") {
+					loyalties.SetString("kingdom_guid", "xxxxxxxx");
+					loyalties.SetString("leaders_guid", null);
+					sentry.WatchedAttributes.MarkPathDirty("loyalties");
+					sentry.kingdomID = "xxxxxxxx";
+					sentry.leadersID = null;
+				}
 			}
 		}
 
@@ -132,93 +136,24 @@ namespace VSKingdom {
 				if (cultureGUID is null) {
 					cultureGUID = "00000000";
 				}
-				loyalties.RemoveAttribute("leaders_name");
 				loyalties.RemoveAttribute("leaders_guid");
 			}
 		}
 
-		public override void OnInteract(EntityAgent byEntity, ItemSlot itemslot, Vec3d hitPosition, EnumInteractMode mode, ref EnumHandling handled) {
-			// Other players won't be interactable for now.
-			if (byEntity is EntityPlayer player && mode == EnumInteractMode.Interact && entity is not EntityPlayer) {
-				// Remind them to join their leaders kingdom if they aren't already in it.
-				if (leadersGUID == player.PlayerUID && kingdomGUID != player.GetBehavior<EntityBehaviorLoyalties>()?.kingdomGUID) {
-					(entity.Api as ICoreServerAPI)?.World.GetEntityById(entity.EntityId).WatchedAttributes.GetTreeAttribute("loyalties").SetString("kingdom_guid", byEntity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdom_guid") ?? kingdomGUID);
-					(entity.Api as ICoreServerAPI)?.World.GetEntityById(entity.EntityId).WatchedAttributes.MarkPathDirty("loyalties");
-				}
-				// While a STRANGER has something in their ACTIVE SLOT try commands.
-				if (enlistedStatus == EnlistedStatus.CIVILIAN && entity.Alive && leadersGUID == null && itemslot.Itemstack != null && player.Controls.Sneak) {
-					TryRecruiting(itemslot, player.Player as IServerPlayer);
-					return;
-				}
-				// Try to revive if the entity is dead but not a carcass.
-				if (!entity.Alive && itemslot.Itemstack != null && byEntity.Controls.Sneak) {
-					TryReviveWith(itemslot);
-					return;
-				}
-				// While the OWNER or a GROUPMEMBER has something in their ACTIVE SLOT try commands.
-				if (entity.Alive && itemslot.Itemstack != null && byEntity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdom_guid") == kingdomGUID) {
-					TryOrderRally(itemslot, player.Player);
-					return;
-				}
-				// While the OWNER is SNEAKING with an EMPTY SLOT open inventory dialogbox.
-				if (leadersGUID == player.PlayerUID && player.Controls.Sneak && itemslot.Empty) {
-					(entity as EntitySentry).ToggleInventoryDialog(player.Player);
-				}
-			} else {
-				base.OnInteract(byEntity, itemslot, hitPosition, mode, ref handled);
-			}
-		}
-
-		public override void GetInfoText(StringBuilder infotext) {
+		/**public override void GetInfoText(StringBuilder infotext) {
 			// Place Kingdom (if any), Leader (if any) and Guardpost (if any), here.
-			if (kingdomGUID is not null) {
+			if (kingdomGUID != null) {
 				//infotext.AppendLine(string.Concat(LangUtility.Get("gui-kingdom-name"), DataUtility.GetKingdomName(kingdomGUID)));
 				infotext.AppendLine(string.Concat(Lang.Get("vskingdom:gui-kingdom-guid"), kingdomGUID));
 			}
-			if (leadersGUID is not null) {
+			if (leadersGUID != null) {
 				//infotext.AppendLine(string.Concat(LangUtility.Get("gui-leaders-name"), DataUtility.GetAPlayer(leadersGUID).PlayerName));
 				infotext.AppendLine(string.Concat(Lang.Get("vskingdom:gui-leaders-guid"), leadersGUID));
 			}
-			if (outpostXYZD is not null) {
+			if (outpostXYZD != null) {
 				infotext.AppendLine(string.Concat(Lang.Get("vskingdom:gui-outpost-xyzd"), outpostXYZD.ToString()));
 			}
 			base.GetInfoText(infotext);
-		}
-
-		private void TryRecruiting(ItemSlot itemslot, IServerPlayer player) {
-			// If the entity isn't already owned, giving it some kind of currency will hire it on to join.
-			if (itemslot.Itemstack.ItemAttributes["currency"].Exists) {
-				itemslot.TakeOut(1);
-				itemslot.MarkDirty();
-				// Set the owner to this player, and set the enlistment to ENLISTED.
-				enlistedStatus = EnlistedStatus.ENLISTED;
-				// If the owner also is in a group then go ahead and join that too.
-				string newKingdomGUID = player.Entity.GetBehavior<EntityBehaviorLoyalties>()?.kingdomGUID ?? loyalties.GetString("kingdom_guid");
-				(entity.Api as ICoreServerAPI)?.World.GetEntityById(entity.EntityId).WatchedAttributes.GetTreeAttribute("loyalties").SetString("kingdom_guid", newKingdomGUID);
-				(entity.Api as ICoreServerAPI)?.World.GetEntityById(entity.EntityId).WatchedAttributes.MarkPathDirty("loyalties");
-			}
-		}
-
-		private void TryReviveWith(ItemSlot itemslot) {
-			if (itemslot.Itemstack.Item is ItemPoultice) {
-				float healAmount = itemslot.Itemstack.ItemAttributes["health"].AsFloat();
-				entity.Revive();
-				(entity.Api as ICoreServerAPI)?.World.GetEntityById(entity.EntityId).WatchedAttributes.GetTreeAttribute("health").SetFloat("currenthealth", healAmount);
-				itemslot.TakeOut(1);
-				itemslot.MarkDirty();
-			}
-		}
-
-		private void TryOrderRally(ItemSlot itemslot, IPlayer player) {
-			if (itemslot.Itemstack.Item is ItemBanner) {
-				EntityPlayer playerEnt = player.Entity;
-				string playerKingdomID = playerEnt.WatchedAttributes.GetTreeAttribute("loyalties").GetString("kingdom_guid");
-				// Activate orders for all surrounding soldiers of this player's faction to follow them!
-				foreach (Entity soldier in entity.World.GetEntitiesAround(entity.ServerPos.XYZ, 15, 4, entity => (entity is EntitySentry sentry && sentry.kingdomID == playerKingdomID))) {
-					var taskManager = soldier.GetBehavior<EntityBehaviorTaskAI>().TaskManager;
-					taskManager.ExecuteTask<AiTaskSentryFollow>();
-				}
-			}
-		}
+		}**/
 	}
 }

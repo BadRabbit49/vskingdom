@@ -415,8 +415,8 @@ namespace VSKingdom {
 						massTotal += (armor.StatModifers?.walkSpeed ?? 0);
 					}
 				}
-				thisEnt.moveSpeed = Properties.Attributes["moveSpeed"].AsDouble(0.030) * (1 - massTotal);
-				thisEnt.walkSpeed = Properties.Attributes["walkSpeed"].AsDouble(0.015) * (1 - massTotal);
+				thisEnt.moveSpeed = Properties.Attributes["moveSpeed"].AsDouble(0.030) * (1 + massTotal);
+				thisEnt.walkSpeed = Properties.Attributes["walkSpeed"].AsDouble(0.015) * (1 + massTotal);
 				thisEnt.postRange = Loyalties.GetDouble("outpost_size", 6.0);
 			} catch (NullReferenceException e) {
 				World.Logger.Error(e.ToString());

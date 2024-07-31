@@ -276,18 +276,20 @@ namespace VSKingdom {
 				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = moveAnimCode, Code = moveAnimCode, MulWithWalkSpeed = true, BlendMode = EnumAnimationBlendMode.Average }.Init());
 				entity.AnimManager.StopAnimation(walkAnimCode);
 				entity.AnimManager.StopAnimation(swimAnimCode);
-			} else {
+			} else if (entity.ServerPos.SquareDistanceTo(curTargetPos) > 1f) {
 				curMoveSpeed = (float)entity.walkSpeed;
 				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = walkAnimCode, Code = walkAnimCode, MulWithWalkSpeed = true, BlendMode = EnumAnimationBlendMode.Average, EaseOutSpeed = 1f }.Init());
 				entity.AnimManager.StopAnimation(moveAnimCode);
 				entity.AnimManager.StopAnimation(swimAnimCode);
+			} else {
+				StopAnimation();
 			}
 		}
 
 		private void StopAnimation() {
 			entity.AnimManager.StopAnimation(walkAnimCode);
 			entity.AnimManager.StopAnimation(moveAnimCode);
-			if (!entity.Swimming && entity.AnimManager.IsAnimationActive(swimAnimCode)) {
+			if (!entity.Swimming) {
 				entity.AnimManager.StopAnimation(swimAnimCode);
 			}
 		}

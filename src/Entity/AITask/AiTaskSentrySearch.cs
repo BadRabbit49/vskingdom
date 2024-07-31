@@ -134,16 +134,16 @@ namespace VSKingdom {
 				MoveAnimation();
 			}
 			Vec3d vec = entity.ServerPos.XYZ.Add(0.0, entity.SelectionBox.Y2 / 2f, 0.0).Ahead(entity.SelectionBox.XSize / 2f, 0f, entity.ServerPos.Yaw);
-			double num1 = targetEntity.SelectionBox.ToDouble().Translate(targetEntity.ServerPos.XYZ).ShortestDistanceFrom(vec);
-			bool flag3 = targetEntity != null && targetEntity.Alive && !cancelSearch && pathTraverser.Active;
+			double dist = targetEntity.SelectionBox.ToDouble().Translate(targetEntity.ServerPos.XYZ).ShortestDistanceFrom(vec);
+			bool flag = targetEntity != null && targetEntity.Alive && !cancelSearch && pathTraverser.Active;
 			if (attackPattern == EnumAttackPattern.TacticalRetreat) {
-				if (flag3 && currentFollowTime < 9f) {
-					return num1 < retreatRange;
+				if (flag && currentFollowTime < 9f) {
+					return dist < retreatRange;
 				}
 				return false;
 			}
-			if (flag3 && currentFollowTime < maximumFollowTime && num1 < seekingRange) {
-				if (!(num1 > TargetDist())) {
+			if (flag && currentFollowTime < maximumFollowTime && dist < seekingRange) {
+				if (!(dist > TargetDist())) {
 					if (targetEntity is EntityAgent entityAgent) {
 						return entityAgent?.ServerControls?.TriesToMove ?? false;
 					}
@@ -156,12 +156,12 @@ namespace VSKingdom {
 
 		public override void FinishExecute(bool cancelled) {
 			cooldownUntilMs = entity.World.ElapsedMilliseconds + mincooldown + entity.World.Rand.Next(maxcooldown - mincooldown);
-			cooldownUntilTotalHours = entity.World.Calendar.TotalHours + mincooldownHours + entity.World.Rand.NextDouble() * (maxcooldownHours - mincooldownHours);
 			lastFinishedAtMs = entity.World.ElapsedMilliseconds;
 			if (targetEntity == null) {
 				targetPos = null;
 				cancelSearch = true;
 				pathTraverser.Stop();
+				StopAnimation();
 			} else if (!targetEntity.Alive) {
 				targetEntity = null;
 				targetPos = null;
@@ -293,25 +293,27 @@ namespace VSKingdom {
 			} else if (entity.Swimming) {
 				curMoveSpeed = (float)entity.moveSpeed;
 				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = swimAnimCode, Code = swimAnimCode, BlendMode = EnumAnimationBlendMode.Average }.Init());
-				entity.AnimManager.StopAnimation(walkAnimCode);
 				entity.AnimManager.StopAnimation(moveAnimCode);
+				entity.AnimManager.StopAnimation(walkAnimCode);
 			} else if (entity.ServerPos.SquareDistanceTo(targetPos) > 36f) {
 				curMoveSpeed = (float)entity.moveSpeed;
 				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = moveAnimCode, Code = moveAnimCode, MulWithWalkSpeed = true, BlendMode = EnumAnimationBlendMode.Average }.Init());
 				entity.AnimManager.StopAnimation(walkAnimCode);
 				entity.AnimManager.StopAnimation(swimAnimCode);
-			} else {
+			} else if (entity.ServerPos.SquareDistanceTo(targetPos) > 1f) {
 				curMoveSpeed = (float)entity.walkSpeed;
 				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = walkAnimCode, Code = walkAnimCode, MulWithWalkSpeed = true, BlendMode = EnumAnimationBlendMode.Average, EaseOutSpeed = 1f }.Init());
 				entity.AnimManager.StopAnimation(moveAnimCode);
 				entity.AnimManager.StopAnimation(swimAnimCode);
+			} else {
+				StopAnimation();
 			}
 		}
 
 		private void StopAnimation() {
-			entity.AnimManager.StopAnimation(walkAnimCode);
 			entity.AnimManager.StopAnimation(moveAnimCode);
-			if (!entity.Swimming && entity.AnimManager.IsAnimationActive(swimAnimCode)) {
+			entity.AnimManager.StopAnimation(walkAnimCode);
+			if (!entity.Swimming) {
 				entity.AnimManager.StopAnimation(swimAnimCode);
 			}
 		}

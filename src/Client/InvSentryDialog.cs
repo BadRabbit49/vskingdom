@@ -31,8 +31,9 @@ namespace VSKingdom {
 			this.inventory = inventory;
 			this.entity = entity;
 			this.player = capi.World.Player.Entity;
+			this.langCodes = (player as IServerPlayer)?.LanguageCode ?? "en";
 			this.capi = capi;
-			this.langCodes = (capi.World.Player as IServerPlayer)?.LanguageCode ?? "en";
+
 			ElementBounds bgBounds = ElementBounds.Fill.WithFixedPadding(GuiStyle.ElementToDialogPadding);
 			bgBounds.BothSizing = ElementSizing.FitToChildren;
 			// Dialog Bounds.
@@ -147,7 +148,6 @@ namespace VSKingdom {
 		}
 
 		protected bool OnGiveCommand(string orders) {
-			// This is a brute-force way of doing this. I didn't want it to come to this but here it is.
 			bool toggled = !loyalties.GetBool(orders);
 			SentryOrders newOrders = new SentryOrders();
 			newOrders.entityUID = entity.EntityId;
@@ -159,7 +159,7 @@ namespace VSKingdom {
 				case "command_follow":
 					newOrders.following = toggled;
 					newOrders.attribute = string.Join(',', "l", "guardedEntityId", (toggled ? player.EntityId : 0).ToString());
-					(entity.Api as ICoreServerAPI)?.Network.GetChannel("sentrynetwork").SendPacket<PlayerUpdate>(new PlayerUpdate() { entityUID = player.EntityId, followers = new long[] { entity.EntityId } }, player.Player as IServerPlayer);
+					capi.Network.GetChannel("sentrynetwork").SendPacket<PlayerUpdate>(new PlayerUpdate() { entityUID = player.EntityId, followers = new long[] { entity.EntityId } });
 					break;
 				case "command_firing":
 					newOrders.attacking = toggled;
@@ -178,8 +178,8 @@ namespace VSKingdom {
 					newOrders.returning = toggled;
 					break;
 			}
-			newOrders.playermsg = LangUtility.GetL(langCodes, $"gui-{orders.Replace('_', '-')}-{toggled.ToString().ToLower()}");
-			(player.Api as ICoreServerAPI)?.Network.GetChannel("sentrynetwork").SendPacket<SentryOrders>(newOrders, player.Player as IServerPlayer);
+			capi.ShowChatMessage(LangUtility.GetL(langCodes, $"gui-{orders.Replace('_', '-')}-{toggled.ToString().ToLower()}"));
+			capi.Network.GetChannel("sentrynetwork").SendPacket<SentryOrders>(newOrders);
 			return TryClose();
 		}
 

@@ -36,7 +36,10 @@ public class ItemPeople : Item {
 			}
 			return;
 		}
-		byEntity.World.Logger.Notification("Creating a new entity with code: " + CodeEndWithoutParts(1));
+		if (api.World.Side == EnumAppSide.Client) {
+			byEntity.World.Logger.Notification("Creating a new entity with code: " + CodeEndWithoutParts(1));
+		}
+		
 		Entity entity = byEntity.World.ClassRegistry.CreateEntity(entityType);
 		
 		if (entity is null) {
@@ -61,11 +64,9 @@ public class ItemPeople : Item {
 		Culture byCulture = cultureList.Find(cultureMatch => cultureMatch.CultureGUID == byEntity.WatchedAttributes.GetTreeAttribute("loyalties").GetString("culture_guid"));
 		// Setup cultural features.
 		if (byCulture != null && byCulture?.CultureGUID != "00000000") {
-			Random rnd = new Random();
 			// Editing the "skinConfig" tree here and changing it to what we want.
 			var entitySkinParts = entity.WatchedAttributes.GetOrAddTreeAttribute("skinConfig").GetOrAddTreeAttribute("appliedParts");
 			var entityFullNames = entity.WatchedAttributes.GetOrAddTreeAttribute("nametag");
-
 			string[] skinColors = byCulture.SkinColors.ToArray<string>();
 			string[] eyesColors = byCulture.EyesColors.ToArray<string>();
 			string[] hairColors = byCulture.HairColors.ToArray<string>();
@@ -75,41 +76,37 @@ public class ItemPeople : Item {
 			string[] faceBeards = byCulture.FaceBeards.ToArray<string>();
 			string[] underwears = new string[] { "breeches", "leotard", "twopiece" };
 			string[] expression = new string[] { "angry", "grin", "smirk", "kind", "upset", "neutral", "sad", "serious", "tired", "very-sad" };
-
-			entitySkinParts.SetString("baseskin", skinColors[rnd.Next(0, skinColors.Length - 1)]);
-			entitySkinParts.SetString("eyecolor", eyesColors[rnd.Next(0, eyesColors.Length - 1)]);
-			entitySkinParts.SetString("haircolor", hairColors[rnd.Next(0, hairColors.Length - 1)]);
-			entitySkinParts.SetString("hairbase", hairStyles[rnd.Next(0, hairStyles.Length - 1)]);
-			entitySkinParts.SetString("hairextra", hairExtras[rnd.Next(0, hairExtras.Length - 1)]);
+			entitySkinParts.SetString("baseskin", skinColors[api.World.Rand.Next(0, skinColors.Length - 1)]);
+			entitySkinParts.SetString("eyecolor", eyesColors[api.World.Rand.Next(0, eyesColors.Length - 1)]);
+			entitySkinParts.SetString("haircolor", hairColors[api.World.Rand.Next(0, hairColors.Length - 1)]);
+			entitySkinParts.SetString("hairbase", hairStyles[api.World.Rand.Next(0, hairStyles.Length - 1)]);
+			entitySkinParts.SetString("hairextra", hairExtras[api.World.Rand.Next(0, hairExtras.Length - 1)]);
 			
 			if (entity.Code.EndVariant() == "masc") {
-				entitySkinParts.SetString("mustache", faceStyles[rnd.Next(0, faceStyles.Length - 1)]);
-				entitySkinParts.SetString("beard", faceBeards[rnd.Next(0, faceBeards.Length - 1)]);
-				entitySkinParts.SetString("underwear", underwears[rnd.Next(0, 1)]);
-			}
-
-			if (entity.Code.EndVariant() == "femm") {
+				entitySkinParts.SetString("mustache", faceStyles[api.World.Rand.Next(0, faceStyles.Length - 1)]);
+				entitySkinParts.SetString("beard", faceBeards[api.World.Rand.Next(0, faceBeards.Length - 1)]);
+				entitySkinParts.SetString("underwear", underwears[api.World.Rand.Next(0, 1)]);
+			} else if (entity.Code.EndVariant() == "femm") {
 				entitySkinParts.SetString("mustache", "none");
 				entitySkinParts.SetString("beard", "none");
-				entitySkinParts.SetString("underwear", underwears[rnd.Next(1, 2)]);
+				entitySkinParts.SetString("underwear", underwears[api.World.Rand.Next(1, 2)]);
 			}
-
-			entitySkinParts.SetString("facialexpression", expression[rnd.Next(1, expression.Length - 1)]);
+			entitySkinParts.SetString("facialexpression", expression[api.World.Rand.Next(1, expression.Length - 1)]);
 
 			// Set the first and last names of the entity here.
 			string[] mascNames = byCulture.MascFNames.ToArray<string>();
 			string[] femmNames = byCulture.FemmFNames.ToArray<string>();
 			string[] lastNames = byCulture.CommLNames.ToArray<string>();
 			switch (entity.Code.EndVariant()) {
-				case "masc": entityFullNames.SetString("name", mascNames[rnd.Next(0, mascNames.Length - 1)]); break;
-				case "femm": entityFullNames.SetString("name", femmNames[rnd.Next(0, femmNames.Length - 1)]); break;
-				default: entityFullNames.SetString("name", LangUtility.Fuse(mascNames, femmNames)[rnd.Next(0, (mascNames.Length + femmNames.Length) - 2)]); break;
+				case "masc": entityFullNames.SetString("name", mascNames[api.World.Rand.Next(0, mascNames.Length - 1)]); break;
+				case "femm": entityFullNames.SetString("name", femmNames[api.World.Rand.Next(0, femmNames.Length - 1)]); break;
+				default: entityFullNames.SetString("name", LangUtility.Fuse(mascNames, femmNames)[api.World.Rand.Next(0, (mascNames.Length + femmNames.Length) - 2)]); break;
 			}
-			entityFullNames.SetString("last", lastNames[rnd.Next(0, lastNames.Length - 1)]);
+			entityFullNames.SetString("last", lastNames[api.World.Rand.Next(0, lastNames.Length - 1)]);
 		}
 
 		// If the byEntity is a player then make them the assigned leader.
-		if (entity is EntitySentry sentry && byEntity is EntityPlayer playerEnt) {
+		if (entity is EntitySentry && byEntity is EntityPlayer playerEnt) {
 			entity.WatchedAttributes.GetOrAddTreeAttribute("loyalties").SetString("leaders_guid", playerEnt?.PlayerUID ?? null);
 			entity.WatchedAttributes.GetOrAddTreeAttribute("loyalties").SetString("culture_guid", byEntity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("culture_guid") ?? "00000000");
 			entity.WatchedAttributes.GetOrAddTreeAttribute("loyalties").SetString("kingdom_guid", byEntity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdom_guid") ?? "00000000");

@@ -8285,8 +8285,8 @@
 			]
 		},
 		{
-			"name": "Raiseshield",
-			"code": "raiseshield",
+			"name": "Raiseshield-left",
+			"code": "raiseshield-left",
 			"quantityframes": 30,
 			"onActivityStopped": "EaseOut",
 			"onAnimationEnd": "Repeat",
@@ -8296,6 +8296,22 @@
 					"elements": {
 						"UpperArmL": { "offsetX": 1.0, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": -10.0, "rotationY": 23.0, "rotationZ": -84.0 },
 						"LowerArmL": { "offsetX": 0.0, "offsetY": 1.0, "offsetZ": 0.0, "rotationX": 85.0, "rotationY": -13.0, "rotationZ": -16.0 }
+					}
+				}
+			]
+		},
+		{
+			"name": "Raiseshield-right",
+			"code": "raiseshield-right",
+			"quantityframes": 30,
+			"onActivityStopped": "EaseOut",
+			"onAnimationEnd": "Repeat",
+			"keyframes": [
+				{
+					"frame": 0,
+					"elements": {
+						"UpperArmR": { "rotationX": 3.0, "rotationY": -42.0, "rotationZ": -75.0 },
+						"LowerArmR": { "offsetX": 0.0, "offsetY": 1.0, "offsetZ": 0.0, "rotationX": -94.0, "rotationY": 30.0, "rotationZ": 0.0 }
 					}
 				}
 			]

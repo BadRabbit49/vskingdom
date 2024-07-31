@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Collections.Generic;
 using Vintagestory.API.Client;
 using Vintagestory.API.Server;
 using Vintagestory.API.Config;
@@ -10,8 +12,6 @@ using Vintagestory.API.Datastructures;
 using Vintagestory.API.Util;
 using Vintagestory.API.MathTools;
 using Vintagestory.GameContent;
-using System.Text;
-using System.Collections.Generic;
 
 namespace VSKingdom {
 	public class EntitySentry : EntityHumanoid {
@@ -19,11 +19,7 @@ namespace VSKingdom {
 		public virtual bool[] ruleOrder { get; set; }
 		public virtual double moveSpeed { get; set; }
 		public virtual double walkSpeed { get; set; }
-		public virtual double massTotal { get; set; }
 		public virtual string weapClass { get; set; }
-		public virtual double weapSkill { get; set; }
-		public virtual double weapValue { get; set; }
-		public virtual double weapRates { get; set; }
 		public virtual double weapRange { get; set; }
 		public virtual double postRange { get; set; }
 		public virtual string baseGroup { get; set; }
@@ -46,8 +42,8 @@ namespace VSKingdom {
 		public virtual ItemSlot HealItemSlot => gearInv[19];
 		public override IInventory GearInventory => gearInv;
 		public ITreeAttribute Loyalties;
-		public ICoreClientAPI ClientAPI => (Api as ICoreClientAPI);
-		public ICoreServerAPI ServerAPI => (Api as ICoreServerAPI);
+		public ICoreClientAPI ClientAPI;
+		public ICoreServerAPI ServerAPI;
 
 		public override void Initialize(EntityProperties properties, ICoreAPI api, long InChunkIndex3d) {
 			base.Initialize(properties, api, InChunkIndex3d);
@@ -60,14 +56,16 @@ namespace VSKingdom {
 			}
 			// Register stuff for client-side api.
 			if (api is ICoreClientAPI capi) {
+				ClientAPI = capi;
 				talkUtil = new EntityTalkUtil(capi, this);
 			}
 			// Register listeners if api is on server.
 			if (api is ICoreServerAPI sapi) {
+				ServerAPI = sapi;
 				WatchedAttributes.RegisterModifiedListener("inventory", ReadInventoryFromAttributes);
 				GetBehavior<EntityBehaviorHealth>().onDamaged += (dmg, dmgSource) => HealthUtility.handleDamaged(World.Api, this, dmg, dmgSource);
 			}
-			if (Api.Side != EnumAppSide.Client) {
+			if (Api.Side == EnumAppSide.Server) {
 				moveSpeed = properties.Attributes["moveSpeed"].AsDouble(0.030);
 				walkSpeed = properties.Attributes["walkSpeed"].AsDouble(0.015);
 				weapClass = properties.Attributes["weapClass"].AsString("melee").ToLowerInvariant();
@@ -100,7 +98,6 @@ namespace VSKingdom {
 				}
 			}
 			SendUpdates();
-			UpdateStats();
 		}
 		
 		public override WorldInteraction[] GetInteractionHelp(IClientWorldAccessor world, EntitySelection es, IClientPlayer player) {
@@ -209,7 +206,7 @@ namespace VSKingdom {
 				ToggleInventoryDialog(player.Player);
 				return;
 			}
-			if (!player.RightHandItemSlot.Empty && player.ServerControls.Sneak) {
+			if (!itemslot.Empty && player.ServerControls.Sneak) {
 				// TRY TO REVIVE!
 				if (!Alive && itemslot.Itemstack.Item is ItemPoultice) {
 					Revive();
@@ -223,7 +220,7 @@ namespace VSKingdom {
 					itemslot.TryPutInto(World, gearInv[(int)wearable.DressType]);
 					return;
 				}
-				if (itemslot.Itemstack.Collectible.Tool != null || itemslot.Itemstack.ItemAttributes?["toolrackTransform"].Exists == true) {
+				if (Alive && leadersID == player.PlayerUID && itemslot.Itemstack.Collectible.Tool != null || itemslot.Itemstack.ItemAttributes?["toolrackTransform"].Exists == true) {
 					if (player.RightHandItemSlot.TryPutInto(byEntity.World, RightHandItemSlot) == 0) {
 						player.RightHandItemSlot.TryPutInto(byEntity.World, LeftHandItemSlot);
 						return;
@@ -241,6 +238,9 @@ namespace VSKingdom {
 				}
 				// TRY TO RALLY!
 				if (Alive && kingdomID == theirKingdom && itemslot.Itemstack.Item is ItemBanner) {
+					if (!player.WatchedAttributes.HasAttribute("followerEntityUids")) {
+						ServerAPI?.World.PlayerByUid(player.PlayerUID).Entity.WatchedAttributes.SetAttribute("followerEntityUids", new LongArrayAttribute(new long[] { }));
+					}
 					var followed = (player.WatchedAttributes.GetAttribute("followerEntityUids") as LongArrayAttribute)?.value?.ToList<long>();
 					var sentries = World.GetEntitiesAround(ServerPos.XYZ, 16f, 8f, entity => (entity is EntitySentry sentry && sentry.kingdomID == theirKingdom));
 					foreach (EntitySentry sentry in sentries) {
@@ -253,8 +253,10 @@ namespace VSKingdom {
 						ServerAPI?.Network.GetChannel("sentrynetwork").SendPacket<SentryUpdate>(new SentryUpdate() { entityUID = sentry.EntityId, kingdomID = sentry.kingdomID, cultureID = sentry.cultureID }, player.Player as IServerPlayer);
 					}
 					player.WatchedAttributes.SetAttribute("followerEntityUids", new LongArrayAttribute(followed.ToArray<long>()));
+					return;
 				}
 			}
+			base.OnInteract(byEntity, itemslot, hitPosition, mode);
 		}
 
 		public override void OnEntityDespawn(EntityDespawnData despawn) {
@@ -271,11 +273,13 @@ namespace VSKingdom {
 		
 		public override void OnReceivedClientPacket(IServerPlayer player, int packetid, byte[] data) {
 			base.OnReceivedClientPacket(player, packetid, data);
-			if (packetid == 1505) {
-				player.InventoryManager.OpenInventory(GearInventory);
-			}
-			if (packetid == 1506) {
-				player.InventoryManager.CloseInventory(GearInventory);
+			switch (packetid) {
+				case 1505:
+					player.InventoryManager.OpenInventory(GearInventory);
+					return;
+				case 1506:
+					player.InventoryManager.CloseInventory(GearInventory);
+					return;
 			}
 		}
 
@@ -353,8 +357,10 @@ namespace VSKingdom {
 			gearInv.ToTreeAttributes(tree);
 			WatchedAttributes.MarkPathDirty("inventory");
 			// If on server-side, not client, send the packetid on the channel.
-			(Api as ICoreServerAPI)?.Network.BroadcastEntityPacket(EntityId, 1504, SerializerUtil.ToBytes((w) => tree.ToBytes(w)));
-			UpdateStats();
+			if (Api is ICoreServerAPI sapi) {
+				sapi.Network.BroadcastEntityPacket(EntityId, 1504, SerializerUtil.ToBytes((w) => tree.ToBytes(w)));
+				UpdateStats();
+			}
 		}
 
 		public virtual void ToggleInventoryDialog(IPlayer player) {
@@ -362,6 +368,7 @@ namespace VSKingdom {
 				return;
 			} else {
 				if (InventoryDialog is null) {
+					//InventoryDialog = new InvSentryDialog(gearInv, this, ClientAPI)??? Trying to do serverside, maybe remove the Api.Side requirement above this?
 					InventoryDialog = new InvSentryDialog(gearInv, this, ClientAPI);
 					InventoryDialog.OnClosed += OnInventoryDialogClosed;
 				}
@@ -377,8 +384,7 @@ namespace VSKingdom {
 			ClientAPI.World.Player.InventoryManager.CloseInventory(GearInventory);
 			ClientAPI.Network.SendEntityPacket(EntityId, 1506);
 			InventoryDialog?.Dispose();
-			InventoryDialog = null;
-			UpdateStats();
+			InventoryDialog = null;	
 		}
 
 		public virtual void ReadInventoryFromAttributes() {
@@ -400,23 +406,17 @@ namespace VSKingdom {
 				WatchedAttributes.MarkPathDirty("loyalties");
 				EntitySentry thisEnt = (Api as ICoreServerAPI)?.World.GetEntityById(this.EntityId) as EntitySentry;
 				if (!RightHandItemSlot.Empty) {
-					ItemStack weapon = RightHandItemSlot.Itemstack;
 					// Set weapon class, movement speed, and ranges to distinguish behaviors.
-					thisEnt.weapValue = (double)((weapon?.Collectible.Durability ?? 1f) * (weapon?.Collectible.AttackPower ?? weapon?.Collectible.Attributes?["damage"].AsFloat()) ?? 0.0);
-					thisEnt.weapRange = (double)(weapon?.Item?.AttackRange ?? 1.5);
+					thisEnt.weapRange = (double)(RightHandItemSlot.Itemstack.Collectible.AttackRange);
 				}
-				thisEnt.massTotal = 0;
-				thisEnt.weapSkill = 1;
-				thisEnt.weapRates = 1;
+				float massTotal = 0;
 				foreach (var slot in gearInv) {
 					if (!slot.Empty && slot.Itemstack.Item is ItemWearable armor) {
-						thisEnt.massTotal += (armor.StatModifers?.walkSpeed ?? 0);
-						thisEnt.weapSkill += (armor.StatModifers?.rangedWeaponsAcc ?? 0);
-						thisEnt.weapRates += (armor.StatModifers?.rangedWeaponsSpeed ?? 0);
+						massTotal += (armor.StatModifers?.walkSpeed ?? 0);
 					}
 				}
-				thisEnt.moveSpeed = Properties.Attributes["moveSpeed"].AsDouble(0.030) + massTotal;
-				thisEnt.walkSpeed = Properties.Attributes["walkSpeed"].AsDouble(0.015) + massTotal;
+				thisEnt.moveSpeed = Properties.Attributes["moveSpeed"].AsDouble(0.030) * (1 - massTotal);
+				thisEnt.walkSpeed = Properties.Attributes["walkSpeed"].AsDouble(0.015) * (1 - massTotal);
 				thisEnt.postRange = Loyalties.GetDouble("outpost_size", 6.0);
 			} catch (NullReferenceException e) {
 				World.Logger.Error(e.ToString());
@@ -436,30 +436,7 @@ namespace VSKingdom {
 		}
 
 		public virtual void UpdateTasks(byte[] data) {
-			WatchedAttributes.MarkAllDirty();
-			/**WatchedAttributes.MarkPathDirty("loyalties");
-			if (data != null) {
-				SentryOrders orders = SerializerUtil.Deserialize<SentryOrders>(data);
-				ruleOrder = new bool[] {
-					orders.wandering ?? Loyalties.GetBool("command_wander", true),
-					orders.following ?? Loyalties.GetBool("command_follow", false),
-					orders.attacking ?? Loyalties.GetBool("command_firing", true),
-					orders.pursueing ?? Loyalties.GetBool("command_pursue", true),
-					orders.shifttime ?? Loyalties.GetBool("command_shifts", false),
-					orders.nighttime ?? Loyalties.GetBool("command_nights", false),
-					orders.returning ?? Loyalties.GetBool("command_return", false)
-				};
-			} else {
-				ruleOrder = new bool[] {
-					Loyalties.GetBool("command_wander", true),
-					Loyalties.GetBool("command_follow", false),
-					Loyalties.GetBool("command_firing", true),
-					Loyalties.GetBool("command_pursue", true),
-					Loyalties.GetBool("command_shifts", false),
-					Loyalties.GetBool("command_nights", false),
-					Loyalties.GetBool("command_return", false)
-				};
-			}**/
+			// Does nothing right now.
 		}
 
 		public virtual void UpdateTrees(byte[] data) {

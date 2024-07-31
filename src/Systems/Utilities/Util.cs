@@ -9,7 +9,7 @@ using static Vintagestory.API.Common.EntityAgent;
 
 namespace VSKingdom {
 	internal static class HealthUtility {
-		public static float handleDamaged(ICoreAPI api, EntityHumanoid ent, float dmg, DamageSource src) {
+		public static float handleDamaged(ICoreAPI api, EntityAgent ent, float dmg, DamageSource src) {
 			EnumDamageType type = src.Type;
 			// Reduce damage if ent holds a shield
 			dmg = applyShieldProtection(api, ent, dmg, src);
@@ -107,7 +107,7 @@ namespace VSKingdom {
 			return dmg;
 		}
 
-		public static float applyShieldProtection(ICoreAPI api, EntityHumanoid ent, float damage, DamageSource dmgSource) {
+		public static float applyShieldProtection(ICoreAPI api, EntityAgent ent, float damage, DamageSource dmgSource) {
 			double horizontalAngleProtectionRange = 120 / 2 * GameMath.DEG2RAD;
 			ItemSlot[] shieldSlots = new ItemSlot[] { ent.LeftHandItemSlot, ent.RightHandItemSlot };
 			for (int i = 0; i < shieldSlots.Length; i++) {
@@ -116,7 +116,8 @@ namespace VSKingdom {
 				if (attr is null || !attr.Exists) {
 					continue;
 				}
-				string usetype = ent.Controls.Sneak ? "active" : "passive";
+				bool isUsing = ent.AnimManager.IsAnimationActive("raiseshield-left") || ent.AnimManager.IsAnimationActive("raiseshield-right");
+				string usetype = isUsing ? "active" : "passive";
 				float dmgabsorb = attr["damageAbsorption"][usetype].AsFloat(0);
 				float chance = attr["protectionChance"][usetype].AsFloat(0);
 				double dx;
@@ -155,7 +156,7 @@ namespace VSKingdom {
 					damage = Math.Max(0, damage - dmgabsorb);
 					var loc = shieldSlot.Itemstack.ItemAttributes["blockSound"].AsString("held/shieldblock");
 					api.World.PlaySoundAt(AssetLocation.Create(loc, shieldSlot.Itemstack.Collectible.Code.Domain).WithPathPrefixOnce("sounds/").WithPathAppendixOnce(".ogg"), ent, null);
-					(api as ICoreServerAPI).Network.BroadcastEntityPacket(ent.EntityId, (int)EntityServerPacketId.PlayPlayerAnim, SerializerUtil.Serialize("shieldBlock" + ((i == 0) ? "L" : "R")));
+					(api as ICoreServerAPI)?.Network.BroadcastEntityPacket(ent.EntityId, (int)EntityServerPacketId.PlayPlayerAnim, SerializerUtil.Serialize("shieldBlock" + ((i == 0) ? "L" : "R")));
 					if (api.Side == EnumAppSide.Server) {
 						shieldSlot.Itemstack.Collectible.DamageItem(api.World, dmgSource.SourceEntity, shieldSlot, 1);
 						shieldSlot.MarkDirty();

@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Text;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Datastructures;
-using Vintagestory.API.Server;
 using Vintagestory.API.MathTools;
-using Vintagestory.GameContent;
-using Vintagestory.API.Config;
 
 namespace VSKingdom {
 	public class EntityBehaviorLoyalties : EntityBehavior {
@@ -93,6 +89,15 @@ namespace VSKingdom {
 
 		public override void AfterInitialized(bool onFirstSpawn) {
 			base.AfterInitialized(onFirstSpawn);
+			if (entity is EntityPlayer && onFirstSpawn) {
+				if (kingdomGUID is null) {
+					kingdomGUID = "00000000";
+				}
+				if (cultureGUID is null) {
+					cultureGUID = "00000000";
+				}
+				loyalties.RemoveAttribute("leaders_guid");
+			}
 			if (entity is EntitySentry sentry) {
 				if (kingdomGUID is null) {
 					kingdomGUID = sentry.baseGroup;
@@ -126,34 +131,5 @@ namespace VSKingdom {
 				}
 			}
 		}
-
-		public override void OnEntitySpawn() {
-			base.OnEntitySpawn();
-			if (entity is EntityPlayer) {
-				if (kingdomGUID is null) {
-					kingdomGUID = "00000000";
-				}
-				if (cultureGUID is null) {
-					cultureGUID = "00000000";
-				}
-				loyalties.RemoveAttribute("leaders_guid");
-			}
-		}
-
-		/**public override void GetInfoText(StringBuilder infotext) {
-			// Place Kingdom (if any), Leader (if any) and Guardpost (if any), here.
-			if (kingdomGUID != null) {
-				//infotext.AppendLine(string.Concat(LangUtility.Get("gui-kingdom-name"), DataUtility.GetKingdomName(kingdomGUID)));
-				infotext.AppendLine(string.Concat(Lang.Get("vskingdom:gui-kingdom-guid"), kingdomGUID));
-			}
-			if (leadersGUID != null) {
-				//infotext.AppendLine(string.Concat(LangUtility.Get("gui-leaders-name"), DataUtility.GetAPlayer(leadersGUID).PlayerName));
-				infotext.AppendLine(string.Concat(Lang.Get("vskingdom:gui-leaders-guid"), leadersGUID));
-			}
-			if (outpostXYZD != null) {
-				infotext.AppendLine(string.Concat(Lang.Get("vskingdom:gui-outpost-xyzd"), outpostXYZD.ToString()));
-			}
-			base.GetInfoText(infotext);
-		}**/
 	}
 }

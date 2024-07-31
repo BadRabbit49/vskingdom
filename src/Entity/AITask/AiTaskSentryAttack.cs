@@ -20,6 +20,7 @@ namespace VSKingdom {
 		protected bool turnToTarget = true;
 		protected bool banditPilled = false;
 		protected bool usingAShield = false;
+		protected long shieldedHand = 0;
 		protected long durationOfMs = 1500L;
 		protected long lastAttackMs;
 		protected long lastHelpedMs;
@@ -28,7 +29,7 @@ namespace VSKingdom {
 		protected float curTurnAngle;
 		protected string lastAnim;
 		protected string currAnim;
-		protected string shieldAnim;
+		protected string[] shieldAnim;
 		protected string[] animations;
 		protected AiTaskSentrySearch searchTask => entity.GetBehavior<EntityBehaviorTaskAI>().TaskManager.GetTask<AiTaskSentrySearch>();
 		
@@ -39,7 +40,7 @@ namespace VSKingdom {
 			base.LoadConfig(taskConfig, aiConfig);
 			this.banditPilled = taskConfig["isBandit"].AsBool(false);
 			this.animations = taskConfig["animations"]?.AsArray<string>(new string[] { "hit", "spearstabs" });
-			this.shieldAnim = taskConfig["shieldAnim"]?.AsString("raiseshield");
+			this.shieldAnim = taskConfig["shieldAnim"]?.AsArray<string>(new string[] { "raiseshield-left", "raiseshield-right" });
 			this.mincooldown = taskConfig["mincooldown"].AsInt(500);
 			this.maxcooldown = taskConfig["maxcooldown"].AsInt(1500);
 			this.maximumRange = taskConfig["maximumRange"].AsFloat(20f);
@@ -93,8 +94,13 @@ namespace VSKingdom {
 			}
 			return false;
 		}
-		
+
 		public override void StartExecute() {
+			// Don't execute anything if there isn't a targetEntity.
+			if (targetEntity != null) {
+				cancelAttack = true;
+				return;
+			}
 			// Record last animMeta so we can stop it if we need to.
 			lastAnim = currAnim;
 			// Initialize a random attack animation and sounds!
@@ -111,18 +117,23 @@ namespace VSKingdom {
 					case 2: sound = new AssetLocation("game:sounds/player/strike2"); break;
 				}
 			}
+			if (entity.LeftHandItemSlot.Empty && entity.RightHandItemSlot.Empty) {
+				usingAShield = false;
+			} else if (!entity.LeftHandItemSlot.Empty && entity.LeftHandItemSlot.Itemstack?.Item is ItemShield) {
+				usingAShield = true;
+				shieldedHand = 0;
+			} else if (!entity.RightHandItemSlot.Empty && entity.LeftHandItemSlot.Itemstack?.Item is ItemShield) {
+				usingAShield = true;
+				shieldedHand = 1;
+			}
 			cancelAttack = false;
 			animsRunning = false;
-			usingAShield = !entity.LeftHandItemSlot.Empty && (entity.LeftHandItemSlot.Itemstack?.Item is ItemShield);
 			curTurnAngle = pathTraverser.curTurnRadPerSec;
 			searchTask.SetTargetEnts(targetEntity);
 		}
 
 		public override bool ContinueExecute(float dt) {
-			if (targetEntity == null) {
-				return false;
-			}
-			if (cancelAttack || !targetEntity.Alive) {
+			if (cancelAttack || targetEntity == null || !targetEntity.Alive) {
 				return false;
 			}
 			EntityPos serverPos1 = entity.ServerPos;
@@ -148,23 +159,26 @@ namespace VSKingdom {
 					}
 				}
 				bool shouldShield = (closeToTarget && !targetsRanged) || (!closeToTarget && targetsRanged);
-				if (shouldShield && !entity.AnimManager.IsAnimationActive(shieldAnim)) {
+				bool animationsOn = entity.AnimManager.IsAnimationActive(shieldAnim[shieldedHand]);
+				if (shouldShield && !animationsOn) {
+					string ArmToUse = shieldedHand.Equals(0) ? "ArmL" : "ArmR";
 					entity.AnimManager.StartAnimation(new AnimationMetaData() {
-						Animation = shieldAnim,
-						Code = shieldAnim,
-						BlendMode = EnumAnimationBlendMode.Add,
-						EaseInSpeed = 1f,
-						ElementWeight = new Dictionary<string, float> {
-							{ "UpperArmL", 100f },
-							{ "LowerArmL", 100f }
-						},
-						ElementBlendMode = new Dictionary<string, EnumAnimationBlendMode> {
-							{ "UpperArmL", EnumAnimationBlendMode.AddAverage },
-							{ "LowerArmL", EnumAnimationBlendMode.AddAverage }
-						}
-					}.Init());
-				} else if (!shouldShield && entity.AnimManager.IsAnimationActive(shieldAnim)) {
-					entity.AnimManager.StopAnimation(shieldAnim);
+							Animation = shieldAnim[shieldedHand],
+							Code = shieldAnim[shieldedHand],
+							BlendMode = EnumAnimationBlendMode.Add,
+							EaseInSpeed = 1f,
+							ElementWeight = new Dictionary<string, float> {
+								{ "Upper" + ArmToUse, 100f },
+								{ "Lower" + ArmToUse, 100f }
+							},
+							ElementBlendMode = new Dictionary<string, EnumAnimationBlendMode> {
+								{ "Upper" + ArmToUse, EnumAnimationBlendMode.AddAverage },
+								{ "Lower" + ArmToUse, EnumAnimationBlendMode.AddAverage }
+							}
+						}.Init());
+				} else if (!shouldShield && animationsOn) {
+					entity.AnimManager.StopAnimation(shieldAnim[0]);
+					entity.AnimManager.StopAnimation(shieldAnim[1]);
 				}
 			}
 			return lastAttackMs + durationOfMs > entity.World.ElapsedMilliseconds;
@@ -175,7 +189,8 @@ namespace VSKingdom {
 			if (currAnim != null) {
 				entity.AnimManager.StopAnimation(currAnim);
 			}
-			entity.AnimManager.StopAnimation(shieldAnim);
+			entity.AnimManager.StopAnimation(shieldAnim[0]);
+			entity.AnimManager.StopAnimation(shieldAnim[1]);
 		}
 
 		public override void OnEntityHurt(DamageSource source, float damage) {
@@ -188,7 +203,7 @@ namespace VSKingdom {
 				// Alert all surrounding units! We're under attack!
 				foreach (EntitySentry soldier in entity.World.GetEntitiesAround(entity.ServerPos.XYZ, 20, 4, entity => (entity is EntitySentry))) {
 					if (entity.kingdomID == soldier.kingdomID) {
-						var taskManager = soldier.GetBehavior<EntityBehaviorTaskAI>().TaskManager;
+						var taskManager = soldier.GetBehavior<EntityBehaviorTaskAI>()?.TaskManager;
 						taskManager.GetTask<AiTaskSentryAttack>()?.OnAllyAttacked(source.SourceEntity);
 						taskManager.GetTask<AiTaskSentryRanged>()?.OnAllyAttacked(source.SourceEntity);
 					}

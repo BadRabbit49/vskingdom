@@ -33,7 +33,6 @@ namespace VSKingdom {
 		protected string[] animations;
 		protected AiTaskSentrySearch searchTask => entity.GetBehavior<EntityBehaviorTaskAI>().TaskManager.GetTask<AiTaskSentrySearch>();
 		
-		protected static readonly string bandituid = "xxxxxxxx";
 		protected static readonly string loyalties = "loyalties";
 
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
@@ -82,12 +81,12 @@ namespace VSKingdom {
 			}
 			if (ent.WatchedAttributes.HasAttribute(loyalties)) {
 				if (banditPilled) {
-					return ent is EntityPlayer || (ent is EntitySentry sentry && sentry.kingdomID != bandituid);
+					return ent is EntityPlayer || (ent is EntitySentry sentry && sentry.cachedData.kingdomGUID != GlobalCodes.banditryGUID);
 				}
 				if (ent is EntitySentry sent) {
-					return entity.enemiesID.Contains(sent.kingdomID) || sent.kingdomID == bandituid;
+					return entity.cachedData.enemiesLIST.Contains(sent.cachedData.kingdomGUID) || sent.cachedData.kingdomGUID == GlobalCodes.banditryGUID;
 				}
-				return entity.enemiesID.Contains(ent.WatchedAttributes.GetTreeAttribute(loyalties).GetString("kingdom_guid"));
+				return entity.cachedData.enemiesLIST.Contains(ent.WatchedAttributes.GetTreeAttribute(loyalties).GetString("kingdom_guid"));
 			}
 			if (ignoreEntityCode || IsTargetEntity(ent.Code.Path)) {
 				return CanSense(ent, range);
@@ -97,7 +96,7 @@ namespace VSKingdom {
 
 		public override void StartExecute() {
 			// Don't execute anything if there isn't a targetEntity.
-			if (targetEntity != null) {
+			if (targetEntity == null) {
 				cancelAttack = true;
 				return;
 			}
@@ -133,7 +132,7 @@ namespace VSKingdom {
 		}
 
 		public override bool ContinueExecute(float dt) {
-			if (cancelAttack || targetEntity == null || !targetEntity.Alive) {
+			if (targetEntity == null || cancelAttack || !targetEntity.Alive) {
 				return false;
 			}
 			EntityPos serverPos1 = entity.ServerPos;
@@ -201,9 +200,9 @@ namespace VSKingdom {
 				targetEntity = source.GetCauseEntity();
 				lastHelpedMs = entity.World.ElapsedMilliseconds;
 				// Alert all surrounding units! We're under attack!
-				foreach (EntitySentry soldier in entity.World.GetEntitiesAround(entity.ServerPos.XYZ, 20, 4, entity => (entity is EntitySentry))) {
-					if (entity.kingdomID == soldier.kingdomID) {
-						var taskManager = soldier.GetBehavior<EntityBehaviorTaskAI>()?.TaskManager;
+				foreach (EntitySentry sentry in entity.World.GetEntitiesAround(entity.ServerPos.XYZ, 20, 4, entity => (entity is EntitySentry))) {
+					if (entity.cachedData.kingdomGUID == sentry.cachedData.kingdomGUID) {
+						var taskManager = sentry.GetBehavior<EntityBehaviorTaskAI>()?.TaskManager;
 						taskManager.GetTask<AiTaskSentryAttack>()?.OnAllyAttacked(source.SourceEntity);
 						taskManager.GetTask<AiTaskSentryRanged>()?.OnAllyAttacked(source.SourceEntity);
 					}
@@ -222,7 +221,7 @@ namespace VSKingdom {
 		}
 
 		private bool AttackTarget() {
-			if (!hasDirectContact(targetEntity, (float)entity.weapRange, (float)entity.weapRange)) {
+			if (!hasDirectContact(targetEntity, entity.cachedData.weapRange, entity.cachedData.weapRange)) {
 				return false;
 			}
 			entity.AnimManager.StopAnimation(lastAnim);
@@ -239,7 +238,6 @@ namespace VSKingdom {
 			}, damage * GlobalConstants.CreatureDamageModifier);
 			// Only jump back if they killing blow was not dealt.
 			if (alive && !targetEntity.Alive) {
-				targetEntity = null;
 				cancelAttack = true;
 				return false;
 			}

@@ -1,12 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Collections.Generic;
 using Vintagestory.API.Client;
+using Vintagestory.API.Server;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Datastructures;
-using Vintagestory.API.Server;
+using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
 
 namespace VSKingdom;
@@ -39,13 +40,10 @@ public class ItemPeople : Item {
 		if (api.World.Side == EnumAppSide.Client) {
 			byEntity.World.Logger.Notification("Creating a new entity with code: " + CodeEndWithoutParts(1));
 		}
-		
 		Entity entity = byEntity.World.ClassRegistry.CreateEntity(entityType);
-		
 		if (entity is null) {
 			return;
 		}
-
 		entity.ServerPos.X = (float)(blockSel.Position.X + ((!blockSel.DidOffset) ? blockSel.Face.Normali.X : 0)) + 0.5f;
 		entity.ServerPos.Y = blockSel.Position.Y + ((!blockSel.DidOffset) ? blockSel.Face.Normali.Y : 0);
 		entity.ServerPos.Z = (float)(blockSel.Position.Z + ((!blockSel.DidOffset) ? blockSel.Face.Normali.Z : 0)) + 0.5f;
@@ -54,10 +52,28 @@ public class ItemPeople : Item {
 		entity.PositionBeforeFalling.Set(entity.ServerPos.X, entity.ServerPos.Y, entity.ServerPos.Z);
 		entity.Attributes.SetString("origin", "playerplaced");
 		JsonObject attributes = Attributes;
-
 		if (attributes != null && attributes.IsTrue("setGuardedEntityAttribute")) {
 			entity.WatchedAttributes.SetLong("guardedEntityId", byEntity.EntityId);
 		}
+		if (!player.Entity.WatchedAttributes.HasAttribute("followerEntityUids")) {
+			player.Entity.WatchedAttributes.SetAttribute("followerEntityUids", new LongArrayAttribute(new long[] { }));
+		}
+
+		entity.WatchedAttributes.SetBool("orderWander", true);
+		entity.WatchedAttributes.SetBool("orderFollow", false);
+		entity.WatchedAttributes.SetBool("orderEngage", true);
+		entity.WatchedAttributes.SetBool("orderPursue", false);
+		entity.WatchedAttributes.SetBool("orderShifts", false);
+		entity.WatchedAttributes.SetBool("orderPatrol", false);
+		entity.WatchedAttributes.SetBool("orderReturn", false);
+
+		entity.WatchedAttributes.SetFloat("wanderRange", 1f);
+		entity.WatchedAttributes.SetFloat("followRange", 1f);
+		entity.WatchedAttributes.SetFloat("engageRange", 1f);
+		entity.WatchedAttributes.SetFloat("pursueRange", 1f);
+		entity.WatchedAttributes.SetFloat("shiftsTimes", 1f);
+		entity.WatchedAttributes.SetVec3is("patrolVec3i", new Vec3i[] { blockSel.FullPosition.AsVec3i });
+		entity.WatchedAttributes.SetString("enlistedStatus", EnlistedStatus.CIVILIAN.ToString());
 
 		byte[] cultureData = (byEntity.Api as ICoreServerAPI)?.WorldManager.SaveGame.GetData("cultureData");
 		List<Culture> cultureList = cultureData is null ? new List<Culture>() : SerializerUtil.Deserialize<List<Culture>>(cultureData);

@@ -9,6 +9,9 @@ namespace VSKingdom {
 		public string KingdomLONG { get; set; }
 		public string KingdomDESC { get; set; }
 		public string KingdomTYPE { get; set; }
+		public string KingdomHEXA { get; set; }
+		public string KingdomHEXB { get; set; }
+		public string KingdomHEXC { get; set; }
 		public string LeadersGUID { get; set; }
 		public string LeadersNAME { get; set; }
 		public string LeadersLONG { get; set; }

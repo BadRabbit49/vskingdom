@@ -1,25 +1,25 @@
 [
 	{
 		"file": "game:itemtypes/parts/hoop",
-		"path": "/variantgroups/0/states/8",
+		"path": "/variantgroups/0/states/-",
 		"op": "add",
 		"value": "lead"
 	},
 	{
 		"file": "game:itemtypes/parts/hoop",
-		"path": "/variantgroups/0/states/9",
+		"path": "/variantgroups/0/states/-",
 		"op": "add",
 		"value": "brass"
 	},
 	{
 		"file": "game:itemtypes/parts/hoop",
-		"path": "/variantgroups/0/states/10",
+		"path": "/variantgroups/0/states/-",
 		"op": "add",
 		"value": "copper"
 	},
 	{
 		"file": "game:itemtypes/parts/hoop",
-		"path": "/variantgroups/0/states/11",
+		"path": "/variantgroups/0/states/-",
 		"op": "add",
 		"value": "electrum"
 	},

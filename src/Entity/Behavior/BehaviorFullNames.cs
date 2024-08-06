@@ -37,6 +37,11 @@ namespace VSKingdom {
 			set => entity.WatchedAttributes.GetTreeAttribute("nametag")?.SetString("last", value);
 		}
 
+		public string EntireName {
+			get => entity.WatchedAttributes.GetTreeAttribute("nametag")?.GetString("full");
+			set => entity.WatchedAttributes.GetTreeAttribute("nametag")?.SetString("full", value);
+		}
+
 		public override string PropertyName() {
 			return "KingdomFullNames";
 		}
@@ -69,6 +74,7 @@ namespace VSKingdom {
 			ITreeAttribute nametagTree = entity.WatchedAttributes.GetOrAddTreeAttribute("nametag");
 			nametagTree.SetString("name", commonName);
 			nametagTree.SetString("last", familyName);
+			nametagTree.SetString("full", $"{commonName} {familyName}");
 			entity.WatchedAttributes.MarkPathDirty("nametag");
 		}
 	}

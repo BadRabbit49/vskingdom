@@ -1,10 +1,8 @@
-﻿using System;
-using Vintagestory.API.Common;
+﻿using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
-using Vintagestory.API.Util;
 using Vintagestory.GameContent;
 
 namespace VSKingdom {
@@ -25,7 +23,6 @@ namespace VSKingdom {
 		protected float darkoutHours => (entity.World.Calendar.HoursPerDay / 24f) * 20f;
 		protected float morningHours => (entity.World.Calendar.HoursPerDay / 24f) * 5f;
 		protected string currAnims;
-		protected string basicIdle;
 		protected string[] animsIdle;
 		protected string[] animsHurt;
 		protected string[] animsLate;
@@ -45,7 +42,6 @@ namespace VSKingdom {
 			this.minduration = taskConfig["minduration"].AsInt(2000);
 			this.maxduration = taskConfig["maxduration"].AsInt(4000);
 			this.turnSpeedMul = taskConfig["turnSpeedMul"].AsFloat(0.75f);
-			this.basicIdle = taskConfig["animation"].AsString("idle");
 			this.animsIdle = taskConfig["animsIdle"].AsArray<string>(new string[] { "idle1", "idle2" });
 			this.animsHurt = taskConfig["animsHurt"].AsArray<string>(new string[] { "hurtidle" });
 			this.animsLate = taskConfig["animsLate"].AsArray<string>(new string[] { "yawn", "stretch" });
@@ -95,7 +91,7 @@ namespace VSKingdom {
 				idleUntilMs = entity.World.ElapsedMilliseconds + minduration + entity.World.Rand.Next(maxduration - minduration);
 			}
 			entity.IdleSoundChanceModifier = 0f;
-			currAnims = basicIdle;
+			currAnims = entity.cachedData.idleAnims;
 			bool doSpecial = entity.World.Rand.NextDouble() < 0.1;
 			if (entity.Swimming) {
 				currAnims = animsSwim[entity.World.Rand.Next(0, animsSwim.Length - 1)];

@@ -1,11 +1,11 @@
-﻿using Vintagestory.API.Common.Entities;
+﻿using System;
+using Vintagestory.API.Server;
 using Vintagestory.API.Common;
+using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
-using Vintagestory.GameContent;
-using System;
-using Vintagestory.API.Server;
 using Vintagestory.API.Util;
+using Vintagestory.GameContent;
 
 namespace VSKingdom {
 	public class EntityBehaviorDecayBody : EntityBehavior {
@@ -51,21 +51,31 @@ namespace VSKingdom {
 			if (!entity.World.Config.GetAsBool("AllowLooting") || killer == null || victim == null) {
 				return;
 			}
+			if (killer.ServerPos.DistanceTo(victim.ServerPos) > 4f) {
+				return;
+			}
 			// If the entities were at war with eachother then loot will be dropped. Specifically their armor and what they had in their right hand slot.
-			if (killer.enemiesID.Contains(victim.kingdomID) || killer.kingdomID == "xxxxxxxx") {
+			if (killer.cachedData.enemiesLIST.Contains(victim.cachedData.kingdomGUID) || killer.cachedData.kingdomGUID == GlobalCodes.banditryGUID) {
 				// If the killer can, try looting the player corpse right away, take what is better.
 				for (int i = 12; i < 14; i++) {
-					float ownGearDmgRed = (killer.GearInventory[i]?.Itemstack?.Item as ItemWearable)?.ProtectionModifiers.FlatDamageReduction ?? 0;
-					if (!victim.GearInventory[i].Empty && victim.GearInventory[i].Itemstack.Item is ItemWearable gear && gear?.ProtectionModifiers.FlatDamageReduction > ownGearDmgRed) {
-						try {
+					try {
+						float victimGearScore = 0f;
+						float killerGearScore = 0f;
+						if (!victim.GearInventory[i].Empty && victim.GearInventory[i]?.Itemstack?.Item is ItemWearable vGear) {
+							victimGearScore = vGear.ProtectionModifiers.FlatDamageReduction * vGear.Durability;
+						}
+						if (!killer.GearInventory[i].Empty && victim.GearInventory[i]?.Itemstack?.Item is ItemWearable kGear) {
+							killerGearScore = kGear.ProtectionModifiers.FlatDamageReduction * kGear.Durability;
+						}
+						if (victimGearScore > killerGearScore) {
 							victim.GearInventory[i].TryFlipWith(killer.GearInventory[i]);
 							killer.GearInvSlotModified(i);
 							victim.GearInvSlotModified(i);
-						} catch { }
-					}
+						}
+					} catch { }
 				}
 				if (!victim.RightHandItemSlot.Empty) {
-					if ((killer.weapClass == "range" && victim.RightHandItemSlot.Itemstack.Item is ItemBow) || (killer.weapClass == "melee" && victim.RightHandItemSlot.Itemstack.Item is not ItemBow)) {
+					if ((killer.cachedData.recruitINFO[0] == "range" && victim.RightHandItemSlot.Itemstack.Item is ItemBow) || (killer.cachedData.recruitINFO[0] == "melee" && victim.RightHandItemSlot.Itemstack.Item is not ItemBow)) {
 						try {
 							ItemStack victimWeapon = victim.RightHandItemSlot?.Itemstack ?? null;
 							ItemStack killerWeapon = killer.RightHandItemSlot?.Itemstack ?? null;
@@ -152,7 +162,7 @@ namespace VSKingdom {
 			EnumDamageSource source = damageSourceForDeath.Source;
 			if (source == EnumDamageSource.Entity || source == EnumDamageSource.Player) {
 				if (damageSourceForDeath.CauseEntity is EntityHumanoid) {
-					DiedInABattle = (entity as EntitySentry)?.enemiesID.Contains(damageSourceForDeath.CauseEntity?.WatchedAttributes?.GetTreeAttribute("loyalties")?.GetString("kingdom_guid") ?? "00000000") ?? false;
+					DiedInABattle = (entity as EntitySentry)?.cachedData.enemiesLIST.Contains(damageSourceForDeath.CauseEntity?.WatchedAttributes?.GetTreeAttribute("loyalties")?.GetString("kingdom_guid") ?? "00000000") ?? false;
 				}
 			} else if (source == EnumDamageSource.Void) {
 				(entity as EntityAgent).AllowDespawn = true;

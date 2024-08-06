@@ -40,7 +40,7 @@ namespace VSKingdom {
 		public override void StartExecute() {
 			base.StartExecute();
 			cancelWaters = false;
-			pathTraverser.WalkTowards(curTargetPos, (float)entity.moveSpeed, 0.5f, OnGoals, OnStuck);
+			pathTraverser.WalkTowards(curTargetPos, entity.cachedData.moveSpeed * GlobalConstants.WaterDrag, 0.5f, OnGoals, OnStuck);
 		}
 
 		public override bool ContinueExecute(float dt) {

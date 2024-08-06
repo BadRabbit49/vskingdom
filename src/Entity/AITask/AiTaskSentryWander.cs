@@ -21,6 +21,7 @@ namespace VSKingdom {
 		protected float wanderHeight;
 		protected float targetRanges;
 		protected float curMoveSpeed = 0.03f;
+		protected string curAnimation;
 		protected Vec3d curTargetPos;
 		protected NatFloat wanderRangeHor = NatFloat.createStrongerInvexp(3, 40);
 		protected NatFloat wanderRangeVer = NatFloat.createStrongerInvexp(3, 10);
@@ -29,13 +30,8 @@ namespace VSKingdom {
 			get => entity.WatchedAttributes.GetInt("failedConsecutivePathfinds", 0);
 			set => entity.WatchedAttributes.SetInt("failedConsecutivePathfinds", value);
 		}
-		protected float wanderRangedMul { get => entity.WatchedAttributes.GetFloat("wanderRangeMul", 1); }
-		protected Vec3d outpostPosition { get => entity.Loyalties.GetBlockPos("outpost_xyzd").ToVec3d(); }
-		protected string leaderPlayerUID { get => entity.Loyalties.GetString("leaders_guid"); }
-
-		protected static readonly string walkAnimCode = "walk";
-		protected static readonly string moveAnimCode = "move";
-		protected static readonly string swimAnimCode = "swim";
+		protected float wanderRange { get => entity.WatchedAttributes.GetFloat("wanderRange", 1f); }
+		protected Vec3d outpostXYZD { get => entity.Loyalties.GetBlockPos("outpost_xyzd").ToVec3d(); }
 
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);
@@ -58,8 +54,8 @@ namespace VSKingdom {
 				failedWanders = 0;
 				return false;
 			}
-			if (entity.ruleOrder[6] || entity.ServerPos.SquareDistanceTo(outpostPosition) > entity.postRange * entity.postRange) {
-				curTargetPos = outpostPosition.Clone();
+			if (entity.ruleOrder[6] || entity.ServerPos.SquareDistanceTo(outpostXYZD) > entity.cachedData.postRange * entity.cachedData.postRange) {
+				curTargetPos = outpostXYZD.Clone();
 			} else if (entity.InLava || ((entity.Swimming || entity.FeetInLiquid) && entity.World.Rand.NextDouble() < 0.04f)) {
 				curTargetPos = LeaveTheWatersTarget();
 			} else {
@@ -71,7 +67,7 @@ namespace VSKingdom {
 		public override void StartExecute() {
 			base.StartExecute();
 			cancelWander = false;
-			wanderRangeHor = NatFloat.createInvexp(3f, (float)entity.postRange);
+			wanderRangeHor = NatFloat.createInvexp(3f, entity.cachedData.postRange);
 			MoveAnimation();
 			bool ok = pathTraverser.WalkTowards(curTargetPos, curMoveSpeed, targetRanges, OnGoals, OnStuck);
 		}
@@ -99,7 +95,7 @@ namespace VSKingdom {
 				return false;
 			} else if (world.AllOnlinePlayers.Length > 0 && world.NearestPlayer(entity.ServerPos.X, entity.ServerPos.Y, entity.ServerPos.Z).Entity is IPlayer player && player.Entity.Alive) {
 				if (player.Entity.ServerPos.SquareDistanceTo(entity.ServerPos) < 4f && player.Entity.EntitySelection != null && player.Entity.EntitySelection.Entity.EntityId == entity.EntityId) {
-					return leaderPlayerUID == player.PlayerUID && player.Entity.ServerControls.RightMouseDown;
+					return entity.cachedData.leadersGUID != null && entity.cachedData.leadersGUID == player.PlayerUID && player.Entity.ServerControls.RightMouseDown;
 				}
 			}
 			return true;
@@ -110,7 +106,7 @@ namespace VSKingdom {
 			cooldownUntilTotalHours = entity.World.Calendar.TotalHours + mincooldownHours + entity.World.Rand.NextDouble() * (maxcooldownHours - mincooldownHours);
 			StopAnimation();
 			pathTraverser.Stop();
-			if (entity.ruleOrder[6] && entity.ServerPos.SquareDistanceTo(outpostPosition) < entity.postRange * entity.postRange) {
+			if (entity.ruleOrder[6] && entity.ServerPos.SquareDistanceTo(outpostXYZD) < entity.cachedData.postRange * entity.cachedData.postRange) {
 				HasReturnedTo();
 			}
 		}
@@ -147,15 +143,15 @@ namespace VSKingdom {
 		private Vec3d LoadNextWanderTarget() {
 			bool canFallDamage = entity.Api.World.Config.GetAsBool("FallDamageOn");
 			int num = 9;
-			float rangeMul = wanderRangedMul;
+			float rangeMul = wanderRange;
 			Vec4d bestTarget = null;
 			Vec4d currTarget = new Vec4d();
 			if (failedPathfinds > 10) {
-				rangeMul = Math.Max(0.1f, wanderRangedMul * 0.9f);
+				rangeMul = Math.Max(0.1f, wanderRange * 0.9f);
 			} else {
-				rangeMul = Math.Min(1f, wanderRangedMul * 1.1f);
+				rangeMul = Math.Min(1f, wanderRange * 1.1f);
 				if (rand.NextDouble() < 0.05) {
-					rangeMul = Math.Min(1f, wanderRangedMul * 1.5f);
+					rangeMul = Math.Min(1f, wanderRange * 1.5f);
 				}
 			}
 			if (rand.NextDouble() < 0.05) {
@@ -257,41 +253,41 @@ namespace VSKingdom {
 
 		private void HasReturnedTo() {
 			entity.ruleOrder[6] = false;
-			SentryOrders updatedOrders = new SentryOrders() { entityUID = entity.EntityId, returning = false };
+			SentryOrders updatedOrders = new SentryOrders() { entityUID = entity.EntityId, returning = false, usedorder = false };
 			IServerPlayer nearestPlayer = entity.ServerAPI.World.NearestPlayer(entity.ServerPos.X, entity.ServerPos.Y, entity.ServerPos.Z) as IServerPlayer;
 			entity.ServerAPI?.Network.GetChannel("sentrynetwork").SendPacket<SentryOrders>(updatedOrders, nearestPlayer);
 		}
 
 		private void MoveAnimation() {
+			string _lastAnim = curAnimation;
 			if (cancelWander) {
-				curMoveSpeed = 0;
 				StopAnimation();
+				return;
 			} else if (entity.Swimming) {
-				curMoveSpeed = (float)entity.moveSpeed;
-				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = swimAnimCode, Code = swimAnimCode, BlendMode = EnumAnimationBlendMode.Average }.Init());
-				entity.AnimManager.StopAnimation(walkAnimCode);
-				entity.AnimManager.StopAnimation(moveAnimCode);
-			} else if (entity.ServerPos.SquareDistanceTo(curTargetPos) > 36f) {
-				curMoveSpeed = (float)entity.moveSpeed;
-				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = moveAnimCode, Code = moveAnimCode, MulWithWalkSpeed = true, BlendMode = EnumAnimationBlendMode.Average }.Init());
-				entity.AnimManager.StopAnimation(walkAnimCode);
-				entity.AnimManager.StopAnimation(swimAnimCode);
+				curAnimation = entity.cachedData.swimAnims;
+				curMoveSpeed = entity.cachedData.moveSpeed * GlobalConstants.WaterDrag;
+			} else if (entity.ServerPos.SquareDistanceTo(curTargetPos) > 81f) {
+				curAnimation = entity.cachedData.moveAnims;
+				curMoveSpeed = entity.cachedData.moveSpeed;
 			} else if (entity.ServerPos.SquareDistanceTo(curTargetPos) > 1f) {
-				curMoveSpeed = (float)entity.walkSpeed;
-				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = walkAnimCode, Code = walkAnimCode, MulWithWalkSpeed = true, BlendMode = EnumAnimationBlendMode.Average, EaseOutSpeed = 1f }.Init());
-				entity.AnimManager.StopAnimation(moveAnimCode);
-				entity.AnimManager.StopAnimation(swimAnimCode);
+				curAnimation = entity.cachedData.walkAnims;
+				curMoveSpeed = entity.cachedData.walkSpeed;
 			} else {
 				StopAnimation();
+				return;
 			}
+			entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = curAnimation, Code = curAnimation, BlendMode = EnumAnimationBlendMode.Average }.Init());
+			entity.AnimManager.StopAnimation(_lastAnim);
 		}
 
 		private void StopAnimation() {
-			entity.AnimManager.StopAnimation(walkAnimCode);
-			entity.AnimManager.StopAnimation(moveAnimCode);
-			if (!entity.Swimming) {
-				entity.AnimManager.StopAnimation(swimAnimCode);
+			if (curAnimation != null) {
+				entity.AnimManager.StopAnimation(curAnimation);
 			}
+			curMoveSpeed = 0;
+			entity.AnimManager.StopAnimation(entity.cachedData.walkAnims);
+			entity.AnimManager.StopAnimation(entity.cachedData.moveAnims);
+			entity.AnimManager.StopAnimation(entity.cachedData.swimAnims);
 		}
 
 		/**private void CheckDoors(Vec3d target) {
@@ -348,7 +344,7 @@ namespace VSKingdom {
 				return true;
 			}
 			foreach (var claim in entity.World.Claims.Get(pos)) {
-				if (entity.World.PlayerByUid(claim.OwnedByPlayerUid)?.Entity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdom_guid") == entity.kingdomID) {
+				if (entity.World.PlayerByUid(claim.OwnedByPlayerUid)?.Entity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdom_guid") == entity.cachedData.kingdomINFO[0]) {
 					return true;
 				}
 			}

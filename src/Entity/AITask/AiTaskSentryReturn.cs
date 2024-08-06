@@ -1,4 +1,5 @@
 ﻿using Vintagestory.API.Common;
+using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
@@ -16,10 +17,6 @@ namespace VSKingdom {
 		protected float curMoveSpeed = 0.03f;
 		protected Vec3d postBlock { get => entity.Loyalties.GetBlockPos("outpost_xyzd").ToVec3d(); }
 
-		protected static readonly string walkAnimCode = "walk";
-		protected static readonly string moveAnimCode = "move";
-		protected static readonly string swimAnimCode = "swim";
-
 		public override bool ShouldExecute() {
 			if (lastCheckTotalMs + lastCheckCooldown > entity.World.ElapsedMilliseconds) {
 				return false;
@@ -34,7 +31,7 @@ namespace VSKingdom {
 		public override void StartExecute() {
 			cancelReturn = false;
 			MoveAnimation();
-			pathTraverser.NavigateTo(postBlock, curMoveSpeed, (float)entity.postRange, OnGoals, OnStuck, true);
+			pathTraverser.NavigateTo(postBlock, curMoveSpeed, entity.cachedData.postRange, OnGoals, OnStuck, true);
 			base.StartExecute();
 		}
 
@@ -52,10 +49,10 @@ namespace VSKingdom {
 			cancelReturn = true;
 			cooldownUntilMs = entity.World.ElapsedMilliseconds + mincooldown + entity.World.Rand.Next(maxcooldown - mincooldown);
 			cooldownUntilTotalHours = entity.World.Calendar.TotalHours + mincooldownHours + entity.World.Rand.NextDouble() * (maxcooldownHours - mincooldownHours);
-			entity.AnimManager.StopAnimation(walkAnimCode);
-			entity.AnimManager.StopAnimation(moveAnimCode);
-			if (!entity.Swimming && entity.AnimManager.IsAnimationActive(swimAnimCode)) {
-				entity.AnimManager.StopAnimation(swimAnimCode);
+			entity.AnimManager.StopAnimation(entity.cachedData.walkAnims);
+			entity.AnimManager.StopAnimation(entity.cachedData.moveAnims);
+			if (!entity.Swimming && entity.AnimManager.IsAnimationActive(entity.cachedData.swimAnims)) {
+				entity.AnimManager.StopAnimation(entity.cachedData.swimAnims);
 			}
 			pathTraverser.Stop();
 			entity.ServerControls.StopAllMovement();
@@ -74,35 +71,35 @@ namespace VSKingdom {
 		private void MoveAnimation() {
 			if (cancelReturn) {
 				curMoveSpeed = 0;
-				entity.AnimManager.StopAnimation(walkAnimCode);
-				entity.AnimManager.StopAnimation(moveAnimCode);
-				entity.AnimManager.StopAnimation(swimAnimCode);
+				entity.AnimManager.StopAnimation(entity.cachedData.walkAnims);
+				entity.AnimManager.StopAnimation(entity.cachedData.moveAnims);
+				entity.AnimManager.StopAnimation(entity.cachedData.swimAnims);
 			} else if (entity.Swimming) {
-				curMoveSpeed = (float)entity.moveSpeed;
-				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = swimAnimCode, Code = swimAnimCode, BlendMode = EnumAnimationBlendMode.Average }.Init());
-				entity.AnimManager.StopAnimation(walkAnimCode);
-				entity.AnimManager.StopAnimation(moveAnimCode);
+				curMoveSpeed = entity.cachedData.moveSpeed * GlobalConstants.WaterDrag;
+				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = entity.cachedData.swimAnims, Code = entity.cachedData.swimAnims, BlendMode = EnumAnimationBlendMode.Average }.Init());
+				entity.AnimManager.StopAnimation(entity.cachedData.walkAnims);
+				entity.AnimManager.StopAnimation(entity.cachedData.moveAnims);
 			} else if (entity.ServerPos.SquareDistanceTo(postBlock) > 3 * 3) {
-				curMoveSpeed = (float)entity.moveSpeed;
-				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = moveAnimCode, Code = moveAnimCode, MulWithWalkSpeed = true, BlendMode = EnumAnimationBlendMode.Average }.Init());
-				entity.AnimManager.StopAnimation(walkAnimCode);
-				entity.AnimManager.StopAnimation(swimAnimCode);
+				curMoveSpeed = entity.cachedData.moveSpeed;
+				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = entity.cachedData.moveAnims, Code = entity.cachedData.moveAnims, MulWithWalkSpeed = true, BlendMode = EnumAnimationBlendMode.Average }.Init());
+				entity.AnimManager.StopAnimation(entity.cachedData.walkAnims);
+				entity.AnimManager.StopAnimation(entity.cachedData.swimAnims);
 			} else {
-				curMoveSpeed = (float)entity.walkSpeed;
-				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = walkAnimCode, Code = walkAnimCode, MulWithWalkSpeed = true, BlendMode = EnumAnimationBlendMode.Average, EaseOutSpeed = 1f }.Init());
-				entity.AnimManager.StopAnimation(moveAnimCode);
-				entity.AnimManager.StopAnimation(swimAnimCode);
+				curMoveSpeed = entity.cachedData.walkSpeed;
+				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = entity.cachedData.walkAnims, Code = entity.cachedData.walkAnims, MulWithWalkSpeed = true, BlendMode = EnumAnimationBlendMode.Average, EaseOutSpeed = 1f }.Init());
+				entity.AnimManager.StopAnimation(entity.cachedData.moveAnims);
+				entity.AnimManager.StopAnimation(entity.cachedData.swimAnims);
 			}
 		}
 
 		private void UpdateOrders(bool @returning) {
-			SentryOrders updatedOrders = new SentryOrders() { entityUID = entity.EntityId, returning = @returning };
+			SentryOrders updatedOrders = new SentryOrders() { entityUID = entity.EntityId, returning = @returning, usedorder = false };
 			IServerPlayer nearestPlayer = entity.ServerAPI.World.NearestPlayer(entity.ServerPos.X, entity.ServerPos.Y, entity.ServerPos.Z) as IServerPlayer;
 			entity.ServerAPI?.Network.GetChannel("sentrynetwork").SendPacket<SentryOrders>(updatedOrders, nearestPlayer);
 		}
 
 		private bool CheckTeleport() {
-			if (entity.ServerPos.XYZ.SquareDistanceTo(postBlock) > entity.postRange * entity.postRange) {
+			if (entity.ServerPos.XYZ.SquareDistanceTo(postBlock) > entity.cachedData.postRange * entity.cachedData.postRange) {
 				// If after 2 minutes still not at spawn and no player nearby, teleport back home and set command return to false.
 				var nearestPlayer = entity.World.NearestPlayer(entity.ServerPos.X, entity.ServerPos.Y, entity.ServerPos.Z).Entity;
 				if (entity.Alive && entity.World.ElapsedMilliseconds - lastWasInRangeMs > 1000 * 60 * 2 && nearestPlayer.ServerPos.DistanceTo(entity.ServerPos) > 50) {
@@ -115,9 +112,9 @@ namespace VSKingdom {
 		}
 
 		private bool CheckDistance() {
-			double boundaries = entity.postRange;
+			double boundaries = entity.cachedData.postRange;
 			if (entity.ruleOrder[3]) {
-				boundaries = entity.postRange * 4;
+				boundaries = entity.cachedData.postRange * 4;
 			}
 			// Set command to return if the outpost is further away than the boundaries allowed, and entity isn't following player.
 			if (entity.Alive && entity.ServerPos.SquareDistanceTo(postBlock) > boundaries * boundaries && !entity.ruleOrder[1]) {

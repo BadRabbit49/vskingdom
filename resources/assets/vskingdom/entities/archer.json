@@ -7,9 +7,9 @@
 	"deadHitboxSize": {"x": 0.75, "y": 0.5},
 	"eyeHeight": 1.7,
 	"attributes": {
-		"moveSpeed": 0.035,
-		"walkSpeed": 0.018,
-		"weapClass": "range",
+		"moveSpeed": 0.030,
+		"walkSpeed": 0.015,
+		"baseClass": "range",
 		"gearSpawn": [ "game:clothes-upperbody-tattered-linen-shirt" ],
 		"pantSpawn": [ "game:clothes-lowerbody-commoner-trousers", "game:clothes-lowerbody-survivor" ],
 		"shoeSpawn": [ "game:clothes-foot-survivor", "game:clothes-foot-peasent-slippers" ],
@@ -290,7 +290,7 @@
 			},
 			{
 				"code": "dies",
-				"animation": "die0",
+				"animation": "dies",
 				"blendMode": "AddAverage",
 				"animationSpeed": 1.75,
 				"weight": 10,

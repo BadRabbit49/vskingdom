@@ -7,10 +7,11 @@
 	"deadHitboxSize": {"x": 0.75, "y": 0.5},
 	"eyeHeight": 1.7,
 	"attributes": {
-		"moveSpeed": 0.03,
+		"moveSpeed": 0.030,
 		"walkSpeed": 0.015,
-		"weapClass": "melee",
-		"baseGroup": "xxxxxxxx",
+		"baseClass": "melee",
+		"baseState": "DESERTER",
+		"baseSides": "xxxxxxxx",
 		"weapSpawn": [ "game:blade-scrap-scrap", "game:blade-arming-ruined", "game:blade-claymore-ruined", "game:spear-scrap-scrap", "game:club-scrap-scrap", "game:club-generic-wood" ],
 		"headSpawn": [ "game:clothes-head-peasent-head-scarf", "", "", "", "" ],
 		"handSpawn": [ "game:clothes-hand-survivor", "game:clothes-hand-commoner-gloves", "game:clothes-hand-heavy-leather-gloves", "", "", "", "" ],
@@ -292,7 +293,7 @@
 			},
 			{
 				"code": "dies",
-				"animation": "die0",
+				"animation": "dies",
 				"blendMode": "AddAverage",
 				"animationSpeed": 1.75,
 				"weight": 10,

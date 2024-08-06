@@ -93,11 +93,43 @@ internal static class LangUtility {
 		return sentence;
 	}
 
+	public static string[] Fuse(string[] array1, string[] array2) {
+		return array1.Concat(array2).ToArray();
+	}
+
 	public static string[] Open(string stringList) {
 		return stringList.Split(", ");
 	}
 
-	public static string[] Fuse(string[] array1, string[] array2) {
-		return array1.Concat(array2).ToArray();
+	public static string Open(Int16[] array) {
+		string stringList = string.Empty;
+		for (int i = 0; i < array.Length; i++) {
+			stringList += $"{array[i]}, ";
+		}
+		return stringList.Remove(stringList.Length - 2, 2);
+	}
+
+	public static string Open(Int32[] array) {
+		string stringList = string.Empty;
+		for (int i = 0; i < array.Length; i++) {
+			stringList += $"{array[i]}, ";
+		}
+		return stringList.Remove(stringList.Length - 2, 2);
+	}
+
+	public static string Open(Int64[] array) {
+		string stringList = string.Empty;
+		for (int i = 0; i < array.Length; i++) {
+			stringList += $"{array[i]}, ";
+		}
+		return stringList.Remove(stringList.Length - 2, 2);
+	}
+
+	public static string Open(Int128[] array) {
+		string stringList = string.Empty;
+		for (int i = 0; i < array.Length; i++) {
+			stringList += $"{array[i]}, ";
+		}
+		return stringList.Remove(stringList.Length - 2, 2);
 	}
 }

@@ -21,9 +21,9 @@ namespace VSKingdom {
 		protected float fleeRange = 30f;
 		protected Vec3d targetPos = new Vec3d();
 
-		private ITreeAttribute healthTree;
-		private float CurHealth => healthTree.GetFloat("currenthealth");
-		private float MaxHealth => healthTree.GetFloat("basemaxhealth");
+		protected ITreeAttribute healthTree;
+		protected float CurHealth { get => healthTree.GetFloat("currenthealth"); }
+		protected float MaxHealth { get => healthTree.GetFloat("basemaxhealth"); }
 
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);
@@ -72,7 +72,7 @@ namespace VSKingdom {
 			base.StartExecute();
 			cancelEscape = false;
 			soundChance = Math.Max(0.025f, soundChance - 0.2f);
-			pathTraverser.NavigateTo(targetPos, (float)entity.moveSpeed, targetEntity.SelectionBox.XSize + 0.2f, OnGoals, OnStuck);
+			pathTraverser.NavigateTo(targetPos, entity.cachedData.moveSpeed, targetEntity.SelectionBox.XSize + 0.2f, OnGoals, OnStuck);
 			fleeingStartMs = entity.World.ElapsedMilliseconds;
 		}
 
@@ -135,7 +135,7 @@ namespace VSKingdom {
 			if (targetEntity == null || !targetEntity.Alive) {
 				return false;
 			}
-			if (entity.weapClass == "range" && hasDirectContact(targetEntity, 4f, 4f)) {
+			if (entity.cachedData.recruitINFO[0] == "range" && hasDirectContact(targetEntity, 4f, 4f)) {
 				return true;
 			}
 			if (targetEntity.HasBehavior<EntityBehaviorHealth>()) {

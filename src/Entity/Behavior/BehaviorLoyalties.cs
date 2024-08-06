@@ -1,5 +1,4 @@
-﻿using System;
-using Vintagestory.API.Common;
+﻿using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
@@ -16,11 +15,6 @@ namespace VSKingdom {
 				entity.WatchedAttributes.SetAttribute("loyalties", value);
 				entity.WatchedAttributes.MarkPathDirty("loyalties");
 			}
-		}
-
-		public EnlistedStatus recruitTYPE {
-			get => Enum.Parse<EnlistedStatus>(loyalties.GetString("recruit_type"));
-			set => loyalties.SetString("recruit_type", value.ToString());
 		}
 
 		public string kingdomGUID {
@@ -48,41 +42,6 @@ namespace VSKingdom {
 			set => loyalties.SetBlockPos("outpost_xyzd", value);
 		}
 
-		public bool commandWANDER {
-			get => loyalties.GetBool("command_wander");
-			set => loyalties.SetBool("command_wander", value);
-		}
-
-		public bool commandFOLLOW {
-			get => loyalties.GetBool("command_follow");
-			set => loyalties.SetBool("command_follow", value);
-		}
-
-		public bool commandFIRING {
-			get => loyalties.GetBool("command_firing");
-			set => loyalties.SetBool("command_firing", value);
-		}
-
-		public bool commandPURSUE {
-			get => loyalties.GetBool("command_pursue");
-			set => loyalties.SetBool("command_pursue", value);
-		}
-
-		public bool commandSHIFTS {
-			get => loyalties.GetBool("command_shifts");
-			set => loyalties.SetBool("command_shifts", value);
-		}
-
-		public bool commandNIGHTS {
-			get => loyalties.GetBool("command_nights");
-			set => loyalties.SetBool("command_nights", value);
-		}
-
-		public bool commandRETURN {
-			get => loyalties.GetBool("command_return");
-			set => loyalties.SetBool("command_return", value);
-		}
-
 		public override string PropertyName() {
 			return "KingdomLoyalties";
 		}
@@ -90,45 +49,48 @@ namespace VSKingdom {
 		public override void AfterInitialized(bool onFirstSpawn) {
 			base.AfterInitialized(onFirstSpawn);
 			if (entity is EntityPlayer && onFirstSpawn) {
-				if (kingdomGUID is null) {
-					kingdomGUID = "00000000";
+				if (kingdomGUID is null || !loyalties.HasAttribute("kingdom_guid")) {
+					kingdomGUID = GlobalCodes.commonerGUID;
 				}
-				if (cultureGUID is null) {
-					cultureGUID = "00000000";
+				if (cultureGUID is null || !loyalties.HasAttribute("culture_guid")) {
+					cultureGUID = GlobalCodes.seraphimGUID;
 				}
 				loyalties.RemoveAttribute("leaders_guid");
+				loyalties.RemoveAttribute("outpost_size");
+				loyalties.RemoveAttribute("outpost_xyzd");
+				entity.WatchedAttributes.MarkPathDirty("loyalties");
 			}
 			if (entity is EntitySentry sentry) {
-				if (kingdomGUID is null) {
-					kingdomGUID = sentry.baseGroup;
+				bool hasCachedData = sentry.cachedData != null;
+				if (!loyalties.HasAttribute("kingdom_guid") || kingdomGUID is null) {
+					kingdomGUID = sentry.Properties.Attributes["baseSides"].AsString(GlobalCodes.commonerGUID);
+				} else if (hasCachedData) {
+					sentry.cachedData.kingdomGUID = kingdomGUID;
 				}
-				if (cultureGUID is null) {
-					cultureGUID = "00000000";
+				if (!loyalties.HasAttribute("culture_guid") || cultureGUID is null) {
+					cultureGUID = sentry.Properties.Attributes["baseGroup"].AsString(GlobalCodes.seraphimGUID);
+				} else if (hasCachedData) {
+					sentry.cachedData.cultureGUID = cultureGUID;
 				}
-				if (outpostXYZD is null) {
-					outpostXYZD = entity.ServerPos.AsBlockPos;
+				if (!loyalties.HasAttribute("leaders_guid") || leadersGUID is null) {
+					leadersGUID = null;
+				} else if (hasCachedData) {
+					sentry.cachedData.leadersGUID = leadersGUID;
 				}
-				if (onFirstSpawn) {
-					commandWANDER = true;
-					commandFOLLOW = false;
-					commandFIRING = true;
-					commandPURSUE = true;
-					commandSHIFTS = false;
-					commandNIGHTS = false;
-					commandRETURN = false;
+				if (!loyalties.HasAttribute("outpost_xyzd") || outpostXYZD is null) {
+					outpostXYZD = entity.ServerPos.AsBlockPos.Copy();
+					outpostSIZE = 3;
 				}
-				sentry.Loyalties = loyalties;
-				sentry.ruleOrder = new bool[7] { commandWANDER, commandFOLLOW, commandFIRING, commandPURSUE, commandSHIFTS, commandNIGHTS, commandRETURN };
-				sentry.kingdomID = kingdomGUID ?? sentry.baseGroup;
-				sentry.cultureID = cultureGUID ?? "00000000";
-				sentry.leadersID = leadersGUID ?? null;
-				if (sentry.baseGroup == "xxxxxxxx") {
-					loyalties.SetString("kingdom_guid", "xxxxxxxx");
+				if (kingdomGUID == GlobalCodes.banditryGUID) {
+					loyalties.SetString("kingdom_guid", GlobalCodes.banditryGUID);
 					loyalties.SetString("leaders_guid", null);
 					sentry.WatchedAttributes.MarkPathDirty("loyalties");
-					sentry.kingdomID = "xxxxxxxx";
-					sentry.leadersID = null;
+					if (hasCachedData) {
+						sentry.cachedData.kingdomGUID = GlobalCodes.banditryGUID;
+						sentry.cachedData.leadersGUID = null;
+					}
 				}
+				sentry.Loyalties = loyalties;
 			}
 		}
 	}

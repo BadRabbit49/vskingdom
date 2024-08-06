@@ -1,11 +1,12 @@
-using Vintagestory.GameContent;
+using System;
+using System.Linq;
+using System.Collections.Generic;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
-using System.Linq;
-using System;
-using System.Collections.Generic;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Datastructures;
+using Vintagestory.GameContent;
+using Vintagestory.API.Config;
 
 namespace VSKingdom {
 	public class AiTaskSentrySearch : AiTaskBaseTargetable {
@@ -35,10 +36,7 @@ namespace VSKingdom {
 		protected bool RecentlyTookDamages => entity.World.ElapsedMilliseconds - lastHurtByTarget < 10000;
 		protected bool RemainInRetreatMode => entity.World.ElapsedMilliseconds - lastRetreatsAtMs < 20000;
 		protected bool RemainInOffenseMode => entity.World.ElapsedMilliseconds - lastAttackedAtMs < 20000;
-
-		protected static readonly string walkAnimCode = "walk";
-		protected static readonly string moveAnimCode = "move";
-		protected static readonly string swimAnimCode = "swim";
+		protected float pursueRange { get => entity.WatchedAttributes.GetFloat("pursueRange", 1f); }
 
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);
@@ -106,10 +104,10 @@ namespace VSKingdom {
 			currentFollowTime += dt;
 			currentUpdateTime += dt;
 			if (entity.Swimming) {
-				curMoveSpeed = (float)entity.moveSpeed;
-				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = swimAnimCode, Code = swimAnimCode, BlendMode = EnumAnimationBlendMode.Average }.Init());
-				entity.AnimManager.StopAnimation(walkAnimCode);
-				entity.AnimManager.StopAnimation(moveAnimCode);
+				curMoveSpeed = entity.cachedData.moveSpeed;
+				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = entity.cachedData.swimAnims, Code = entity.cachedData.swimAnims, BlendMode = EnumAnimationBlendMode.Average }.Init());
+				entity.AnimManager.StopAnimation(entity.cachedData.walkAnims);
+				entity.AnimManager.StopAnimation(entity.cachedData.moveAnims);
 			}
 			if (attackPattern != EnumAttackPattern.TacticalRetreat) {
 				if (RecentlyTookDamages && (!lastPathfind || IsInEmotionState("fleeondamage"))) {
@@ -291,30 +289,30 @@ namespace VSKingdom {
 				curMoveSpeed = 0;
 				StopAnimation();
 			} else if (entity.Swimming) {
-				curMoveSpeed = (float)entity.moveSpeed;
-				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = swimAnimCode, Code = swimAnimCode, BlendMode = EnumAnimationBlendMode.Average }.Init());
-				entity.AnimManager.StopAnimation(moveAnimCode);
-				entity.AnimManager.StopAnimation(walkAnimCode);
+				curMoveSpeed = entity.cachedData.moveSpeed * GlobalConstants.WaterDrag;
+				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = entity.cachedData.swimAnims, Code = entity.cachedData.swimAnims, BlendMode = EnumAnimationBlendMode.Average }.Init());
+				entity.AnimManager.StopAnimation(entity.cachedData.moveAnims);
+				entity.AnimManager.StopAnimation(entity.cachedData.walkAnims);
 			} else if (entity.ServerPos.SquareDistanceTo(targetPos) > 36f) {
-				curMoveSpeed = (float)entity.moveSpeed;
-				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = moveAnimCode, Code = moveAnimCode, MulWithWalkSpeed = true, BlendMode = EnumAnimationBlendMode.Average }.Init());
-				entity.AnimManager.StopAnimation(walkAnimCode);
-				entity.AnimManager.StopAnimation(swimAnimCode);
+				curMoveSpeed = entity.cachedData.moveSpeed;
+				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = entity.cachedData.moveAnims, Code = entity.cachedData.moveAnims, MulWithWalkSpeed = true, BlendMode = EnumAnimationBlendMode.Average }.Init());
+				entity.AnimManager.StopAnimation(entity.cachedData.walkAnims);
+				entity.AnimManager.StopAnimation(entity.cachedData.swimAnims);
 			} else if (entity.ServerPos.SquareDistanceTo(targetPos) > 1f) {
-				curMoveSpeed = (float)entity.walkSpeed;
-				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = walkAnimCode, Code = walkAnimCode, MulWithWalkSpeed = true, BlendMode = EnumAnimationBlendMode.Average, EaseOutSpeed = 1f }.Init());
-				entity.AnimManager.StopAnimation(moveAnimCode);
-				entity.AnimManager.StopAnimation(swimAnimCode);
+				curMoveSpeed = entity.cachedData.walkSpeed;
+				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = entity.cachedData.walkAnims, Code = entity.cachedData.walkAnims, MulWithWalkSpeed = true, BlendMode = EnumAnimationBlendMode.Average, EaseOutSpeed = 1f }.Init());
+				entity.AnimManager.StopAnimation(entity.cachedData.moveAnims);
+				entity.AnimManager.StopAnimation(entity.cachedData.swimAnims);
 			} else {
 				StopAnimation();
 			}
 		}
 
 		private void StopAnimation() {
-			entity.AnimManager.StopAnimation(moveAnimCode);
-			entity.AnimManager.StopAnimation(walkAnimCode);
+			entity.AnimManager.StopAnimation(entity.cachedData.moveAnims);
+			entity.AnimManager.StopAnimation(entity.cachedData.walkAnims);
 			if (!entity.Swimming) {
-				entity.AnimManager.StopAnimation(swimAnimCode);
+				entity.AnimManager.StopAnimation(entity.cachedData.swimAnims);
 			}
 		}
 

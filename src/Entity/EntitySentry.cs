@@ -76,7 +76,7 @@ namespace VSKingdom {
 				ReadInventoryFromAttributes();
 			}
 		}
-		
+
 		public override void OnEntitySpawn() {
 			base.OnEntitySpawn();
 			// Consult EnumCharacterDressType for details on which is which.

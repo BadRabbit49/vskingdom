@@ -1,12 +1,12 @@
-﻿using Vintagestory.GameContent;
+﻿using System;
+using System.Linq;
+using System.Collections.Generic;
 using Vintagestory.API.Util;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Vintagestory.GameContent;
 
 namespace VSKingdom {
 	public class AiTaskSentryRanged : AiTaskBaseTargetable {
@@ -24,7 +24,7 @@ namespace VSKingdom {
 		protected long releasesAtMs = 1000;
 		protected long totalCooldownMs = 1000L;
 		protected float maximumRange = 20f;
-		protected float minimumRange = 4f;
+		protected float minimumRange = 6f;
 		protected float accum = 0;
 		protected float minTurnAnglePerSec;
 		protected float maxTurnAnglePerSec;
@@ -254,7 +254,6 @@ namespace VSKingdom {
 				cancelAttack = true;
 				FinishExecute(true);
 				searchTask.SetTargetEnts(targetEntity);
-
 			} else {
 				base.OnEntityHurt(source, damage);
 			}

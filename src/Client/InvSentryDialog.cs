@@ -95,6 +95,7 @@ namespace VSKingdom {
 			textsFont.Orientation = EnumTextOrientation.Center;
 			var titleFont = CairoFont.WhiteSmallishText();
 			titleFont.Orientation = EnumTextOrientation.Right;
+			titleFont.WithFontSize(16);
 
 			SingleComposer = capi.Gui
 			.CreateCompo("sentrycontents" + entity.EntityId, dialogBounds)

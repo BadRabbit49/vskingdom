@@ -353,19 +353,11 @@ namespace VSKingdom {
 					}
 				}
 				player.Entity.WatchedAttributes.SetAttribute("followerEntityUids", new LongArrayAttribute(currentFollowers.ToArray<long>()));
-				serverAPI.Logger.Notification($"Current followers for {player.PlayerName}: {LangUtility.Open((player.Entity.WatchedAttributes.GetAttribute("followerEntityUids") as LongArrayAttribute).value)}");
-				foreach (var dude in followers) {
-					var entity = serverAPI.World.GetEntityById(dude);
-					if (entity == null) { continue; }
-					serverAPI.Logger.Event($"Sentry_{dude}'s orders to follow are now set to {((EntitySentry)entity).ruleOrder[1].ToString()}!");
-				}
 			}
 		}
 
 		private void OnSentryUpdated(SentryUpdate sentryUpdate) {
-			//if (serverAPI.World.GetEntityById(sentryUpdate.playerUID) is EntityPlayer player) {
-			//	OnSentryUpdated(player.Player as IServerPlayer, sentryUpdate);
-			//}
+			// Do nothing...
 		}
 
 		private void OnSentryUpdated(IServerPlayer player, SentryUpdate sentryUpdate) {

@@ -12,50 +12,51 @@ namespace VSKingdom {
 		#pragma warning disable CS0108
 		public EntitySentry entity;
 		#pragma warning restore CS0108
-		protected bool cancelWander;
-		protected bool doorIsBehind;
+		protected bool cancelWanders;
 		protected long failedWanders;
 		protected long lastCheckedMs;
-		protected long checkCooldown = 1500L;
+		protected long checkCooldown;
 		protected float wanderChance;
-		protected float wanderHeight;
 		protected float targetRanges;
-		protected float curMoveSpeed = 0.03f;
+		protected float curMoveSpeed;
+		protected float maxSquareDis;
 		protected string curAnimation;
 		protected Vec3d curTargetPos;
 		protected NatFloat wanderRangeHor = NatFloat.createStrongerInvexp(3, 40);
 		protected NatFloat wanderRangeVer = NatFloat.createStrongerInvexp(3, 10);
-
 		protected int failedPathfinds {
 			get => entity.WatchedAttributes.GetInt("failedConsecutivePathfinds", 0);
 			set => entity.WatchedAttributes.SetInt("failedConsecutivePathfinds", value);
 		}
 		protected float wanderRange { get => entity.WatchedAttributes.GetFloat("wanderRange", 1f); }
-		protected Vec3d outpostXYZD { get => entity.Loyalties.GetBlockPos("outpost_xyzd").ToVec3d(); }
 
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);
+			this.checkCooldown = taskConfig["checkCooldown"].AsInt(1500);
 			this.targetRanges = taskConfig["targetRanges"].AsFloat(0.12f);
-			this.wanderHeight = taskConfig["wanderHeight"].AsFloat(7f);
 			this.wanderChance = taskConfig["wanderChance"].AsFloat(0.15f);
+			this.curMoveSpeed = taskConfig["curMoveSpeed"].AsFloat(0.03f);
 			this.whenNotInEmotionState = taskConfig["whenNotInEmotionState"].AsString("aggressiveondamage|fleeondamage");
 		}
 
 		public override bool ShouldExecute() {
+			if (!entity.ruleOrder[0]) {
+				return false;
+			}
 			if (lastCheckedMs + checkCooldown > entity.World.ElapsedMilliseconds) {
 				return false;
 			}
 			lastCheckedMs = entity.World.ElapsedMilliseconds;
-			if (!entity.ruleOrder[0] || entity.ruleOrder[1] || !EmotionStatesSatisifed()) {
-				cancelWander = true;
+			if (entity.ruleOrder[1] || entity.ruleOrder[5] || !EmotionStatesSatisifed()) {
 				return false;
 			}
 			if (rand.NextDouble() > wanderChance) {
 				failedWanders = 0;
 				return false;
 			}
-			if (entity.ruleOrder[6] || entity.ServerPos.SquareDistanceTo(outpostXYZD) > entity.cachedData.postRange * entity.cachedData.postRange) {
-				curTargetPos = outpostXYZD.Clone();
+			maxSquareDis = maxSquareDis = entity.cachedData.postRange * entity.cachedData.postRange;
+			if (entity.ruleOrder[6] || entity.ServerPos.SquareDistanceTo(entity.cachedData.postBlock) > maxSquareDis) {
+				curTargetPos = entity.cachedData.postBlock.Clone();
 			} else if (entity.InLava || ((entity.Swimming || entity.FeetInLiquid) && entity.World.Rand.NextDouble() < 0.04f)) {
 				curTargetPos = LeaveTheWatersTarget();
 			} else {
@@ -66,13 +67,18 @@ namespace VSKingdom {
 
 		public override void StartExecute() {
 			base.StartExecute();
-			cancelWander = false;
-			wanderRangeHor = NatFloat.createInvexp(3f, entity.cachedData.postRange);
+			cancelWanders = false;
+			wanderRangeHor = NatFloat.createInvexp(3f, wanderRange);
+			wanderRangeHor = NatFloat.createInvexp(3f, wanderRange / 2);
 			MoveAnimation();
 			bool ok = pathTraverser.WalkTowards(curTargetPos, curMoveSpeed, targetRanges, OnGoals, OnStuck);
 		}
 
 		public override bool ContinueExecute(float dt) {
+			if (!entity.ruleOrder[0] || entity.ruleOrder[1] || entity.ruleOrder[5] || !EmotionStatesSatisifed()) {
+				cancelWanders = true;
+				return false;
+			}
 			// If we are a climber dude and encountered a wall, let's not try to get behind the wall.
 			// We do that by removing the coord component that would make the entity want to walk behind the wall.
 			if (entity.ServerControls.IsClimbing && entity.Properties.CanClimbAnywhere && entity.ClimbingIntoFace != null) {
@@ -91,24 +97,22 @@ namespace VSKingdom {
 			if (curTargetPos.HorizontalSquareDistanceTo(entity.ServerPos.X, entity.ServerPos.Z) < 0.5) {
 				return false;
 			}
-			if (cancelWander) {
-				return false;
-			} else if (world.AllOnlinePlayers.Length > 0 && world.NearestPlayer(entity.ServerPos.X, entity.ServerPos.Y, entity.ServerPos.Z).Entity is IPlayer player && player.Entity.Alive) {
-				if (player.Entity.ServerPos.SquareDistanceTo(entity.ServerPos) < 4f && player.Entity.EntitySelection != null && player.Entity.EntitySelection.Entity.EntityId == entity.EntityId) {
-					return entity.cachedData.leadersGUID != null && entity.cachedData.leadersGUID == player.PlayerUID && player.Entity.ServerControls.RightMouseDown;
-				}
-			}
 			return true;
 		}
 
 		public override void FinishExecute(bool cancelled) {
 			cooldownUntilMs = entity.World.ElapsedMilliseconds + mincooldown + entity.World.Rand.Next(maxcooldown - mincooldown);
-			cooldownUntilTotalHours = entity.World.Calendar.TotalHours + mincooldownHours + entity.World.Rand.NextDouble() * (maxcooldownHours - mincooldownHours);
 			StopAnimation();
 			pathTraverser.Stop();
-			if (entity.ruleOrder[6] && entity.ServerPos.SquareDistanceTo(outpostXYZD) < entity.cachedData.postRange * entity.cachedData.postRange) {
+			if (entity.ruleOrder[6] && entity.ServerPos.SquareDistanceTo(entity.cachedData.postBlock) < maxSquareDis) {
 				HasReturnedTo();
 			}
+		}
+
+		public virtual void PauseExecute() {
+			pathTraverser.Stop();
+			StopAnimation();
+			cancelWanders = true;
 		}
 
 		private Vec3d LeaveTheWatersTarget() {
@@ -143,24 +147,24 @@ namespace VSKingdom {
 		private Vec3d LoadNextWanderTarget() {
 			bool canFallDamage = entity.Api.World.Config.GetAsBool("FallDamageOn");
 			int num = 9;
-			float rangeMul = wanderRange;
+			float wanderDist = wanderRange;
 			Vec4d bestTarget = null;
 			Vec4d currTarget = new Vec4d();
 			if (failedPathfinds > 10) {
-				rangeMul = Math.Max(0.1f, wanderRange * 0.9f);
+				wanderDist = Math.Max(0.1f, wanderRange * 0.9f);
 			} else {
-				rangeMul = Math.Min(1f, wanderRange * 1.1f);
+				wanderDist = Math.Min(1f, wanderRange * 1.1f);
 				if (rand.NextDouble() < 0.05) {
-					rangeMul = Math.Min(1f, wanderRange * 1.5f);
+					wanderDist = Math.Min(1f, wanderRange * 1.5f);
 				}
 			}
 			if (rand.NextDouble() < 0.05) {
-				rangeMul *= 3f;
+				wanderDist *= 3f;
 			}
 			while (num-- > 0) {
-				double dx = wanderRangeHor.nextFloat() * (rand.Next(2) * 2 - 1) * rangeMul;
-				double dy = wanderRangeHor.nextFloat() * (rand.Next(2) * 2 - 1) * rangeMul;
-				double dz = wanderRangeHor.nextFloat() * (rand.Next(2) * 2 - 1) * rangeMul;
+				double dx = rand.Next(-(int)wanderDist, (int)wanderDist);
+				double dy = rand.Next(-(int)wanderDist, (int)wanderDist) / 2f;
+				double dz = rand.Next(-(int)wanderDist, (int)wanderDist);
 				currTarget.X = entity.ServerPos.X + dx;
 				currTarget.Y = entity.ServerPos.Y + dy;
 				currTarget.Z = entity.ServerPos.Z + dz;
@@ -226,7 +230,7 @@ namespace VSKingdom {
 		}
 		
 		private void OnStuck() {
-			cancelWander = true;
+			cancelWanders = true;
 			failedWanders++;
 			StopAnimation();
 		}
@@ -237,15 +241,13 @@ namespace VSKingdom {
 		}
 
 		private void NoPaths() {
-			cancelWander = true;
+			cancelWanders = true;
 		}
 
 		private int ToFloor(int x, int y, int z) {
 			int tries = 5;
 			while (tries-- > 0) {
-				if (world.BlockAccessor.IsSideSolid(x, y, z, BlockFacing.UP)) {
-					return y + 1;
-				}
+				if (world.BlockAccessor.IsSideSolid(x, y, z, BlockFacing.UP)) { return y + 1; }
 				y--;
 			}
 			return -1;
@@ -259,96 +261,28 @@ namespace VSKingdom {
 		}
 
 		private void MoveAnimation() {
-			string _lastAnim = curAnimation;
-			if (cancelWander) {
+			if (cancelWanders) {
 				StopAnimation();
 				return;
 			} else if (entity.Swimming) {
-				curAnimation = entity.cachedData.swimAnims;
-				curMoveSpeed = entity.cachedData.moveSpeed * GlobalConstants.WaterDrag;
-			} else if (entity.ServerPos.SquareDistanceTo(curTargetPos) > 81f) {
-				curAnimation = entity.cachedData.moveAnims;
-				curMoveSpeed = entity.cachedData.moveSpeed;
-			} else if (entity.ServerPos.SquareDistanceTo(curTargetPos) > 1f) {
-				curAnimation = entity.cachedData.walkAnims;
-				curMoveSpeed = entity.cachedData.walkSpeed;
+				curMoveSpeed = entity.cachedData.walkSpeed * GlobalConstants.WaterDrag;
+				entity.AnimManager.StopAnimation(curAnimation);
+				curAnimation = new string(entity.cachedData.swimAnims);
 			} else {
-				StopAnimation();
-				return;
+				curMoveSpeed = entity.cachedData.walkSpeed;
+				entity.AnimManager.StopAnimation(curAnimation);
+				curAnimation = new string(entity.cachedData.walkAnims);
 			}
-			entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = curAnimation, Code = curAnimation, BlendMode = EnumAnimationBlendMode.Average }.Init());
-			entity.AnimManager.StopAnimation(_lastAnim);
+			entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = curAnimation, Code = curAnimation, BlendMode = EnumAnimationBlendMode.Average, MulWithWalkSpeed = true, EaseOutSpeed = 999f }.Init());
 		}
 
 		private void StopAnimation() {
+			curMoveSpeed = 0;
 			if (curAnimation != null) {
 				entity.AnimManager.StopAnimation(curAnimation);
 			}
-			curMoveSpeed = 0;
 			entity.AnimManager.StopAnimation(entity.cachedData.walkAnims);
-			entity.AnimManager.StopAnimation(entity.cachedData.moveAnims);
 			entity.AnimManager.StopAnimation(entity.cachedData.swimAnims);
 		}
-
-		/**private void CheckDoors(Vec3d target) {
-			if (target != null) {
-				// Check if there is a door in the way.
-				BlockSelection blockSel = new BlockSelection();
-				EntitySelection entitySel = new EntitySelection();
-
-				entity.World.RayTraceForSelection(entity.ServerPos.XYZ.AddCopy(entity.LocalEyePos), entity.ServerPos.BehindCopy(4).XYZ, ref blockSel, ref entitySel);
-				if (blockSel != null && doorIsBehind && blockSel.Block is BlockBaseDoor rearBlock && rearBlock.IsOpened()) {
-					doorIsBehind = ToggleDoor(blockSel.Position);
-				}
-
-				entity.World.RayTraceForSelection(entity.ServerPos.XYZ.AddCopy(entity.LocalEyePos), target, ref blockSel, ref entitySel);
-				if (blockSel != null && blockSel.Block is BlockBaseDoor baseBlock && !baseBlock.IsOpened()) {
-					doorIsBehind = ToggleDoor(blockSel.Position);
-				} else if (blockSel.Block is BlockDoor doorBlock && !doorBlock.IsOpened() && doorBlock.IsUpperHalf()) {
-					BlockPos realBlock = new BlockPos(blockSel.Position.X, blockSel.Position.Y - 1, blockSel.Position.Z, blockSel.Position.dimension);
-					doorIsBehind = ToggleDoor(realBlock);
-				}
-			}
-		}
-
-		private bool ToggleDoor(BlockPos pos) {
-			if (pos.HorizontalManhattenDistance(entity.ServerPos.AsBlockPos) > 3) {
-				return false;
-			}
-			if (entity.World.BlockAccessor.GetBlock(pos) is not BlockBaseDoor doorBlock) {
-				return false;
-			}
-
-			var doorBehavior = BlockBehaviorDoor.getDoorAt(entity.World, pos);
-			bool stateOpened = doorBlock.IsOpened();
-			bool canBeOpened = TestAccess(pos);
-
-			if (canBeOpened && doorBehavior != null) {
-				doorBehavior.ToggleDoorState(null, stateOpened);
-				doorBlock.OnBlockInteractStart(entity.World, null, new BlockSelection(pos, BlockFacing.UP, doorBlock));
-				return true;
-			}
-			return false;
-		}
-
-		private bool DamageDoor(BlockPos pos) {
-			// Break down door over time.
-			return false;
-		}
-
-		private bool TestAccess(BlockPos pos) {
-			if (entity.World.Claims.Get(pos).Length <= 0) {
-				return true;
-			}
-			if (entity.World.Claims.TestAccess(entity.World.PlayerByUid(entity.leadersID), pos, EnumBlockAccessFlags.Use) == EnumWorldAccessResponse.Granted) {
-				return true;
-			}
-			foreach (var claim in entity.World.Claims.Get(pos)) {
-				if (entity.World.PlayerByUid(claim.OwnedByPlayerUid)?.Entity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdom_guid") == entity.cachedData.kingdomINFO[0]) {
-					return true;
-				}
-			}
-			return false;
-		}**/
 	}
 }

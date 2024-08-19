@@ -11,6 +11,8 @@ using Vintagestory.API.Config;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Datastructures;
 using Vintagestory.GameContent;
+using System.Text.RegularExpressions;
+using Vintagestory.API.Common.Entities;
 
 namespace VSKingdom {
 	public class VSKingdom : ModSystem {
@@ -47,6 +49,7 @@ namespace VSKingdom {
 			AiTaskRegistry.Register<AiTaskSentryFollow>("SentryFollow");
 			AiTaskRegistry.Register<AiTaskSentryHealth>("SentryHealth");
 			AiTaskRegistry.Register<AiTaskSentryIdling>("SentryIdling");
+			AiTaskRegistry.Register<AiTaskSentryPatrol>("SentryPatrol");
 			AiTaskRegistry.Register<AiTaskSentryRanged>("SentryRanged");
 			AiTaskRegistry.Register<AiTaskSentryReturn>("SentryReturn");
 			AiTaskRegistry.Register<AiTaskSentrySearch>("SentrySearch");
@@ -76,8 +79,8 @@ namespace VSKingdom {
 			capi.Event.LevelFinalize += () => LevelFinalize(capi);
 			capi.Network.RegisterChannel("sentrynetwork")
 				.RegisterMessageType<PlayerUpdate>()
-				.RegisterMessageType<SentryUpdate>().SetMessageHandler<SentryUpdate>(OnSentryUpdated)
-				.RegisterMessageType<SentryOrders>().SetMessageHandler<SentryOrders>(OnSentryOrdered);
+				.RegisterMessageType<SentryUpdate>()
+				.RegisterMessageType<SentryOrders>();
 		}
 
 		public override void StartServerSide(ICoreServerAPI sapi) {
@@ -307,13 +310,14 @@ namespace VSKingdom {
 		private void UpdateSentries(Vec3d position) {
 			var nearbyEnts = serverAPI.World.GetEntitiesAround(position, 200, 60, (ent => (ent is EntitySentry)));
 			var bestPlayer = serverAPI.World.NearestPlayer(position.X, position.Y, position.Z) as IServerPlayer;
+			if (bestPlayer == null) { return; }
 			foreach (var sentry in nearbyEnts) {
 				OnSentryUpdated(bestPlayer, new SentryUpdate() {
 					playerUID = bestPlayer.Entity.EntityId,
 					entityUID = sentry.EntityId,
-					kingdomINFO = new string[2] { sentry.WatchedAttributes.GetTreeAttribute("loyalties").GetString("kingdom_guid"), null },
-					cultureINFO = new string[2] { sentry.WatchedAttributes.GetTreeAttribute("loyalties").GetString("culture_guid"), null },
-					leadersINFO = new string[2] { sentry.WatchedAttributes.GetTreeAttribute("loyalties").GetString("leaders_guid"), null }
+					kingdomGUID = sentry.WatchedAttributes.GetTreeAttribute("loyalties").GetString("kingdom_guid"),
+					cultureGUID = sentry.WatchedAttributes.GetTreeAttribute("loyalties").GetString("culture_guid"),
+					leadersGUID = sentry.WatchedAttributes.GetTreeAttribute("loyalties").GetString("leaders_guid")
 				});
 			}
 		}
@@ -322,11 +326,9 @@ namespace VSKingdom {
 			ITreeAttribute loyalties = player.Entity.WatchedAttributes.GetTreeAttribute("loyalties");
 			if (playerUpdate.kingdomID != null && KingdomExists(playerUpdate.kingdomID)) {
 				loyalties.SetString("kingdom_guid", playerUpdate.kingdomID);
-				player.Entity.WatchedAttributes.MarkPathDirty("loyalties");
 			}
 			if (playerUpdate.cultureID != null && CultureExists(playerUpdate.cultureID)) {
 				loyalties.SetString("culture_guid", playerUpdate.kingdomID);
-				player.Entity.WatchedAttributes.MarkPathDirty("loyalties");
 			}
 			if (!player.Entity.WatchedAttributes.HasAttribute("followerEntityUids")) {
 				player.Entity.WatchedAttributes.SetAttribute("followerEntityUids", new LongArrayAttribute(playerUpdate.followers));
@@ -356,46 +358,42 @@ namespace VSKingdom {
 			}
 		}
 
-		private void OnSentryUpdated(SentryUpdate sentryUpdate) {
-			// Do nothing...
-		}
-
 		private void OnSentryUpdated(IServerPlayer player, SentryUpdate sentryUpdate) {
 			EntitySentry sentry = serverAPI.World.GetEntityById(sentryUpdate.entityUID) as EntitySentry;
-			SentryUpdate update = new SentryUpdate();
-
-			// NEEDS TO BE DONE ON THE SERVER SIDE HERE.
-			if (sentryUpdate.kingdomINFO.Length > 0 && sentryUpdate.kingdomINFO[0] != null) {
-				var kingdom = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == sentryUpdate.kingdomINFO[0]);
-				sentry.cachedData.kingdomGUID = kingdom.KingdomGUID;
-				sentry.cachedData.kingdomNAME = kingdom.KingdomNAME;
-				sentry.cachedData.enemiesLIST = kingdom.EnemiesGUID.ToArray();
-				sentry.cachedData.friendsLIST = kingdom.FriendsGUID.ToArray();
-				sentry.cachedData.outlawsLIST = kingdom.OutlawsGUID.ToArray();
-				update.kingdomINFO = new string[2] { kingdom.KingdomGUID, kingdom.KingdomNAME };
-				update.coloursLIST = new string[3] { kingdom.KingdomHEXA, kingdom.KingdomHEXB, kingdom.KingdomHEXC };
-				update.enemiesLIST = kingdom.EnemiesGUID.ToArray();
-				update.friendsLIST = kingdom.FriendsGUID.ToArray();
-				update.outlawsLIST = kingdom.OutlawsGUID.ToArray();
+			// NEEDS TO BE DONE ON THE SERVER SIDE HERE!
+			if (sentryUpdate.kingdomGUID.Length > 0 && sentryUpdate.kingdomGUID != null) {
+				serverAPI.Logger.Notification($"Kingdom we wanted was: {sentryUpdate.kingdomGUID})");
+				var kingdom = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == sentryUpdate.kingdomGUID);
+				serverAPI.Logger.Notification($"Kingdom we found was: {kingdom.KingdomGUID} ({kingdom.KingdomNAME})");
+				sentry.WatchedAttributes.GetTreeAttribute("loyalties").SetString("kingdom_guid", new string(kingdom.KingdomGUID));
+				sentry.WatchedAttributes.GetTreeAttribute("loyalties").SetString("kingdom_name", new string(kingdom.KingdomNAME));
+				sentry.WatchedAttributes.SetStringArray("coloursLIST", new string[3] { kingdom.KingdomHEXA, kingdom.KingdomHEXB, kingdom.KingdomHEXC });
+				sentry.WatchedAttributes.SetStringArray("enemiesLIST", kingdom.EnemiesGUID.ToArray());
+				sentry.WatchedAttributes.SetStringArray("friendsLIST", kingdom.FriendsGUID.ToArray());
+				sentry.WatchedAttributes.SetStringArray("outlawsLIST", kingdom.OutlawsGUID.ToArray());
 			}
-			if (sentryUpdate.cultureINFO.Length > 0 && sentryUpdate.cultureINFO[0] != null) {
-				var culture = cultureList.Find(cultureMatch => cultureMatch.CultureGUID == sentryUpdate.cultureINFO[0]);
-				sentry.cachedData.cultureGUID = culture.CultureGUID;
-				sentry.cachedData.cultureNAME = culture.CultureNAME;
-				update.cultureINFO = new string[2] { culture.CultureGUID, culture.CultureNAME };
+			if (sentryUpdate.cultureGUID.Length > 0 && sentryUpdate.cultureGUID != null) {
+				serverAPI.Logger.Notification($"Culture we wanted was: {sentryUpdate.cultureGUID})");
+				var culture = cultureList.Find(cultureMatch => cultureMatch.CultureGUID == sentryUpdate.cultureGUID);
+				sentry.WatchedAttributes.GetTreeAttribute("loyalties").SetString("culture_guid", new string(culture.CultureGUID));
+				sentry.WatchedAttributes.GetTreeAttribute("loyalties").SetString("culture_name", new string(culture.CultureNAME));
 			}
-			if (sentryUpdate.leadersINFO.Length > 0 && sentryUpdate.leadersINFO[0] != null) {
-				var leaders = serverAPI.World.PlayerByUid(sentryUpdate?.leadersINFO[0]) ?? null;
-				sentry.cachedData.leadersGUID = leaders.PlayerUID;
-				sentry.cachedData.leadersNAME = leaders.PlayerName;
-				update.leadersINFO = new string[2] { leaders.PlayerUID, leaders.PlayerName };
+			if (sentryUpdate.leadersGUID.Length > 0 && sentryUpdate.leadersGUID != null) {
+				serverAPI.Logger.Notification($"Leaders we wanted was: {sentryUpdate.leadersGUID})");
+				var leaders = serverAPI.World.PlayerByUid(sentryUpdate?.leadersGUID) ?? null;
+				sentry.WatchedAttributes.GetTreeAttribute("loyalties").SetString("leaders_guid", new string(leaders.PlayerUID));
+				sentry.WatchedAttributes.GetTreeAttribute("loyalties").SetString("leaders_name", new string(leaders.PlayerName));
 			}
+			serverAPI.Logger.Notification($"Kingdom should now be: {sentry.WatchedAttributes.GetTreeAttribute("loyalties").GetString("kingdom_name")} ({sentry.WatchedAttributes.GetTreeAttribute("loyalties").GetString("kingdom_guid")})");
+			serverAPI.Logger.Notification($"Culture should now be: {sentry.WatchedAttributes.GetTreeAttribute("loyalties").GetString("culture_name")} ({sentry.WatchedAttributes.GetTreeAttribute("loyalties").GetString("culture_guid")})");
+			serverAPI.Logger.Notification($"Leaders should now be: {sentry.WatchedAttributes.GetTreeAttribute("loyalties").GetString("Leaders_name")} ({sentry.WatchedAttributes.GetTreeAttribute("loyalties").GetString("Leaders_guid")})");
 			// Try to fully sync entity packet to the sentry if possible.
-			serverAPI.Network.SendEntityPacket(player, update.entityUID, 1502, SerializerUtil.Serialize<SentryUpdate>(update));
+			// serverAPI.Network.SendEntityPacket(player, sentryUpdate.entityUID, 1502);
+			serverAPI.Network.BroadcastEntityPacket(sentryUpdate.entityUID, 1502, SerializerUtil.ToBytes((w) => sentry.WatchedAttributes.GetTreeAttribute("loyalties").ToBytes(w)));
 		}
 
 		private void OnSentryOrdered(SentryOrders sentryOrders) {
-			EntityPlayer player = serverAPI.World.GetEntityById(sentryOrders.playerUID) as EntityPlayer;
+			EntityPlayer player = (serverAPI?.World.GetEntityById(sentryOrders.playerUID) ?? clientAPI?.World.GetEntityById(sentryOrders.playerUID)) as EntityPlayer;
 			OnSentryOrdered(player.Player as IServerPlayer, sentryOrders);
 		}
 
@@ -449,6 +447,8 @@ namespace VSKingdom {
 				PlayerUpdate newUpdate = new PlayerUpdate() { followers = new long[] { sentry.EntityId }, operation = (newOrders[1] ? "add" : "del") };
 				OnPlayerUpdated(player, newUpdate);
 			}
+			// Try to fully sync entity packet to the sentry if possible.
+			serverAPI.Network.SendEntityPacket(player, sentryOrders.entityUID, 1503);
 		}
 
 		private TextCommandResult OnKingdomCommand(TextCommandCallingArgs args) {
@@ -1151,7 +1151,7 @@ namespace VSKingdom {
 		public string ChangeKingdom(string langCode, string kingdomGUID, string subcomm, string subargs, string changes) {
 			Kingdom kingdom = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID);
 			string[] keywords = { LangUtility.GetL(langCode, "entries-keyword-kingdom"), LangUtility.GetL(langCode, "entries-keyword-player"), LangUtility.GetL(langCode, "entries-keyword-players") };
-			switch (subcomm) {
+			switch (subcomm.ToLower().Replace("color", "colour").Replace("add", "append").Replace("delete", "remove").Replace("recolor", "colour").Replace("change", "rename")) {
 				case "append":
 					switch (subargs) {
 						case "roles": AddMemberRole(kingdomGUID, changes); break;
@@ -1162,6 +1162,14 @@ namespace VSKingdom {
 					switch (subargs) {
 						case "roles": kingdom.MembersROLE = string.Join(":", kingdom.MembersROLE.Split(':').RemoveEntry(kingdom.MembersROLE.Replace("/T", "").Replace("/F", "").Split(':').IndexOf(changes))).TrimEnd(':'); break;
 						default: return LangUtility.SetL(langCode, "command-help-update-kingdom-remove", keywords[0]);
+					}
+					break;
+				case "colour":
+					switch (subargs.ToLower().Replace("second", "secnd").Replace("primary", "first").Replace("last", "third")) {
+						case "first": kingdom.KingdomHEXA = ColorUtility.GetHexCode(changes); break;
+						case "secnd": kingdom.KingdomHEXB = ColorUtility.GetHexCode(changes); break;
+						case "third": kingdom.KingdomHEXC = ColorUtility.GetHexCode(changes); break;
+						default: return LangUtility.SetL(langCode, "command-help-update-kingdom-append", keywords[0]);
 					}
 					break;
 				case "rename":
@@ -1422,13 +1430,9 @@ namespace VSKingdom {
 	public class SentryUpdate {
 		public long playerUID;
 		public long entityUID;
-		public string[] kingdomINFO;
-		public string[] cultureINFO;
-		public string[] leadersINFO;
-		public string[] coloursLIST;
-		public string[] enemiesLIST;
-		public string[] friendsLIST;
-		public string[] outlawsLIST;
+		public string kingdomGUID;
+		public string cultureGUID;
+		public string leadersGUID;
 	}
 	[ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
 	public class SentryOrders {

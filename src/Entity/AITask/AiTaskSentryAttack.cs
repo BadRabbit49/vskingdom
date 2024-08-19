@@ -19,6 +19,7 @@ namespace VSKingdom {
 		protected bool animsRunning = false;
 		protected bool turnToTarget = true;
 		protected bool banditPilled = false;
+		protected bool attackFinish = false;
 		protected bool usingAShield = false;
 		protected long shieldedHand = 0;
 		protected long durationOfMs = 1500L;
@@ -33,8 +34,6 @@ namespace VSKingdom {
 		protected string[] animations;
 		protected AiTaskSentrySearch searchTask => entity.GetBehavior<EntityBehaviorTaskAI>().TaskManager.GetTask<AiTaskSentrySearch>();
 		
-		protected static readonly string loyalties = "loyalties";
-
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);
 			this.banditPilled = taskConfig["isBandit"].AsBool(false);
@@ -61,6 +60,8 @@ namespace VSKingdom {
 				targetEntity = attackedByEntity;
 			} else {
 				Vec3d position = entity.ServerPos.XYZ.Add(0.0, entity.SelectionBox.Y2 / 2f, 0.0).Ahead(entity.SelectionBox.XSize / 2f, 0f, entity.ServerPos.Yaw);
+				maximumRange = entity.WatchedAttributes.GetFloat("engageRange", 16f);
+				minimumRange = entity.cachedData?.weapRange ?? 0.5f;
 				if (rand.Next(0, 1) == 0) {
 					targetEntity = entity.World.GetNearestEntity(position, maximumRange, maximumRange / 2f, (Entity ent) => IsTargetableEntity(ent, maximumRange) && hasDirectContact(ent, maximumRange, maximumRange / 2f));
 				} else {
@@ -79,14 +80,14 @@ namespace VSKingdom {
 			if (ent is EntityProjectile projectile && projectile.FiredBy is not null) {
 				targetEntity = projectile.FiredBy;
 			}
-			if (ent.WatchedAttributes.HasAttribute(loyalties)) {
+			if (ent.WatchedAttributes.HasAttribute("loyalties")) {
 				if (banditPilled) {
 					return ent is EntityPlayer || (ent is EntitySentry sentry && sentry.cachedData.kingdomGUID != GlobalCodes.banditryGUID);
 				}
 				if (ent is EntitySentry sent) {
 					return entity.cachedData.enemiesLIST.Contains(sent.cachedData.kingdomGUID) || sent.cachedData.kingdomGUID == GlobalCodes.banditryGUID;
 				}
-				return entity.cachedData.enemiesLIST.Contains(ent.WatchedAttributes.GetTreeAttribute(loyalties).GetString("kingdom_guid"));
+				return entity.cachedData.enemiesLIST.Contains(ent.WatchedAttributes.GetTreeAttribute("loyalties").GetString("kingdom_guid"));
 			}
 			if (ignoreEntityCode || IsTargetEntity(ent.Code.Path)) {
 				return CanSense(ent, range);
@@ -127,6 +128,7 @@ namespace VSKingdom {
 			}
 			cancelAttack = false;
 			animsRunning = false;
+			attackFinish = true;
 			curTurnAngle = pathTraverser.curTurnRadPerSec;
 			searchTask.SetTargetEnts(targetEntity);
 		}
@@ -144,8 +146,15 @@ namespace VSKingdom {
 				entity.ServerPos.Yaw = entity.ServerPos.Yaw % (MathF.PI * 2f);
 				flag = Math.Abs(num) < maximumRange * (MathF.PI / 180f);
 			}
+
+			if (!attackFinish) {
+				attackFinish = currAnim != null && !entity.AnimManager.IsAnimationActive(currAnim);
+			}
+			
 			animsRunning = lastAnim != null ? entity.AnimManager.GetAnimationState(lastAnim).Running : false;
-			if (!animsRunning && currAnim != null && flag) {
+
+			if (!animsRunning && attackFinish && flag) {
+				attackFinish = false;
 				animsRunning = AttackTarget();
 			}
 			if (usingAShield) {
@@ -238,6 +247,7 @@ namespace VSKingdom {
 			}, damage * GlobalConstants.CreatureDamageModifier);
 			// Only jump back if they killing blow was not dealt.
 			if (alive && !targetEntity.Alive) {
+				searchTask.TargetKilled();
 				cancelAttack = true;
 				return false;
 			}

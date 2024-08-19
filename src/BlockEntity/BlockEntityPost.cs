@@ -62,7 +62,7 @@ namespace VSKingdom {
 			{ "steel", 7 },
 			{ "stainlesssteel", 8 },
 			{ "titanium", 9 },
-			{ "electrum", 9 },
+			{ "electrum", 9 }
 		};
 
 		public override void Initialize(ICoreAPI api) {
@@ -71,8 +71,8 @@ namespace VSKingdom {
 			metlTier = tiers.GetValueSafe(Block.Variant["metal"]);
 			capacity = 1 * metlTier;
 			maxpawns = 2 * metlTier;
-			respawns = 2 * metlTier;
-			areasize = 3 * metlTier;
+			respawns = 3 * metlTier;
+			areasize = 4 * metlTier;
 			RegisterGameTickListener(Returnings, 90000);
 			// Register entity as a point of interest.
 			if (api is ICoreServerAPI sapi) {
@@ -316,8 +316,12 @@ namespace VSKingdom {
 			if (slot.Empty) {
 				return;
 			}
-			BlockEntityPost thisPost = this.GetBlockEntity<BlockEntityPost>(blockSel);
-			Item itemType = slot.Itemstack.Item;
+			BlockEntityPost thisPost = GetBlockEntity<BlockEntityPost>(blockSel) ?? null;
+			Item itemType = slot?.Itemstack?.Item ?? null;
+			if (thisPost == null || itemType == null) {
+				base.OnHeldInteractStart(slot, byEntity, blockSel, entitySel, firstEvent, ref handling);
+				return;
+			}
 			bool takesTemporal = Variant["metal"] == "electrum";
 			if ((!takesTemporal && itemType is ItemFirewood) || (!takesTemporal && itemType is ItemCoal) || (takesTemporal && itemType is ItemTemporalGear)) {
 				thisPost.IgniteWithFuel(slot.Itemstack);

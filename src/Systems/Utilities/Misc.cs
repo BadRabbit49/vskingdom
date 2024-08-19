@@ -249,4 +249,62 @@ namespace VSKingdom {
 			return basicInfo + intricate;
 		}
 	}
+
+	internal static class ColorUtility {
+		public static string GetHexCode(string color) {
+			if (color.StartsWith('#')) {
+				char[] hex = color.Where(c => (char.IsLetterOrDigit(c) || char.IsWhiteSpace(c) || c == '-')).ToArray();
+				if (hex.Length >= 6) {
+					return new string(new char[] { '#', hex[0], hex[1], hex[2], hex[3], hex[4], hex[5] });
+				}
+			}
+
+			string fixedCode = color.ToLowerInvariant().RemoveDiacritics().Replace("-", "").Replace("_", "");
+			switch (fixedCode) {
+				case "black": return "#0d0d0d";
+				case "bloodred": return "#590000";
+				case "blue": return "#115691";
+				case "brightgreen": return "#7ee673";
+				case "brightred": return "#ff3030";
+				case "brown": return "#4f290d";
+				case "darkblue": return "#05335c";
+				case "darkbrown": return "#261307";
+				case "darkgray": return "#454545";
+				case "darkgreen": return "#0b2e12";
+				case "darkgrey": return "#353535";
+				case "darkpink": return "#964792";
+				case "darkpurple": return "#6a007a";
+				case "darkred": return "#630c06";
+				case "darkyellow": return "#a69712";
+				case "deepred": return "#290300";
+				case "forestgreen": return "#26422c";
+				case "gray": return "#707070";
+				case "green": return "#36753c";
+				case "grey": return "#606060";
+				case "honey": return "#ffb300";
+				case "jeanblue": return "#142636";
+				case "lightblue": return "#3a9cf2";
+				case "lightbrown": return "#735948";
+				case "lightgray": return "#a8a8a8";
+				case "lightgreen": return "#5a9967";
+				case "lightgrey": return "#8f8f8f";
+				case "lightpink": return "#ffa8fb";
+				case "lightpurple": return "#a46aad";
+				case "lightred": return "#fc5f53";
+				case "lightyellow": return "#d9d18d";
+				case "magenta": return "#eb0056";
+				case "navyblue": return "#091b2b";
+				case "orange": return "#d65611";
+				case "pink": return "#ff69f7";
+				case "purple": return "#a018b5";
+				case "red": return "#f0190a";
+				case "skyblue": return "#73b0e6";
+				case "vanta": return "#000000";
+				case "white": return "#ffffff";
+				case "yellow": return "#f7e223";
+				case "random": return string.Format("#{0:X6}", new Random().Next(0x1000000));
+				default: return "#ffffff";
+			}
+		}
+	}
 }

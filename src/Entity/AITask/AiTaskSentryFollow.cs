@@ -11,11 +11,13 @@ namespace VSKingdom {
 		#pragma warning disable CS0108
 		public EntitySentry entity;
 		#pragma warning restore CS0108
-		protected float curMoveSpeed = 0.03f;
+		protected float curMoveSpeed;
+		protected string curAnimation;
 		protected Vec3d curTargetPos => pathTraverser.CurrentTarget;
 
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);
+			this.curMoveSpeed = taskConfig["curMoveSpeed"].AsFloat(0.03f);
 			allowTeleport &= entity.Api.World.Config.GetAsBool("AllowTeleport");
 		}
 
@@ -45,14 +47,10 @@ namespace VSKingdom {
 			MoveAnimation();
 		}
 
-		public override bool CanContinueExecute() {
+		public override bool ContinueExecute(float dt) {
 			if (!entity.ruleOrder[1]) {
 				return false;
 			}
-			return pathTraverser.Ready;
-		}
-
-		public override bool ContinueExecute(float dt) {
 			double x = targetEntity.ServerPos.X + targetOffset.X;
 			double y = targetEntity.ServerPos.Y;
 			double z = targetEntity.ServerPos.Z + targetOffset.Z;
@@ -82,35 +80,36 @@ namespace VSKingdom {
 		}
 
 		private void MoveAnimation() {
-			if (!pathTraverser.Active) {
+			if (!entity.ruleOrder[1]) {
 				curMoveSpeed = 0;
 				StopAnimation();
-			} else if (entity.Swimming) {
+				return;
+			}
+			entity.AnimManager.StopAnimation(curAnimation);
+			if (entity.Swimming) {
 				curMoveSpeed = entity.cachedData.moveSpeed * GlobalConstants.WaterDrag;
-				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = entity.cachedData.swimAnims, Code = entity.cachedData.swimAnims, BlendMode = EnumAnimationBlendMode.Average }.Init());
-				entity.AnimManager.StopAnimation(entity.cachedData.walkAnims);
-				entity.AnimManager.StopAnimation(entity.cachedData.moveAnims);
+				curAnimation = new string(entity.cachedData.swimAnims);
 			} else if (entity.ServerPos.SquareDistanceTo(curTargetPos) > 81f) {
 				curMoveSpeed = entity.cachedData.moveSpeed;
-				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = entity.cachedData.moveAnims, Code = entity.cachedData.moveAnims, MulWithWalkSpeed = true, BlendMode = EnumAnimationBlendMode.Average }.Init());
-				entity.AnimManager.StopAnimation(entity.cachedData.walkAnims);
-				entity.AnimManager.StopAnimation(entity.cachedData.swimAnims);
+				curAnimation = new string(entity.cachedData.moveAnims);
 			} else if (entity.ServerPos.SquareDistanceTo(curTargetPos) > 1f) {
 				curMoveSpeed = entity.cachedData.walkSpeed;
-				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = entity.cachedData.walkAnims, Code = entity.cachedData.walkAnims, MulWithWalkSpeed = true, BlendMode = EnumAnimationBlendMode.Average, EaseOutSpeed = 1f }.Init());
-				entity.AnimManager.StopAnimation(entity.cachedData.moveAnims);
-				entity.AnimManager.StopAnimation(entity.cachedData.swimAnims);
+				curAnimation = new string(entity.cachedData.walkAnims);
 			} else {
 				StopAnimation();
+				return;
 			}
+			entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = curAnimation, Code = curAnimation, MulWithWalkSpeed = true, BlendMode = EnumAnimationBlendMode.Average, EaseInSpeed = 999f, EaseOutSpeed = 1f }.Init());
 		}
 
 		private void StopAnimation() {
+			curMoveSpeed = 0;
+			if (curAnimation != null) {
+				entity.AnimManager.StopAnimation(curAnimation);
+			}
 			entity.AnimManager.StopAnimation(entity.cachedData.walkAnims);
 			entity.AnimManager.StopAnimation(entity.cachedData.moveAnims);
-			if (!entity.Swimming) {
-				entity.AnimManager.StopAnimation(entity.cachedData.swimAnims);
-			}
+			entity.AnimManager.StopAnimation(entity.cachedData.swimAnims);
 		}
 	}
 }

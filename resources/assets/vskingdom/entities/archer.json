@@ -338,6 +338,10 @@
 						"priority": 1.5
 					},
 					{
+						"code": "SentryPatrol",
+						"priority": 1.0
+					},
+					{
 						"code": "SentryWander",
 						"priority": 1.0
 					},

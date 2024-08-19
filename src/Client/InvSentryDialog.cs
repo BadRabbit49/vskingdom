@@ -20,6 +20,7 @@ namespace VSKingdom {
 		protected const double UIPadding = 3;
 		protected const double WidthsPad = 103;
 		protected const double HeightPad = 51;
+		protected const double Quartered = 25;
 
 		protected string langCodes;
 
@@ -43,42 +44,46 @@ namespace VSKingdom {
 			// Dialog Bounds //
 			ElementBounds dialogBounds = ElementStdBounds.AutosizedMainDialog.WithAlignment(EnumDialogArea.LeftMiddle).WithFixedAlignmentOffset(GuiStyle.DialogToScreenPadding, 0);
 			// Inventory Bounds //
-			ElementBounds armourSlotBoundsHead = ElementStdBounds.SlotGrid(EnumDialogArea.None, 0, 020 + UIPadding, 1, 1).FixedGrow(0, UIPadding);
-			ElementBounds armourSlotBoundsBody = ElementStdBounds.SlotGrid(EnumDialogArea.None, 0, 122 + UIPadding, 1, 1).FixedGrow(0, UIPadding);
-			ElementBounds armourSlotBoundsLegs = ElementStdBounds.SlotGrid(EnumDialogArea.None, 0, 224 + UIPadding, 1, 1).FixedGrow(0, UIPadding);
-			ElementBounds clothingsSlotsBounds = ElementStdBounds.SlotGrid(EnumDialogArea.None, 0, 020 + UIPadding, 1, 6).FixedGrow(0, UIPadding);
-			ElementBounds accessorySlotsBounds = ElementStdBounds.SlotGrid(EnumDialogArea.None, 0, 020 + UIPadding, 1, 6).FixedGrow(0, UIPadding);
-			ElementBounds rightSlotBoundsLHand = ElementStdBounds.SlotGrid(EnumDialogArea.None, 0, 020 + UIPadding, 1, 1).FixedGrow(0, UIPadding);
-			ElementBounds rightSlotBoundsRHand = ElementStdBounds.SlotGrid(EnumDialogArea.None, 0, 071 + UIPadding, 1, 1).FixedGrow(0, UIPadding);
-			ElementBounds backpackOnSlotBounds = ElementStdBounds.SlotGrid(EnumDialogArea.None, 0, 122 + UIPadding, 1, 1).FixedGrow(0, UIPadding);
-			ElementBounds munitionsSlotsBounds = ElementStdBounds.SlotGrid(EnumDialogArea.None, 0, 173 + UIPadding, 1, 1).FixedGrow(0, UIPadding);
-			ElementBounds healthitmSlotsBounds = ElementStdBounds.SlotGrid(EnumDialogArea.None, 0, 224 + UIPadding, 1, 1).FixedGrow(0, UIPadding);
+			ElementBounds armourSlotBoundsHead = ElementStdBounds.SlotGrid(EnumDialogArea.None, 0, 023, 1, 1).FixedGrow(0, UIPadding);
+			ElementBounds armourSlotBoundsBody = ElementStdBounds.SlotGrid(EnumDialogArea.None, 0, 125, 1, 1).FixedGrow(0, UIPadding);
+			ElementBounds armourSlotBoundsLegs = ElementStdBounds.SlotGrid(EnumDialogArea.None, 0, 227, 1, 1).FixedGrow(0, UIPadding);
+			ElementBounds clothingsSlotsBounds = ElementStdBounds.SlotGrid(EnumDialogArea.None, 0, 023, 1, 6).FixedGrow(0, UIPadding);
+			ElementBounds accessorySlotsBounds = ElementStdBounds.SlotGrid(EnumDialogArea.None, 0, 023, 1, 6).FixedGrow(0, UIPadding);
+			ElementBounds rightSlotBoundsLHand = ElementStdBounds.SlotGrid(EnumDialogArea.None, 0, 023, 1, 1).FixedGrow(0, UIPadding);
+			ElementBounds rightSlotBoundsRHand = ElementStdBounds.SlotGrid(EnumDialogArea.None, 0, 074, 1, 1).FixedGrow(0, UIPadding);
+			ElementBounds backpackOnSlotBounds = ElementStdBounds.SlotGrid(EnumDialogArea.None, 0, 125, 1, 1).FixedGrow(0, UIPadding);
+			ElementBounds munitionsSlotsBounds = ElementStdBounds.SlotGrid(EnumDialogArea.None, 0, 176, 1, 1).FixedGrow(0, UIPadding);
+			ElementBounds healthitmSlotsBounds = ElementStdBounds.SlotGrid(EnumDialogArea.None, 0, 227, 1, 1).FixedGrow(0, UIPadding);
 			// Orders Bounds //
-			ElementBounds goWanderStringBounds = ElementBounds.Fixed(0, 326 + UIPadding, 72, 28);
-			ElementBounds goWanderSliderBounds = ElementBounds.Fixed(82, 326 + UIPadding, 96, 29);
-			ElementBounds goWanderSwitchBounds = ElementBounds.Fixed(194, 326 + UIPadding, 24, 24);
 
-			ElementBounds goFollowStringBounds = ElementBounds.Fixed(0, 377 + UIPadding, 72, 24);
-			ElementBounds goFollowSliderBounds = ElementBounds.Fixed(82, 377 + UIPadding, 96, 29);
-			ElementBounds goFollowSwitchBounds = ElementBounds.Fixed(194, 377 + UIPadding, 24, 24);
+			double sliderLength = 192;
 
-			ElementBounds goEngageStringBounds = ElementBounds.Fixed(0, 428 + UIPadding, 72, 24);
-			ElementBounds goEngageSliderBounds = ElementBounds.Fixed(82, 428 + UIPadding, 96, 29);
-			ElementBounds goEngageSwitchBounds = ElementBounds.Fixed(194, 428 + UIPadding, 24, 24);
+			ElementBounds goWanderStringBounds = ElementBounds.Fixed(0, 330 + UIPadding, 76, 28);
+			ElementBounds goWanderSliderBounds = ElementBounds.Fixed(0, 330 + Quartered, sliderLength, 30);
+			ElementBounds goWanderSwitchBounds = ElementBounds.Fixed(sliderLength + 12, 330 + Quartered, 24, 24);
 
-			ElementBounds goPursueStringBounds = ElementBounds.Fixed(0, 479 + UIPadding, 72, 24);
-			ElementBounds goPursueSliderBounds = ElementBounds.Fixed(82, 479 + UIPadding, 96, 29);
-			ElementBounds goPursueSwitchBounds = ElementBounds.Fixed(194, 479 + UIPadding, 24, 24);
+			ElementBounds goFollowStringBounds = ElementBounds.Fixed(0, 380 + UIPadding, 76, 24);
+			ElementBounds goFollowSliderBounds = ElementBounds.Fixed(0, 380 + Quartered, sliderLength, 30);
+			ElementBounds goFollowSwitchBounds = ElementBounds.Fixed(sliderLength + 12, 380 + Quartered, 24, 24);
 
-			ElementBounds doShiftsStringBounds = ElementBounds.Fixed(0, 530 + UIPadding, 72, 24);
-			ElementBounds doShiftsSliderBounds = ElementBounds.Fixed(82, 530 + UIPadding, 96, 29);
-			ElementBounds doShiftsSwitchBounds = ElementBounds.Fixed(194, 530 + UIPadding, 24, 24);
+			ElementBounds goEngageStringBounds = ElementBounds.Fixed(0, 430 + UIPadding, 76, 24);
+			ElementBounds goEngageSliderBounds = ElementBounds.Fixed(0, 430 + Quartered, sliderLength, 30);
+			ElementBounds goEngageSwitchBounds = ElementBounds.Fixed(sliderLength + 12, 430 + Quartered, 24, 24);
 
-			ElementBounds goPatrolStringBounds = ElementBounds.Fixed(0, 581 + UIPadding, 72, 24);
-			ElementBounds goPatrolInputsBounds = ElementBounds.Fixed(82, 581 + UIPadding, 96, 29);
-			ElementBounds goPatrolSwitchBounds = ElementBounds.Fixed(194, 581 + UIPadding, 24, 24);
+			ElementBounds goPursueStringBounds = ElementBounds.Fixed(0, 480 + UIPadding, 76, 24);
+			ElementBounds goPursueSliderBounds = ElementBounds.Fixed(0, 480 + Quartered, sliderLength, 30);
+			ElementBounds goPursueSwitchBounds = ElementBounds.Fixed(sliderLength + 12, 480 + Quartered, 24, 24);
 
-			ElementBounds returnToButtonBounds = ElementStdBounds.ToggleButton(0, 640 + UIPadding, 96, 48).WithAlignment(EnumDialogArea.RightFixed);
+			ElementBounds doShiftsStringBounds = ElementBounds.Fixed(0, 530 + UIPadding, 76, 24);
+			ElementBounds doShiftsSliderBounds = ElementBounds.Fixed(0, 530 + Quartered, sliderLength/2, 30);
+			ElementBounds doFinishSliderBounds = ElementBounds.Fixed(sliderLength/2, 530 + Quartered, sliderLength/2, 30);
+			ElementBounds doShiftsSwitchBounds = ElementBounds.Fixed(sliderLength + 12, 530 + Quartered, 24, 24);
+
+			ElementBounds goPatrolStringBounds = ElementBounds.Fixed(0, 580 + UIPadding, 76, 24);
+			ElementBounds goPatrolInputsBounds = ElementBounds.Fixed(0, 580 + Quartered, sliderLength, 30);
+			ElementBounds goPatrolSwitchBounds = ElementBounds.Fixed(sliderLength + 12, 580 + Quartered, 24, 24);
+
+			ElementBounds returnToButtonBounds = ElementStdBounds.ToggleButton(0, 640 + UIPadding, 94, 48).WithAlignment(EnumDialogArea.RightFixed);
 
 			// Inventory //
 			clothingsSlotsBounds.FixedRightOf(armourSlotBoundsHead, 10);
@@ -94,8 +99,11 @@ namespace VSKingdom {
 			var textsFont = CairoFont.WhiteSmallishText();
 			textsFont.Orientation = EnumTextOrientation.Center;
 			var titleFont = CairoFont.WhiteSmallishText();
-			titleFont.Orientation = EnumTextOrientation.Right;
-			titleFont.WithFontSize(16);
+			titleFont.Orientation = EnumTextOrientation.Justify;
+			titleFont.WithFontSize(14);
+			var typedFont = CairoFont.WhiteSmallishText();
+			typedFont.Orientation = EnumTextOrientation.Left;
+			typedFont.WithFontSize(10);
 
 			SingleComposer = capi.Gui
 			.CreateCompo("sentrycontents" + entity.EntityId, dialogBounds)
@@ -130,9 +138,10 @@ namespace VSKingdom {
 					.AddSwitch(TogglesPursue, goPursueSwitchBounds, "ordersPursue")
 					.AddStaticText(LangUtility.GetL(langCodes, "entries-keyword-shifts"), titleFont, doShiftsStringBounds)
 					.AddSlider(SlidersShifts, doShiftsSliderBounds, "timeofShifts")
+					.AddSlider(SlidersFinish, doFinishSliderBounds, "finishShifts")
 					.AddSwitch(TogglesShifts, doShiftsSwitchBounds, "ordersShifts")
 					.AddStaticText(LangUtility.GetL(langCodes, "entries-keyword-patrol"), titleFont, goPatrolStringBounds)
-					.AddTextInput(goPatrolInputsBounds, InputsPatrols, textsFont, "patrolPoints")
+					.AddTextInput(goPatrolInputsBounds, InputsPatrols, typedFont, "patrolPoints")
 					.AddSwitch(TogglesPatrol, goPatrolSwitchBounds, "ordersPatrol")
 					.AddButton(LangUtility.GetL(langCodes, "entries-keyword-return"), TogglesReturn, returnToButtonBounds, textsFont, EnumButtonStyle.Small, "ordersReturn")
 				.EndIf()
@@ -146,11 +155,13 @@ namespace VSKingdom {
 			SingleComposer.GetSwitch("ordersShifts").SetValue(GetOrderValue("orderShifts"));
 			SingleComposer.GetSwitch("ordersPatrol").SetValue(GetOrderValue("orderPatrol"));
 			
-			SingleComposer.GetSlider("rangesWander").SetValues((int)GetFloatValue("wanderRange"), 0, 64, 1, "m");
+			SingleComposer.GetSlider("rangesWander").SetValues((int)GetFloatValue("wanderRange"), 0, (int)entity.WatchedAttributes.GetDouble("postRange"), 1, "m");
 			SingleComposer.GetSlider("rangesFollow").SetValues((int)GetFloatValue("followRange"), 0, 64, 1, "m");
 			SingleComposer.GetSlider("rangesEngage").SetValues((int)GetFloatValue("engageRange"), 0, 96, 1, "m");
 			SingleComposer.GetSlider("rangesPursue").SetValues((int)GetFloatValue("pursueRange"), 0, 128, 1, "m");
-			SingleComposer.GetSlider("timeofShifts").SetValues((int)GetFloatValue("timeofShift"), 0, (int)capi.World.Calendar.HoursPerDay, 1, "h");
+			
+			SingleComposer.GetSlider("timeofShifts").SetValues((int)GetFloatValue("shiftStarts"), 0, (int)capi.World.Calendar.HoursPerDay, 1, "h");
+			SingleComposer.GetSlider("finishShifts").SetValues((int)GetFloatValue("shiftEnding"), 0, (int)capi.World.Calendar.HoursPerDay, 1, "h");
 			SingleComposer.GetTextInput("patrolPoints").SetValue((string)GetVec3iValue("patrolVec3i"));
 		}
 
@@ -275,7 +286,12 @@ namespace VSKingdom {
 		}
 
 		protected bool SlidersShifts(int shifts) {
-			entity.WatchedAttributes.SetFloat("shiftsTimes", shifts);
+			entity.WatchedAttributes.SetFloat("shiftStarts", shifts);
+			return true;
+		}
+
+		protected bool SlidersFinish(int shifts) {
+			entity.WatchedAttributes.SetFloat("shiftEnding", shifts);
 			return true;
 		}
 
@@ -314,7 +330,7 @@ namespace VSKingdom {
 				return "";
 			}
 			string[] strpoints = new string[waypoints.Length];
-			for (int i = 0; i > waypoints.Length; i++) {
+			for (int i = 0; i < waypoints.Length; i++) {
 				strpoints[i] = $"[{waypoints[i].X},{waypoints[i].Y},{waypoints[i].Z}]";
 			}
 			return string.Join(", ", strpoints);

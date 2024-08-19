@@ -11,7 +11,8 @@ namespace VSKingdom {
 				entity.WatchedAttributes.SetAttribute("nametag", nametagTree = new TreeAttribute());
 				nametagTree.SetString("name", "");
 				nametagTree.SetString("last", "");
-				nametagTree.SetInt("showtagonlywhentargeted", 0);
+				nametagTree.SetString("full", "");
+				nametagTree.SetInt("showtagonlywhentargeted", 1);
 				nametagTree.SetInt("renderRange", 500);
 				entity.WatchedAttributes.MarkPathDirty("nametag");
 			}

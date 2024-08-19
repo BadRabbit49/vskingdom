@@ -184,7 +184,7 @@ namespace VSKingdom {
 
 		private bool CanRespawnAtOutpost() {
 			var blockAccessor = entity.World.BlockAccessor;
-			var blockPosition = entity.WatchedAttributes.GetTreeAttribute("loyalties").GetBlockPos("outpost_xyzd");
+			var blockPosition = entity.WatchedAttributes.GetBlockPos("postBlock");
 			BlockEntity blockEntity = blockAccessor.GetBlockEntity(blockPosition);
 			if (blockAccessor.IsValidPos(blockPosition) && blockEntity is not null && blockEntity is BlockEntityPost outpost && outpost?.respawns > 0) {
 				// Check valid positions to teleport entity to around the outpost.

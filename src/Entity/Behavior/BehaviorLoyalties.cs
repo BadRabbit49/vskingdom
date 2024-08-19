@@ -1,7 +1,6 @@
 ﻿using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Datastructures;
-using Vintagestory.API.MathTools;
 
 namespace VSKingdom {
 	public class EntityBehaviorLoyalties : EntityBehavior {
@@ -32,65 +31,20 @@ namespace VSKingdom {
 			set => loyalties.SetString("leaders_guid", value);
 		}
 
-		public double outpostSIZE {
-			get => loyalties.GetDouble("outpost_size");
-			set => loyalties.SetDouble("outpost_size", value);
-		}
-
-		public BlockPos outpostXYZD {
-			get => loyalties.GetBlockPos("outpost_xyzd");
-			set => loyalties.SetBlockPos("outpost_xyzd", value);
-		}
-
 		public override string PropertyName() {
 			return "KingdomLoyalties";
 		}
 
 		public override void AfterInitialized(bool onFirstSpawn) {
 			base.AfterInitialized(onFirstSpawn);
-			if (entity is EntityPlayer && onFirstSpawn) {
+			if (onFirstSpawn && entity is EntityPlayer) {
 				if (kingdomGUID is null || !loyalties.HasAttribute("kingdom_guid")) {
 					kingdomGUID = GlobalCodes.commonerGUID;
 				}
 				if (cultureGUID is null || !loyalties.HasAttribute("culture_guid")) {
 					cultureGUID = GlobalCodes.seraphimGUID;
 				}
-				loyalties.RemoveAttribute("leaders_guid");
-				loyalties.RemoveAttribute("outpost_size");
-				loyalties.RemoveAttribute("outpost_xyzd");
 				entity.WatchedAttributes.MarkPathDirty("loyalties");
-			}
-			if (entity is EntitySentry sentry) {
-				bool hasCachedData = sentry.cachedData != null;
-				if (!loyalties.HasAttribute("kingdom_guid") || kingdomGUID is null) {
-					kingdomGUID = sentry.Properties.Attributes["baseSides"].AsString(GlobalCodes.commonerGUID);
-				} else if (hasCachedData) {
-					sentry.cachedData.kingdomGUID = kingdomGUID;
-				}
-				if (!loyalties.HasAttribute("culture_guid") || cultureGUID is null) {
-					cultureGUID = sentry.Properties.Attributes["baseGroup"].AsString(GlobalCodes.seraphimGUID);
-				} else if (hasCachedData) {
-					sentry.cachedData.cultureGUID = cultureGUID;
-				}
-				if (!loyalties.HasAttribute("leaders_guid") || leadersGUID is null) {
-					leadersGUID = null;
-				} else if (hasCachedData) {
-					sentry.cachedData.leadersGUID = leadersGUID;
-				}
-				if (!loyalties.HasAttribute("outpost_xyzd") || outpostXYZD is null) {
-					outpostXYZD = entity.ServerPos.AsBlockPos.Copy();
-					outpostSIZE = 3;
-				}
-				if (kingdomGUID == GlobalCodes.banditryGUID) {
-					loyalties.SetString("kingdom_guid", GlobalCodes.banditryGUID);
-					loyalties.SetString("leaders_guid", null);
-					sentry.WatchedAttributes.MarkPathDirty("loyalties");
-					if (hasCachedData) {
-						sentry.cachedData.kingdomGUID = GlobalCodes.banditryGUID;
-						sentry.cachedData.leadersGUID = null;
-					}
-				}
-				sentry.Loyalties = loyalties;
 			}
 		}
 	}

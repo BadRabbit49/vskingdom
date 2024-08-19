@@ -45,62 +45,6 @@ namespace VSKingdom {
 			this.minimumRange = taskConfig["minimumRange"].AsFloat(4f);
 			this.maximumRange = taskConfig["maximumRange"].AsFloat(20f);
 			this.banditPilled = taskConfig["isBandit"].AsBool(false);
-			this.drawBowsMeta = new AnimationMetaData() {
-				Code = "bowdraw",
-				Animation = "bowdraw",
-				BlendMode = EnumAnimationBlendMode.Add,
-				ElementWeight = new Dictionary<string, float> {
-					{ "UpperArmR", 90f },
-					{ "LowerArmR", 90f },
-					{ "UpperArmL", 90f },
-					{ "LowerArmL", 90f },
-					{ "ItemAnchor", 90f }
-				},
-				ElementBlendMode = new Dictionary<string, EnumAnimationBlendMode> {
-					{ "UpperArmR", EnumAnimationBlendMode.AddAverage },
-					{ "LowerArmR", EnumAnimationBlendMode.AddAverage },
-					{ "UpperArmL", EnumAnimationBlendMode.AddAverage },
-					{ "LowerArmL", EnumAnimationBlendMode.AddAverage },
-					{ "ItemAnchor", EnumAnimationBlendMode.AddAverage }
-				}
-			}.Init();
-			this.fireBowsMeta = new AnimationMetaData() {
-				Code = "bowidle",
-				Animation = "bowidle",
-				BlendMode = EnumAnimationBlendMode.Add,
-				EaseInSpeed = 999f,
-				ElementWeight = new Dictionary<string, float> {
-					{ "UpperArmR", 20f },
-					{ "LowerArmR", 20f },
-					{ "UpperArmL", 20f },
-					{ "LowerArmL", 20f }
-				},
-				ElementBlendMode = new Dictionary<string, EnumAnimationBlendMode> {
-					{ "UpperArmR", EnumAnimationBlendMode.AddAverage },
-					{ "LowerArmR", EnumAnimationBlendMode.AddAverage },
-					{ "UpperArmL", EnumAnimationBlendMode.AddAverage },
-					{ "LowerArmL", EnumAnimationBlendMode.AddAverage }
-				}
-			};
-			this.loadBowsMeta = new AnimationMetaData() {
-				Code = "bowload",
-				Animation = "bowload",
-				BlendMode = EnumAnimationBlendMode.Add,
-				ElementWeight = new Dictionary<string, float> {
-					{ "UpperArmR", 90f },
-					{ "LowerArmR", 90f },
-					{ "UpperArmL", 90f },
-					{ "LowerArmL", 90f },
-					{ "ItemAnchor", 90f }
-				},
-				ElementBlendMode = new Dictionary<string, EnumAnimationBlendMode> {
-					{ "UpperArmR", EnumAnimationBlendMode.AddAverage },
-					{ "LowerArmR", EnumAnimationBlendMode.AddAverage },
-					{ "UpperArmL", EnumAnimationBlendMode.AddAverage },
-					{ "LowerArmL", EnumAnimationBlendMode.AddAverage },
-					{ "ItemAnchor", EnumAnimationBlendMode.AddAverage }
-				}
-			};
 		}
 
 		public override bool ShouldExecute() {
@@ -160,10 +104,68 @@ namespace VSKingdom {
 			cancelAttack = false;
 			renderSwitch = false;
 			releasedShot = false;
+			drawBowsMeta = new AnimationMetaData() {
+				Code = new string(entity.cachedData.drawAnims),
+				Animation = new string(entity.cachedData.drawAnims),
+				BlendMode = EnumAnimationBlendMode.Add,
+				ElementWeight = new Dictionary<string, float> {
+					{ "UpperArmR", 90f },
+					{ "LowerArmR", 90f },
+					{ "UpperArmL", 90f },
+					{ "LowerArmL", 90f },
+					{ "ItemAnchor", 90f }
+				},
+				ElementBlendMode = new Dictionary<string, EnumAnimationBlendMode> {
+					{ "UpperArmR", EnumAnimationBlendMode.AddAverage },
+					{ "LowerArmR", EnumAnimationBlendMode.AddAverage },
+					{ "UpperArmL", EnumAnimationBlendMode.AddAverage },
+					{ "LowerArmL", EnumAnimationBlendMode.AddAverage },
+					{ "ItemAnchor", EnumAnimationBlendMode.AddAverage }
+				}
+			}.Init();
+			fireBowsMeta = new AnimationMetaData() {
+				Code = new string(entity.cachedData.fireAnims),
+				Animation = new string(entity.cachedData.fireAnims),
+				BlendMode = EnumAnimationBlendMode.Add,
+				EaseInSpeed = 999f,
+				ElementWeight = new Dictionary<string, float> {
+					{ "UpperArmR", 20f },
+					{ "LowerArmR", 20f },
+					{ "UpperArmL", 20f },
+					{ "LowerArmL", 20f }
+				},
+				ElementBlendMode = new Dictionary<string, EnumAnimationBlendMode> {
+					{ "UpperArmR", EnumAnimationBlendMode.AddAverage },
+					{ "LowerArmR", EnumAnimationBlendMode.AddAverage },
+					{ "UpperArmL", EnumAnimationBlendMode.AddAverage },
+					{ "LowerArmL", EnumAnimationBlendMode.AddAverage }
+				}
+			};
+			loadBowsMeta = new AnimationMetaData() {
+				Code = new string(entity.cachedData.loadAnims),
+				Animation = new string(entity.cachedData.loadAnims),
+				BlendMode = EnumAnimationBlendMode.Add,
+				ElementWeight = new Dictionary<string, float> {
+					{ "UpperArmR", 90f },
+					{ "LowerArmR", 90f },
+					{ "UpperArmL", 90f },
+					{ "LowerArmL", 90f },
+					{ "ItemAnchor", 90f }
+				},
+				ElementBlendMode = new Dictionary<string, EnumAnimationBlendMode> {
+					{ "UpperArmR", EnumAnimationBlendMode.AddAverage },
+					{ "LowerArmR", EnumAnimationBlendMode.AddAverage },
+					{ "UpperArmL", EnumAnimationBlendMode.AddAverage },
+					{ "LowerArmL", EnumAnimationBlendMode.AddAverage },
+					{ "ItemAnchor", EnumAnimationBlendMode.AddAverage }
+				}
+			};
 			// Get and initialize the item's attributes to the weapon.
-			drawingsound = ItemsProperties.WeaponDrawAudios.Get(entity.RightHandItemSlot?.Itemstack?.Collectible?.FirstCodePart());
-			List<AssetLocation> hitAudio = ItemsProperties.WeaponFireAudios.Get(entity.RightHandItemSlot?.Itemstack?.Collectible?.FirstCodePart());
-			hittingsound = hitAudio[rand.Next(0, hitAudio.Count - 1)];
+			AssetLocation weaponCode = entity.RightHandItemSlot?.Itemstack?.Collectible?.Code;
+			string weaponName = new string(weaponCode?.Domain + ":" + weaponCode?.FirstCodePart());
+			drawingsound = ItemsProperties.WeaponDrawAudios.Get(weaponName);
+			List<AssetLocation> hitAudio = ItemsProperties.WeaponFireAudios.Get(weaponName);
+			hittingsound = hitAudio.Count > 1 ? hitAudio[rand.Next(0, hitAudio.Count - 1)] : hitAudio[0];
 			ammoLocation = entity.GearInventory[18]?.Itemstack?.Collectible?.Code;
 			// Start switching the renderVariant to change to aiming.
 			entity.RightHandItemSlot?.Itemstack?.Attributes?.SetInt("renderVariant", 1);
@@ -236,7 +238,7 @@ namespace VSKingdom {
 			cooldownUntilMs = entity.World.ElapsedMilliseconds + mincooldown + entity.World.Rand.Next(maxcooldown - mincooldown);
 			entity.RightHandItemSlot?.Itemstack?.Attributes?.SetInt("renderVariant", 0);
 			entity.RightHandItemSlot?.MarkDirty();
-			entity.AnimManager.StopAnimation(drawBowsMeta.Code);
+			entity.AnimManager.StopAnimation(new string(entity.cachedData.drawAnims));
 		}
 		
 		public override void OnEntityHurt(DamageSource source, float damage) {

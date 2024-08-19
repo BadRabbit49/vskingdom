@@ -7,6 +7,7 @@ using Vintagestory.API.MathTools;
 using Vintagestory.API.Datastructures;
 using Vintagestory.GameContent;
 using Vintagestory.API.Config;
+using System.Runtime.InteropServices;
 
 namespace VSKingdom {
 	public class AiTaskSentrySearch : AiTaskBaseTargetable {
@@ -24,10 +25,12 @@ namespace VSKingdom {
 		protected float extraTargetOffset;
 		protected float currentUpdateTime;
 		protected float currentFollowTime;
-		protected float maximumFollowTime = 60f;
-		protected float retreatRange = 30f;
-		protected float seekingRange = 25f;
-		protected float curMoveSpeed = 0.03f;
+		protected float maximumFollowTime;
+		protected float maximumRange;
+		protected float retreatRange;
+		protected float seekingRange;
+		protected float curMoveSpeed;
+		protected string curAnimation;
 		protected Vec3d lastGoalReachedPos;
 		protected Vec3d targetPos;
 		protected Dictionary<long, int> futilityCounters;
@@ -37,6 +40,7 @@ namespace VSKingdom {
 		protected bool RemainInRetreatMode => entity.World.ElapsedMilliseconds - lastRetreatsAtMs < 20000;
 		protected bool RemainInOffenseMode => entity.World.ElapsedMilliseconds - lastAttackedAtMs < 20000;
 		protected float pursueRange { get => entity.WatchedAttributes.GetFloat("pursueRange", 1f); }
+		protected Vec3d outpostXYZD { get => entity.Loyalties.GetBlockPos("outpost_xyzd").ToVec3d(); }
 
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);
@@ -45,7 +49,10 @@ namespace VSKingdom {
 			this.maxcooldown = taskConfig["maxcooldown"].AsInt(1500);
 			this.retaliateAttacks = taskConfig["retaliateAttacks"].AsBool(true);
 			this.extraTargetOffset = taskConfig["extraTargetOffset"].AsFloat(1f);
+			this.maximumFollowTime = taskConfig["maximumFollowTime"].AsFloat(60f);
+			this.retreatRange = taskConfig["retreatRange"].AsFloat(36f);
 			this.seekingRange = taskConfig["seekingRange"].AsFloat(25f);
+			this.curMoveSpeed = taskConfig["curMoveSpeed"].AsFloat(0.03f);
 			this.skipEntityCodes = taskConfig["skipEntityCodes"].AsArray<string>()?.Select((string str) => AssetLocation.Create(str, entity.Code.Domain)).ToArray();
 			this.archerPilled = taskConfig["isArcher"].AsBool(false);
 			if (archerPilled) {
@@ -60,6 +67,7 @@ namespace VSKingdom {
 		public override void StartExecute() {
 			cancelSearch = false;
 			currentFollowTime = 0f;
+			maximumRange = pursueRange * pursueRange;
 			targetPos = targetEntity.ServerPos.XYZ;
 			if (RemainInRetreatMode) {
 				Retreats();
@@ -79,6 +87,7 @@ namespace VSKingdom {
 		public override bool CanContinueExecute() {
 			if (targetEntity == null) {
 				cancelSearch = true;
+				StopAnimation();
 				return false;
 			}
 			if (pathTraverser.Ready) {
@@ -100,15 +109,17 @@ namespace VSKingdom {
 			if (archerPilled && InTheReachOfTargets) {
 				attackPattern = EnumAttackPattern.TacticalRetreat;
 			}
+			if (!entity.ruleOrder[3]) {
+				if (entity.ruleOrder[1] && entity.ServerPos.SquareDistanceTo(entity.World.GetEntityById(entity.WatchedAttributes.GetLong("guardedEntityId", 0L)).ServerPos) > maximumRange) {
+					return false;
+				} else if (entity.ServerPos.SquareDistanceTo(outpostXYZD) > maximumRange) {
+					return false;
+				}
+			}
 			retreatRange = Math.Max(20f, retreatRange - dt / 4f);
 			currentFollowTime += dt;
 			currentUpdateTime += dt;
-			if (entity.Swimming) {
-				curMoveSpeed = entity.cachedData.moveSpeed;
-				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = entity.cachedData.swimAnims, Code = entity.cachedData.swimAnims, BlendMode = EnumAnimationBlendMode.Average }.Init());
-				entity.AnimManager.StopAnimation(entity.cachedData.walkAnims);
-				entity.AnimManager.StopAnimation(entity.cachedData.moveAnims);
-			}
+			MoveAnimation();
 			if (attackPattern != EnumAttackPattern.TacticalRetreat) {
 				if (RecentlyTookDamages && (!lastPathfind || IsInEmotionState("fleeondamage"))) {
 					Retreats();
@@ -131,8 +142,8 @@ namespace VSKingdom {
 				pathTraverser.CurrentTarget.Z = targetPos.Z;
 				MoveAnimation();
 			}
-			Vec3d vec = entity.ServerPos.XYZ.Add(0.0, entity.SelectionBox.Y2 / 2f, 0.0).Ahead(entity.SelectionBox.XSize / 2f, 0f, entity.ServerPos.Yaw);
-			double dist = targetEntity.SelectionBox.ToDouble().Translate(targetEntity.ServerPos.XYZ).ShortestDistanceFrom(vec);
+			Vec3d vec3 = entity.ServerPos.XYZ.Add(0.0, entity.SelectionBox.Y2 / 2f, 0.0).Ahead(entity.SelectionBox.XSize / 2f, 0f, entity.ServerPos.Yaw);
+			double dist = targetEntity.SelectionBox.ToDouble().Translate(targetEntity.ServerPos.XYZ).ShortestDistanceFrom(vec3);
 			bool flag = targetEntity != null && targetEntity.Alive && !cancelSearch && pathTraverser.Active;
 			if (attackPattern == EnumAttackPattern.TacticalRetreat) {
 				if (flag && currentFollowTime < 9f) {
@@ -155,18 +166,12 @@ namespace VSKingdom {
 		public override void FinishExecute(bool cancelled) {
 			cooldownUntilMs = entity.World.ElapsedMilliseconds + mincooldown + entity.World.Rand.Next(maxcooldown - mincooldown);
 			lastFinishedAtMs = entity.World.ElapsedMilliseconds;
-			if (targetEntity == null) {
-				targetPos = null;
-				cancelSearch = true;
-				pathTraverser.Stop();
+			if (targetEntity == null || !targetEntity.Alive) {
 				StopAnimation();
-			} else if (!targetEntity.Alive) {
 				targetEntity = null;
 				targetPos = null;
 				cancelSearch = true;
-				pathTraverser.Stop();
 			}
-			MoveAnimation();
 		}
 
 		public override bool Notify(string key, object data) {
@@ -180,7 +185,12 @@ namespace VSKingdom {
 
 		public void SetTargetEnts(Entity target) {
 			targetEntity = target;
-			targetPos = target.ServerPos.XYZ;
+			targetPos = target?.ServerPos.XYZ ?? targetPos;
+		}
+
+		public void TargetKilled() {
+			FinishExecute(true);
+			StopAnimation();
 		}
 
 		private void DoDirect() {
@@ -283,37 +293,39 @@ namespace VSKingdom {
 			pathTraverser.Retarget();
 			StopAnimation();
 		}
-
+		
 		private void MoveAnimation() {
 			if (cancelSearch) {
 				curMoveSpeed = 0;
 				StopAnimation();
-			} else if (entity.Swimming) {
+				return;
+			}
+			var distance = entity.ServerPos.SquareDistanceTo(targetPos);
+			entity.AnimManager.StopAnimation(curAnimation);
+			if (entity.Swimming) {
 				curMoveSpeed = entity.cachedData.moveSpeed * GlobalConstants.WaterDrag;
-				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = entity.cachedData.swimAnims, Code = entity.cachedData.swimAnims, BlendMode = EnumAnimationBlendMode.Average }.Init());
-				entity.AnimManager.StopAnimation(entity.cachedData.moveAnims);
-				entity.AnimManager.StopAnimation(entity.cachedData.walkAnims);
-			} else if (entity.ServerPos.SquareDistanceTo(targetPos) > 36f) {
+				curAnimation = new string(entity.cachedData.swimAnims);
+			} else if (distance > 81f) {
 				curMoveSpeed = entity.cachedData.moveSpeed;
-				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = entity.cachedData.moveAnims, Code = entity.cachedData.moveAnims, MulWithWalkSpeed = true, BlendMode = EnumAnimationBlendMode.Average }.Init());
-				entity.AnimManager.StopAnimation(entity.cachedData.walkAnims);
-				entity.AnimManager.StopAnimation(entity.cachedData.swimAnims);
-			} else if (entity.ServerPos.SquareDistanceTo(targetPos) > 1f) {
+				curAnimation = new string(entity.cachedData.moveAnims);
+			} else if (distance > 1f && distance < 81f) {
 				curMoveSpeed = entity.cachedData.walkSpeed;
-				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = entity.cachedData.walkAnims, Code = entity.cachedData.walkAnims, MulWithWalkSpeed = true, BlendMode = EnumAnimationBlendMode.Average, EaseOutSpeed = 1f }.Init());
-				entity.AnimManager.StopAnimation(entity.cachedData.moveAnims);
-				entity.AnimManager.StopAnimation(entity.cachedData.swimAnims);
+				curAnimation = new string(entity.cachedData.walkAnims);
 			} else {
 				StopAnimation();
+				return;
 			}
+			entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = curAnimation, Code = curAnimation, MulWithWalkSpeed = true, BlendMode = EnumAnimationBlendMode.Average, EaseInSpeed = 999f, EaseOutSpeed = 1f }.Init());
 		}
 
 		private void StopAnimation() {
-			entity.AnimManager.StopAnimation(entity.cachedData.moveAnims);
-			entity.AnimManager.StopAnimation(entity.cachedData.walkAnims);
-			if (!entity.Swimming) {
-				entity.AnimManager.StopAnimation(entity.cachedData.swimAnims);
+			curMoveSpeed = 0;
+			if (curAnimation != null) {
+				entity.AnimManager.StopAnimation(curAnimation);
 			}
+			entity.AnimManager.StopAnimation(entity.cachedData.walkAnims);
+			entity.AnimManager.StopAnimation(entity.cachedData.moveAnims);
+			entity.AnimManager.StopAnimation(entity.cachedData.swimAnims);
 		}
 
 		private bool NotSafe() {

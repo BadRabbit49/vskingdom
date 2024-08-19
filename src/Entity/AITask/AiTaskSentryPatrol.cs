@@ -2,10 +2,10 @@
 using Vintagestory.API.Server;
 using Vintagestory.API.Config;
 using Vintagestory.API.Common;
+using Vintagestory.API.Common.Entities;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Datastructures;
 using Vintagestory.GameContent;
-using Vintagestory.API.Common.Entities;
 
 namespace VSKingdom {
 	public class AiTaskSentryPatrol : AiTaskBase {
@@ -31,7 +31,7 @@ namespace VSKingdom {
 		protected float currentHours { get => world.Calendar.HourOfDay; }
 		protected float patrolStarts { get => entity.WatchedAttributes.GetFloat("shiftStarts"); }
 		protected float patrolEnding { get => entity.WatchedAttributes.GetFloat("shiftEnding"); }
-		protected Vec3d outpostBlock { get => entity.Loyalties.GetBlockPos("outpost_xyzd").ToVec3d(); }
+		protected Vec3d outpostBlock { get => entity.WatchedAttributes.GetBlockPos("postBlock").ToVec3d(); }
 		protected Vec3i[] waypoints { get => entity.WatchedAttributes.GetVec3is("patrolVec3i"); }
 		
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {

@@ -27,7 +27,7 @@ namespace VSKingdom {
 		}
 
 		public static string GetKingdomGUID(IServerPlayer Player) {
-			return Player.Entity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdom_guid") ?? null;
+			return Player.Entity.WatchedAttributes.GetString("kingdomGUID") ?? null;
 		}
 
 		public static string GetLeadersName(string LeadersUID) {
@@ -78,10 +78,10 @@ namespace VSKingdom {
 					playersGUID.AddItem(player.PlayerUID);
 					continue;
 				}
-				if (kingdomGUID != null && player.Entity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdom_guid") == kingdomGUID) {
+				if (kingdomGUID != null && player.Entity.WatchedAttributes.GetString("kingdomGUID") == kingdomGUID) {
 					playersGUID.AddItem(player.PlayerUID);
 				}
-				if (cultureGUID != null && player.Entity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("culture_guid") == cultureGUID) {
+				if (cultureGUID != null && player.Entity.WatchedAttributes.GetString("cultureGUID") == cultureGUID) {
 					playersGUID.AddItem(player.PlayerUID);
 				}
 			}
@@ -104,14 +104,14 @@ namespace VSKingdom {
 			string[] allOnlines = Array.Empty<string>();
 			if (kingdomGUID != null) {
 				foreach (var player in serverAPI.World.AllOnlinePlayers) {
-					if (player.Entity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdom_guid") == kingdomGUID) {
+					if (player.Entity.WatchedAttributes.GetString("kingdomGUID") == kingdomGUID) {
 						allOnlines.AddItem(player.PlayerUID);
 					}
 				}
 			}
 			if (cultureGUID != null) {
 				foreach (var player in serverAPI.World.AllOnlinePlayers) {
-					if (player.Entity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("culture_guid") == cultureGUID) {
+					if (player.Entity.WatchedAttributes.GetString("cultureGUID") == cultureGUID) {
 						allOnlines.AddItem(player.PlayerUID);
 					}
 				}
@@ -185,7 +185,7 @@ namespace VSKingdom {
 				return true;
 			}
 
-			string thatKingdomGUID = target.WatchedAttributes.GetTreeAttribute("loyalties").GetString("kingdom_guid");
+			string thatKingdomGUID = target.WatchedAttributes.GetString("kingdomGUID");
 
 			if (thisKingdomGUID == thatKingdomGUID) {
 				return false;
@@ -210,14 +210,14 @@ namespace VSKingdom {
 				return true;
 			}
 
-			string thisKingdomGUID = entity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdom_guid");
-			string thatKingdomGUID = target.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdom_guid");
+			string thisKingdomGUID = entity.WatchedAttributes.GetString("kingdomGUID");
+			string thatKingdomGUID = target.WatchedAttributes.GetString("kingdomGUID");
 
 			if (thisKingdomGUID == thatKingdomGUID) {
 				return false;
 			}
 			if (target is EntityPlayer playerTarget) {
-				if (entity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("leaders_guid") == playerTarget.PlayerUID) {
+				if (entity.WatchedAttributes.GetString("leadersGUID") == playerTarget.PlayerUID) {
 					return false;
 				}
 				return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == thisKingdomGUID).OutlawsGUID.Contains(playerTarget.PlayerUID);
@@ -233,7 +233,7 @@ namespace VSKingdom {
 				return false;
 			}
 
-			string thatKingdomGUID = target.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdom_guid");
+			string thatKingdomGUID = target.WatchedAttributes.GetString("kingdomGUID");
 
 			if (thisKingdomGUID == thatKingdomGUID) {
 				return true;
@@ -250,8 +250,8 @@ namespace VSKingdom {
 				return false;
 			}
 
-			string thisKingdomGUID = entity.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdom_guid");
-			string thatKingdomGUID = target.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdom_guid");
+			string thisKingdomGUID = entity.WatchedAttributes.GetString("kingdomGUID");
+			string thatKingdomGUID = target.WatchedAttributes.GetString("kingdomGUID");
 
 			if (thisKingdomGUID == thatKingdomGUID) {
 				return true;

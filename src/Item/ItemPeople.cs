@@ -66,8 +66,8 @@ public class ItemPeople : Item {
 			string entState = isBandit ? EnlistedStatus.DESERTER.ToString() : EnlistedStatus.CIVILIAN.ToString();
 			string firstName = null;
 			string famlyName = null;
-			string _kingdomGuid = isBandit ? GlobalCodes.banditryGUID : byEntity.WatchedAttributes.GetTreeAttribute("loyalties").GetString("kingdom_guid", GlobalCodes.commonerGUID);
-			string _cultureGuid = isBandit && isCrouch ? GlobalCodes.seraphimGUID : byEntity.WatchedAttributes.GetTreeAttribute("loyalties").GetString("culture_guid", GlobalCodes.seraphimGUID);
+			string _kingdomGuid = isBandit ? GlobalCodes.banditryGUID : byEntity.WatchedAttributes.GetString("kingdomGUID", GlobalCodes.commonerGUID);
+			string _cultureGuid = isBandit && isCrouch ? GlobalCodes.seraphimGUID : byEntity.WatchedAttributes.GetString("cultureGUID", GlobalCodes.seraphimGUID);
 			string _leadersGuid = isBandit ? null : player.PlayerUID;
 			string _kingdomName = null;
 			string _cultureName = null;
@@ -166,14 +166,12 @@ public class ItemPeople : Item {
 			entity.WatchedAttributes.SetAttribute("nametag", nametagTree);
 
 			// Setup loyalty stuff!
-			ITreeAttribute loyaltyTree = new TreeAttribute();
-			loyaltyTree.SetString("kingdom_guid", _kingdomGuid);
-			loyaltyTree.SetString("culture_guid", _cultureGuid);
-			loyaltyTree.SetString("leaders_guid", _leadersGuid);
-			loyaltyTree.SetString("kingdom_name", _kingdomName);
-			loyaltyTree.SetString("culture_name", _cultureName);
-			loyaltyTree.SetString("leaders_name", _leadersName);
-			entity.WatchedAttributes.SetAttribute("loyalties", loyaltyTree);
+			entity.WatchedAttributes.SetString("kingdomGUID", _kingdomGuid);
+			entity.WatchedAttributes.SetString("cultureGUID", _cultureGuid);
+			entity.WatchedAttributes.SetString("leadersGUID", _leadersGuid);
+			entity.WatchedAttributes.SetString("kingdomNAME", _kingdomName);
+			entity.WatchedAttributes.SetString("cultureNAME", _cultureName);
+			entity.WatchedAttributes.SetString("leadersNAME", _leadersName);
 
 			// Setup general info!
 			entity.WatchedAttributes.SetStringArray("coloursLIST", _kingdomCOLOURS);
@@ -237,7 +235,6 @@ public class ItemPeople : Item {
 				leadersNAME = _leadersName,
 				recruitNAME = $"{firstName} {famlyName}",
 				recruitINFO = new string[2] { entClass, entState },
-				defaultINFO = new string[2] { _kingdomGuid, _cultureGuid },
 				coloursLIST = _kingdomCOLOURS,
 				enemiesLIST = _kingdomENEMIES,
 				friendsLIST = _kingdomFRIENDS,

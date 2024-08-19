@@ -31,7 +31,6 @@ namespace VSKingdom {
 		public string leadersNAME { get; set; } = null;
 		public string recruitNAME { get; set; } = null;
 		public string[] recruitINFO { get; set; } = new string[] { "melee", "CIVILIAN" };
-		public string[] defaultINFO { get; set; } = new string[] { "00000000", "00000000" };
 		public string[] coloursLIST { get; set; } = new string[] { "#ffffff", "#ffffff", "#ffffff" };
 		public string[] enemiesLIST { get; set; } = new string[] { GlobalCodes.banditryGUID };
 		public string[] friendsLIST { get; set; } = new string[] { GlobalCodes.commonerGUID };
@@ -73,13 +72,13 @@ namespace VSKingdom {
 			postRange = range;
 		}
 
-		public void UpdateLoyalty(ITreeAttribute loyalty) {
-			kingdomGUID = loyalty.GetString("kingdom_guid");
-			kingdomNAME = loyalty.GetString("kingdom_name");
-			cultureGUID = loyalty.GetString("culture_guid");
-			cultureNAME = loyalty.GetString("culture_name");
-			leadersGUID = loyalty.GetString("leaders_guid");
-			leadersNAME = loyalty.GetString("leaders_name");
+		public void UpdateLoyalty(EntitySentry sentry) {
+			kingdomGUID = sentry.WatchedAttributes.GetString("kingdomGUID");
+			kingdomNAME = sentry.WatchedAttributes.GetString("kingdomNAME");
+			cultureGUID = sentry.WatchedAttributes.GetString("cultureGUID");
+			cultureNAME = sentry.WatchedAttributes.GetString("cultureNAME");
+			leadersGUID = sentry.WatchedAttributes.GetString("leadersGUID");
+			leadersNAME = sentry.WatchedAttributes.GetString("leadersNAME");
 		}
 		
 		public void UpdateNametag(ITreeAttribute nametag) {

@@ -83,14 +83,14 @@ namespace VSKingdom {
 			if (ent is EntityProjectile projectile && projectile.FiredBy != null) {
 				targetEntity = projectile.FiredBy;
 			}
-			if (ent.WatchedAttributes.HasAttribute("loyalties")) {
+			if (ent.WatchedAttributes.HasAttribute("kingdomGUID")) {
 				if (banditPilled) {
 					return ent is EntityPlayer || (ent is EntitySentry sent && sent.cachedData.kingdomGUID != GlobalCodes.banditryGUID);
 				}
 				if (ent is EntitySentry sentry) {
 					return entity.cachedData.enemiesLIST.Contains(sentry.cachedData.kingdomGUID) || sentry.cachedData.kingdomGUID == GlobalCodes.banditryGUID;
 				}
-				return entity.cachedData.enemiesLIST.Contains(ent.WatchedAttributes.GetTreeAttribute("loyalties").GetString("kingdom_guid"));
+				return entity.cachedData.enemiesLIST.Contains(ent.WatchedAttributes.GetString("kingdomGUID"));
 			}
 			if (ignoreEntityCode || IsTargetEntity(ent.Code.Path)) {
 				return CanSense(ent, range);
@@ -208,7 +208,7 @@ namespace VSKingdom {
 			// Start animations if not already doing so.
 			if (!animsStarted) {
 				animsStarted = true;
-				entity.AnimManager.StopAnimation(entity.cachedData.moveAnims);
+				entity.AnimManager.StopAnimation(new string (entity.cachedData.moveAnims));
 				entity.AnimManager.StartAnimation(drawBowsMeta.Init());
 				if (drawingsound != null) {
 					entity.World.PlaySoundAt(drawingsound, entity, null, false);
@@ -295,7 +295,7 @@ namespace VSKingdom {
 		}
 
 		private bool IsEnemy(Entity target) {
-			if (entity.cachedData.enemiesLIST.Contains(target.WatchedAttributes.GetTreeAttribute("loyalties")?.GetString("kingdom_guid"))) {
+			if (entity.cachedData.enemiesLIST.Contains(target.WatchedAttributes.GetString("kingdomGUID"))) {
 				return true;
 			}
 			if (target is EntityPlayer player) {
@@ -350,7 +350,7 @@ namespace VSKingdom {
 					return false;
 				}
 				// Determine if the entity in the way is a friend or foe, if they're an enemy then disregard and shoot anyway.
-				if (entitySel?.Entity?.WatchedAttributes.HasAttribute("loyalties") ?? false) {
+				if (entitySel?.Entity?.WatchedAttributes.HasAttribute("kingdomGUID") ?? false) {
 					return !IsEnemy(entitySel.Entity);
 				}
 				return true;

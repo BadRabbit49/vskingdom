@@ -80,14 +80,14 @@ namespace VSKingdom {
 			if (ent is EntityProjectile projectile && projectile.FiredBy is not null) {
 				targetEntity = projectile.FiredBy;
 			}
-			if (ent.WatchedAttributes.HasAttribute("loyalties")) {
+			if (ent.WatchedAttributes.HasAttribute("kingdomGUID")) {
 				if (banditPilled) {
 					return ent is EntityPlayer || (ent is EntitySentry sentry && sentry.cachedData.kingdomGUID != GlobalCodes.banditryGUID);
 				}
 				if (ent is EntitySentry sent) {
 					return entity.cachedData.enemiesLIST.Contains(sent.cachedData.kingdomGUID) || sent.cachedData.kingdomGUID == GlobalCodes.banditryGUID;
 				}
-				return entity.cachedData.enemiesLIST.Contains(ent.WatchedAttributes.GetTreeAttribute("loyalties").GetString("kingdom_guid"));
+				return entity.cachedData.enemiesLIST.Contains(ent.WatchedAttributes.GetString("kingdomGUID"));
 			}
 			if (ignoreEntityCode || IsTargetEntity(ent.Code.Path)) {
 				return CanSense(ent, range);

@@ -68,8 +68,8 @@ namespace VSKingdom {
 		public override void StartExecute() {
 			base.StartExecute();
 			cancelWanders = false;
-			wanderRangeHor = NatFloat.createInvexp(3f, wanderRange);
-			wanderRangeHor = NatFloat.createInvexp(3f, wanderRange / 2);
+			wanderRangeHor = NatFloat.createInvexp(1f, wanderRange);
+			wanderRangeHor = NatFloat.createInvexp(1f, wanderRange / 2);
 			MoveAnimation();
 			bool ok = pathTraverser.WalkTowards(curTargetPos, curMoveSpeed, targetRanges, OnGoals, OnStuck);
 		}
@@ -94,10 +94,7 @@ namespace VSKingdom {
 				}
 			}
 			// If the entity is close enough to the primary target then leave it there.
-			if (curTargetPos.HorizontalSquareDistanceTo(entity.ServerPos.X, entity.ServerPos.Z) < 0.5) {
-				return false;
-			}
-			return true;
+			return !(curTargetPos.HorizontalSquareDistanceTo(entity.ServerPos.X, entity.ServerPos.Z) < 0.5);
 		}
 
 		public override void FinishExecute(bool cancelled) {
@@ -147,24 +144,16 @@ namespace VSKingdom {
 		private Vec3d LoadNextWanderTarget() {
 			bool canFallDamage = entity.Api.World.Config.GetAsBool("FallDamageOn");
 			int num = 9;
-			float wanderDist = wanderRange;
+			float multiplier = 1f;
 			Vec4d bestTarget = null;
 			Vec4d currTarget = new Vec4d();
 			if (failedPathfinds > 10) {
-				wanderDist = Math.Max(0.1f, wanderRange * 0.9f);
-			} else {
-				wanderDist = Math.Min(1f, wanderRange * 1.1f);
-				if (rand.NextDouble() < 0.05) {
-					wanderDist = Math.Min(1f, wanderRange * 1.5f);
-				}
-			}
-			if (rand.NextDouble() < 0.05) {
-				wanderDist *= 3f;
+				multiplier = NatFloat.createInvexp(0.1f, 0.9f).nextFloat();
 			}
 			while (num-- > 0) {
-				double dx = rand.Next(-(int)wanderDist, (int)wanderDist);
-				double dy = rand.Next(-(int)wanderDist, (int)wanderDist) / 2f;
-				double dz = rand.Next(-(int)wanderDist, (int)wanderDist);
+				double dx = wanderRangeHor.nextFloat() * (rand.Next(2) * 2 - 1) * multiplier;
+				double dy = wanderRangeVer.nextFloat() * (rand.Next(2) * 2 - 1) * multiplier;
+				double dz = wanderRangeHor.nextFloat() * (rand.Next(2) * 2 - 1) * multiplier;
 				currTarget.X = entity.ServerPos.X + dx;
 				currTarget.Y = entity.ServerPos.Y + dy;
 				currTarget.Z = entity.ServerPos.Z + dz;

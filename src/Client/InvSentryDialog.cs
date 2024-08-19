@@ -35,8 +35,8 @@ namespace VSKingdom {
 			this.player = capi.World.Player.Entity;
 			this.langCodes = (player as IServerPlayer)?.LanguageCode ?? "en";
 			this.capi = capi;
-			bool playerIsLeader = entity.WatchedAttributes.GetTreeAttribute("loyalties").GetString("leaders_guid") == player.PlayerUID;
-			bool playerIsFriend = entity.WatchedAttributes.GetTreeAttribute("loyalties").GetString("kingdom_guid") == player.WatchedAttributes.GetTreeAttribute("loyalties").GetString("kingdom_guid");
+			bool playerIsLeader = entity.WatchedAttributes.GetString("leadersGUID") == player.PlayerUID;
+			bool playerIsFriend = entity.WatchedAttributes.GetString("kingdomGUID") == player.WatchedAttributes.GetString("kingdomGUID");
 			bool entityIsSmited = entity.Alive == false;
 			
 			ElementBounds invBounds = ElementBounds.Fill.WithFixedPadding(GuiStyle.ElementToDialogPadding);

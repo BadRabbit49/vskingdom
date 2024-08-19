@@ -162,7 +162,7 @@ namespace VSKingdom {
 			EnumDamageSource source = damageSourceForDeath.Source;
 			if (source == EnumDamageSource.Entity || source == EnumDamageSource.Player) {
 				if (damageSourceForDeath.CauseEntity is EntityHumanoid) {
-					DiedInABattle = (entity as EntitySentry)?.cachedData.enemiesLIST.Contains(damageSourceForDeath.CauseEntity?.WatchedAttributes?.GetTreeAttribute("loyalties")?.GetString("kingdom_guid") ?? "00000000") ?? false;
+					DiedInABattle = (entity as EntitySentry)?.cachedData.enemiesLIST.Contains(damageSourceForDeath.CauseEntity?.WatchedAttributes.GetString("kingdomGUID") ?? "00000000") ?? false;
 				}
 			} else if (source == EnumDamageSource.Void) {
 				(entity as EntityAgent).AllowDespawn = true;

@@ -40,7 +40,7 @@ namespace VSKingdom {
 		protected bool RemainInRetreatMode => entity.World.ElapsedMilliseconds - lastRetreatsAtMs < 20000;
 		protected bool RemainInOffenseMode => entity.World.ElapsedMilliseconds - lastAttackedAtMs < 20000;
 		protected float pursueRange { get => entity.WatchedAttributes.GetFloat("pursueRange", 1f); }
-		protected Vec3d outpostXYZD { get => entity.Loyalties.GetBlockPos("outpost_xyzd").ToVec3d(); }
+		protected Vec3d outpostXYZD { get => entity.WatchedAttributes.GetBlockPos("postBlock").ToVec3d(); }
 
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);

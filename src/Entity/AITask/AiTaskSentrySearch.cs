@@ -7,7 +7,6 @@ using Vintagestory.API.MathTools;
 using Vintagestory.API.Datastructures;
 using Vintagestory.GameContent;
 using Vintagestory.API.Config;
-using System.Runtime.InteropServices;
 
 namespace VSKingdom {
 	public class AiTaskSentrySearch : AiTaskBaseTargetable {
@@ -142,6 +141,13 @@ namespace VSKingdom {
 				pathTraverser.CurrentTarget.Z = targetPos.Z;
 				MoveAnimation();
 			}
+			if (pathTraverser.Active) {
+				// Look ahead, if there is a door, open it if possible before walking through. Remember to shut afterwards if it was closed! Code courtesy of Dana!
+				entity.World.BlockAccessor.WalkBlocks(entity.ServerPos.AsBlockPos.AddCopy(-1, -1, -1), entity.ServerPos.AsBlockPos.AddCopy(1, 1, 1), (block, x, y, z) => {
+					BlockPos pos = new(x, y, z, entity.SidedPos.Dimension);
+					TryOpen(pos);
+				});
+			}
 			Vec3d vec3 = entity.ServerPos.XYZ.Add(0.0, entity.SelectionBox.Y2 / 2f, 0.0).Ahead(entity.SelectionBox.XSize / 2f, 0f, entity.ServerPos.Yaw);
 			double dist = targetEntity.SelectionBox.ToDouble().Translate(targetEntity.ServerPos.XYZ).ShortestDistanceFrom(vec3);
 			bool flag = targetEntity != null && targetEntity.Alive && !cancelSearch && pathTraverser.Active;
@@ -186,6 +192,10 @@ namespace VSKingdom {
 		public void SetTargetEnts(Entity target) {
 			targetEntity = target;
 			targetPos = target?.ServerPos.XYZ ?? targetPos;
+		}
+
+		public void HoldingRange() {
+			StopAnimation();
 		}
 
 		public void TargetKilled() {
@@ -293,17 +303,20 @@ namespace VSKingdom {
 			pathTraverser.Retarget();
 			StopAnimation();
 		}
-		
+
 		private void MoveAnimation() {
 			if (cancelSearch) {
 				curMoveSpeed = 0;
 				StopAnimation();
 				return;
 			}
-			var distance = entity.ServerPos.SquareDistanceTo(targetPos);
+			double distance = entity.ServerPos.SquareDistanceTo(targetPos);
 			entity.AnimManager.StopAnimation(curAnimation);
-			if (entity.Swimming) {
-				curMoveSpeed = entity.cachedData.moveSpeed * GlobalConstants.WaterDrag;
+			if (entity.FeetInLiquid && !entity.Swimming) {
+				curMoveSpeed = entity.cachedData.walkSpeed;
+				curAnimation = new string(entity.cachedData.walkAnims);
+			} else if (entity.Swimming) {
+				curMoveSpeed = entity.cachedData.moveSpeed;
 				curAnimation = new string(entity.cachedData.swimAnims);
 			} else if (distance > 81f) {
 				curMoveSpeed = entity.cachedData.moveSpeed;
@@ -323,9 +336,48 @@ namespace VSKingdom {
 			if (curAnimation != null) {
 				entity.AnimManager.StopAnimation(curAnimation);
 			}
-			entity.AnimManager.StopAnimation(entity.cachedData.walkAnims);
-			entity.AnimManager.StopAnimation(entity.cachedData.moveAnims);
-			entity.AnimManager.StopAnimation(entity.cachedData.swimAnims);
+			entity.AnimManager.StopAnimation(new string(entity.cachedData.walkAnims));
+			entity.AnimManager.StopAnimation(new string(entity.cachedData.moveAnims));
+			entity.AnimManager.StopAnimation(new string(entity.cachedData.swimAnims));
+		}
+
+		private bool GoingDirectly(Vec3d pos1, Vec3d pos2) {
+			EntitySelection entitySel = new EntitySelection();
+			BlockSelection blockSel = new BlockSelection();
+			// Line trace to see if blocks are in the way.
+			entity.World.RayTraceForSelection(pos1.AddCopy(entity.LocalEyePos), pos2.AddCopy(entity.LocalEyePos), ref blockSel, ref entitySel);
+			// If a door is in the way, open it!
+			if (blockSel?.Block is BlockBaseDoor || blockSel?.Block is BlockDoor) {
+				return !IsLocked(blockSel.Position);
+			}
+			if (blockSel?.Block.IsLiquid() ?? false) {
+				return true;
+			}
+			return false;
+		}
+
+		private bool TryOpen(BlockPos pos) {
+			Block block = entity.World.BlockAccessor.GetBlock(pos);
+			if (IsLocked(pos)) {
+				return false;
+			}
+			Caller caller = new() { Type = EnumCallerType.Entity, Entity = entity, };
+			BlockSelection blockSelection = new(pos, BlockFacing.DOWN, block);
+			TreeAttribute activationArgs = new();
+			activationArgs.SetBool("opened", true);
+			block.Activate(entity.World, caller, blockSelection, activationArgs);
+			return true;
+		}
+
+		private bool IsLocked(BlockPos pos) {
+			ModSystemBlockReinforcement blockReinforcement = entity.Api.ModLoader.GetModSystem<ModSystemBlockReinforcement>();
+			if (!blockReinforcement.IsReinforced(pos)) {
+				return false;
+			}
+			if (entity.cachedData.leadersGUID == null) {
+				return true;
+			}
+			return blockReinforcement.IsLockedForInteract(pos, world.PlayerByUid(entity.cachedData.leadersGUID));
 		}
 
 		private bool NotSafe() {

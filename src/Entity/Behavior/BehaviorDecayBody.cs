@@ -161,8 +161,8 @@ namespace VSKingdom {
 			}
 			EnumDamageSource source = damageSourceForDeath.Source;
 			if (source == EnumDamageSource.Entity || source == EnumDamageSource.Player) {
-				if (damageSourceForDeath.CauseEntity is EntityHumanoid) {
-					DiedInABattle = (entity as EntitySentry)?.cachedData.enemiesLIST.Contains(damageSourceForDeath.CauseEntity?.WatchedAttributes.GetString("kingdomGUID") ?? "00000000") ?? false;
+				if (damageSourceForDeath.GetCauseEntity() is EntityHumanoid && damageSourceForDeath.GetCauseEntity().WatchedAttributes.HasAttribute("kingdomGUID")) {
+					DiedInABattle = (entity as EntitySentry)?.cachedData.enemiesLIST.Contains(damageSourceForDeath.GetCauseEntity().WatchedAttributes.GetString("kingdomGUID")) ?? false;
 				}
 			} else if (source == EnumDamageSource.Void) {
 				(entity as EntityAgent).AllowDespawn = true;
@@ -177,7 +177,7 @@ namespace VSKingdom {
 			if (!DiedInABattle) {
 				bool canRespawn = CanRespawnAtOutpost();
 				if (!canRespawn && entity is EntitySentry thisEnt && damageSourceForDeath.GetCauseEntity() is EntitySentry thatEnt) {
-					LootGear(thisEnt, thatEnt);
+					LootGear(thatEnt, thisEnt);
 				}
 			}
 		}

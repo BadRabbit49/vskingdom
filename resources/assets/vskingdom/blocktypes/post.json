@@ -3,15 +3,22 @@
 	"class": "BlockPost",
 	"entityClass": "BlockEntityPost",
 	"entityBehaviors": [ { "name": "Resupply" } ],
-	"attributes": { "handbook": { "excludeByType": { "*": true, "*-null-none-good": false } } },
+	"attributes": {
+		"handbook": { "includeByType": { "*-null-none-good": true, "*": false } }
+	},
 	"behaviorsByType": {
-		"*-live-*": [ { "name": "Container" }, { "name": "Ignitable" }, { "name": "HeatSource", "properties": { "heatStrength": 10 } } ]
+		"*": [ { "name": "Container" }, { "name": "Ignitable" } ],
+		"*-live-good": [ { "name": "Container" }, { "name": "Ignitable" }, { "name": "HeatSource", "properties": { "heatStrength": 10 } } ],
+		"*-live-hurt": [ { "name": "Container" }, { "name": "Ignitable" }, { "name": "HeatSource", "properties": { "heatStrength": 7 } } ]
 	},
 	"variantgroups": [
 		{ "code": "metal", "states": [ "lead", "copper", "tinbronze", "bismuthbronze", "blackbronze", "brass", "silver", "gold", "iron", "meteoriciron", "steel" ] },
 		{ "code": "fuels", "states": [ "null", "wood", "coal" ] },
 		{ "code": "state", "states": [ "none", "live", "done" ] },
 		{ "code": "level", "states": [ "good", "hurt", "dead" ] }
+	],
+	"skipVariants": [
+		"post-*-live-dead"
 	],
 	"shapeByType": {
 		"@post-(lead|copper|tinbronze|bismuthbronze|blackbronze|brass|iron|meteoriciron|steel)-(null|wood|coal)-(none|live|done)-good": { "base": "vskingdom:block/post/brazier1_rough_{fuels}" },
@@ -30,7 +37,7 @@
 	},
 	"creativeinventory": {
 		"general": [ "*" ],
-		"vskingdom": [ "*-none-good" ]
+		"vskingdom": [ "*-null-none-good" ]
 	},
 	"blockmaterial": "Metal",
 	"replaceable": 100,

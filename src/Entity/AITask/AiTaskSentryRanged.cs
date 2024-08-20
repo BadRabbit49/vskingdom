@@ -189,10 +189,7 @@ namespace VSKingdom {
 		}
 
 		public override bool ContinueExecute(float dt) {
-			if (targetEntity == null) {
-				return false;
-			}
-			if (cancelAttack || !targetEntity.Alive || entity.Swimming) {
+			if (cancelAttack || targetEntity == null || !targetEntity.Alive || entity.Swimming) {
 				return false;
 			}
 			// Calculate aiming at targetEntity!
@@ -208,7 +205,7 @@ namespace VSKingdom {
 			// Start animations if not already doing so.
 			if (!animsStarted) {
 				animsStarted = true;
-				entity.AnimManager.StopAnimation(new string (entity.cachedData.moveAnims));
+				searchTask.HoldingRange();
 				entity.AnimManager.StartAnimation(drawBowsMeta.Init());
 				if (drawingsound != null) {
 					entity.World.PlaySoundAt(drawingsound, entity, null, false);
@@ -343,17 +340,8 @@ namespace VSKingdom {
 			// Do a line Trace into the target, see if there are any entities in the way.
 			entity.World.RayTraceForSelection(entity.ServerPos.XYZ.AddCopy(entity.LocalEyePos), targetEntity?.ServerPos?.XYZ.AddCopy(targetEntity?.LocalEyePos), ref blockSel, ref entitySel);
 			// Make sure the target isn't obstructed by other entities, but if it IS then make sure it's okay to hit them.
-			if (entitySel?.Entity != entity && entitySel?.Entity != targetEntity) {
-				// Kill all drifters, locusts, and bells, a shot well placed I say. Infact, switch targets to kill IT.
-				if (entitySel?.Entity is EntityDrifter || entitySel?.Entity is EntityLocust || entitySel?.Entity is EntityBell) {
-					targetEntity = entitySel.Entity;
-					return false;
-				}
-				// Determine if the entity in the way is a friend or foe, if they're an enemy then disregard and shoot anyway.
-				if (entitySel?.Entity?.WatchedAttributes.HasAttribute("kingdomGUID") ?? false) {
-					return !IsEnemy(entitySel.Entity);
-				}
-				return true;
+			if (entitySel?.Entity != null && entitySel?.Entity != targetEntity) {
+				return !IsTargetableEntity(entitySel?.Entity, (float)entity.ServerPos.DistanceTo(entitySel.Position));
 			}
 			return false;
 		}

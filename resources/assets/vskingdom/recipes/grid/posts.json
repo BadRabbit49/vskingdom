@@ -2,21 +2,11 @@
 	{
 		"ingredientPattern": "H,H,P",
 		"ingredients": {
-			"H": { "type": "item", "code": "game:hoop-*", "name": "metal", "allowedVariants": [ "lead", "copper", "tinbronze", "bismuthbronze", "blackbronze", "brass", "silver", "gold", "iron", "meteoriciron", "steel" ] },
-			"P": { "type": "block", "code": "game:metalplate-*", "name": "metal", "allowedVariants": [ "lead", "copper", "tinbronze", "bismuthbronze", "blackbronze", "brass", "silver", "gold", "iron", "meteoriciron", "steel" ] }
+			"H": { "type": "item", "code": "game:hoop-*", "name": "metal", "allowedVariants": [ "tinbronze", "bismuthbronze", "blackbronze", "silver", "gold", "iron", "meteoriciron", "steel" ], "quantity": 1 },
+			"P": { "type": "item", "code": "game:metalplate-*", "name": "metal", "allowedVariants": [ "tinbronze", "bismuthbronze", "blackbronze", "silver", "gold", "iron", "meteoriciron", "steel" ], "quantity": 1 }
 		},
 		"width": 1,
 		"height": 3,
 		"output": { "type": "block", "code": "vskingdom:post-{metal}-null-none-good" }
-	},
-	{
-		"ingredientPattern": "H,H,P",
-		"ingredients": {
-			"H": { "type": "item", "code": "game:hoop-*", "allowedVariants": [ "electrum" ], "name": "metal" },
-			"P": { "type": "block", "code": "game:metalplate-{metal}" }
-		},
-		"width": 1,
-		"height": 3,
-		"output": { "type": "block", "code": "vskingdom:post-temp-{metal}-null-none-good" }
 	}
 ]

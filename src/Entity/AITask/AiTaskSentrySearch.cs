@@ -6,7 +6,6 @@ using Vintagestory.API.Common.Entities;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Datastructures;
 using Vintagestory.GameContent;
-using Vintagestory.API.Config;
 
 namespace VSKingdom {
 	public class AiTaskSentrySearch : AiTaskBaseTargetable {
@@ -194,12 +193,8 @@ namespace VSKingdom {
 			targetPos = target?.ServerPos.XYZ ?? targetPos;
 		}
 
-		public void HoldingRange() {
-			StopAnimation();
-		}
-
-		public void TargetKilled() {
-			FinishExecute(true);
+		public void StopMovement() {
+			cancelSearch = true;
 			StopAnimation();
 		}
 

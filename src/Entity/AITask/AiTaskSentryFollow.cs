@@ -1,3 +1,4 @@
+using System.Threading.Channels;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
@@ -37,7 +38,7 @@ namespace VSKingdom {
 			for (int i = 0; i < followers.Length; i++) {
 				size += entity.World.GetEntityById(followers[i])?.SelectionBox.XSize ?? 0;
 			}
-			pathTraverser.NavigateTo_Async(targetEntity.ServerPos.XYZ, entity.cachedData.moveSpeed, size + 0.2f, OnGoalReached, () => stuck = true, null, 1000, 1);
+			pathTraverser.NavigateTo_Async(targetEntity.ServerPos.XYZ, curMoveSpeed, size + 0.2f, OnGoalReached, () => stuck = true, null, 1000, 1);
 			targetOffset.Set(entity.World.Rand.NextDouble() * 2 - 1, 0, entity.World.Rand.NextDouble() * 2 - 1);
 			stuck = false;
 			// Overridden base method to avoid constant teleporting when stuck.
@@ -85,14 +86,18 @@ namespace VSKingdom {
 				StopAnimation();
 				return;
 			}
+			double distance = entity.ServerPos.SquareDistanceTo(curTargetPos);
 			entity.AnimManager.StopAnimation(curAnimation);
-			if (entity.Swimming) {
-				curMoveSpeed = entity.cachedData.moveSpeed * GlobalConstants.WaterDrag;
+			if (entity.FeetInLiquid && !entity.Swimming) {
+				curMoveSpeed = entity.cachedData.walkSpeed;
+				curAnimation = new string(entity.cachedData.walkAnims);
+			} else if (entity.Swimming) {
+				curMoveSpeed = entity.cachedData.moveSpeed;
 				curAnimation = new string(entity.cachedData.swimAnims);
-			} else if (entity.ServerPos.SquareDistanceTo(curTargetPos) > 81f) {
+			} else if (distance > 81f) {
 				curMoveSpeed = entity.cachedData.moveSpeed;
 				curAnimation = new string(entity.cachedData.moveAnims);
-			} else if (entity.ServerPos.SquareDistanceTo(curTargetPos) > 1f) {
+			} else if (distance > 1f && distance < 81f) {
 				curMoveSpeed = entity.cachedData.walkSpeed;
 				curAnimation = new string(entity.cachedData.walkAnims);
 			} else {
@@ -107,9 +112,9 @@ namespace VSKingdom {
 			if (curAnimation != null) {
 				entity.AnimManager.StopAnimation(curAnimation);
 			}
-			entity.AnimManager.StopAnimation(entity.cachedData.walkAnims);
-			entity.AnimManager.StopAnimation(entity.cachedData.moveAnims);
-			entity.AnimManager.StopAnimation(entity.cachedData.swimAnims);
+			entity.AnimManager.StopAnimation(new string(entity.cachedData.walkAnims));
+			entity.AnimManager.StopAnimation(new string(entity.cachedData.moveAnims));
+			entity.AnimManager.StopAnimation(new string(entity.cachedData.swimAnims));
 		}
 	}
 }

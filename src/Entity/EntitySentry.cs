@@ -100,6 +100,7 @@ namespace VSKingdom {
 					swimAnims = Properties.Attributes["swimAnims"].AsString("swim").ToLower(),
 					jumpAnims = Properties.Attributes["jumpAnims"].AsString("jump").ToLower(),
 					diesAnims = Properties.Attributes["diesAnims"].AsString("dies").ToLower(),
+					postBlock = WatchedAttributes.GetBlockPos("postBlock").ToVec3d(),
 					kingdomGUID = WatchedAttributes.GetString("kingdomGUID"),
 					kingdomNAME = WatchedAttributes.GetString("kingdomNAME"),
 					cultureGUID = WatchedAttributes.GetString("cultureGUID"),
@@ -116,6 +117,7 @@ namespace VSKingdom {
 					friendsLIST = WatchedAttributes.GetStringArray("friendsLIST"),
 					outlawsLIST = WatchedAttributes.GetStringArray("outlawsLIST")
 				};
+				UpdateInfos();
 				UpdateStats();
 			}
 		}
@@ -126,42 +128,42 @@ namespace VSKingdom {
 				if (!Alive && WatchedAttributes.HasAttribute("deathByPlayer")) {
 					infotext.AppendLine(Lang.Get("Killed by Player: {0}", WatchedAttributes.GetString("deathByPlayer")));
 				}
-				if (World.Side == EnumAppSide.Client) {
+				string colorsOfKingdom = WatchedAttributes.HasAttribute("coloursLIST") ? WatchedAttributes.GetStringArray("coloursLIST")[2] : "#ffffff";
+				bool playersCreative = false;
+				if (Api.Side == EnumAppSide.Client) {
 					IClientPlayer player = (World as IClientWorldAccessor).Player;
-					if (player != null) {
-						string colourKingdom = WatchedAttributes.HasAttribute("coloursLIST") ? WatchedAttributes.GetStringArray("coloursLIST")[2] : "#ffffff";
-						if (player.WorldData?.CurrentGameMode == EnumGameMode.Creative) {
-							ITreeAttribute healthyTree = WatchedAttributes.GetTreeAttribute("health");
-							if (healthyTree != null) {
-								infotext.AppendLine($"<font color=\"#ff8888\">Health: {healthyTree.GetFloat("currenthealth")}/{healthyTree.GetFloat("maxhealth")}</font>");
-							}
-							infotext.AppendLine($"<font color=\"#bbbbbb\">{EntityId}</font>");
-							if (WatchedAttributes.HasAttribute("kingdomGUID") && WatchedAttributes.GetString("kingdomGUID") != null) {
-								infotext.AppendLine($"<font color=\"{colourKingdom}\">{LangUtility.Get("entries-keyword-kingdom")}: {WatchedAttributes.GetString("kingdomGUID")}</font>");
-							}
-							if (WatchedAttributes.HasAttribute("cultureGUID") && WatchedAttributes.GetString("cultureGUID") != null) {
-								infotext.AppendLine($"{LangUtility.Get("entries-keyword-culture")}: {WatchedAttributes.GetString("cultureGUID")}");
-							}
-							if (WatchedAttributes.HasAttribute("leadersGUID") && WatchedAttributes.GetString("leadersGUID") != null) {
-								infotext.AppendLine($"{LangUtility.Get("entries-keyword-leaders")}: {WatchedAttributes.GetString("leadersGUID")}");
-							}
-						} else if (player != null && player.WorldData?.CurrentGameMode == EnumGameMode.Survival) {
-							ITreeAttribute nametagTree = WatchedAttributes.GetTreeAttribute("nametag");
-							if (nametagTree != null) {
-								if (nametagTree.HasAttribute("full")) {
-									infotext.AppendLine($"<font color=\"#bbbbbb\">{nametagTree.GetString("full")}</font>");
-								}
-							}
-							if (WatchedAttributes.HasAttribute("kingdomNAME") && WatchedAttributes.GetString("kingdomNAME") != null) {
-								infotext.AppendLine($"<font color=\"{colourKingdom}\">{LangUtility.Get("entries-keyword-kingdom")}: {WatchedAttributes.GetString("kingdomNAME")}</font>");
-							}
-							if (WatchedAttributes.HasAttribute("cultureNAME") && WatchedAttributes.GetString("cultureNAME") != null) {
-								infotext.AppendLine($"{LangUtility.Get("entries-keyword-culture")}: {WatchedAttributes.GetString("cultureNAME")}");
-							}
-							if (WatchedAttributes.HasAttribute("leadersNAME") && WatchedAttributes.GetString("leadersNAME") != null) {
-								infotext.AppendLine($"{LangUtility.Get("entries-keyword-leaders")}: {WatchedAttributes.GetString("leadersNAME")}");
-							}
+					playersCreative = player != null && player.WorldData?.CurrentGameMode == EnumGameMode.Creative;
+				}
+				if (playersCreative) {
+					ITreeAttribute healthyTree = WatchedAttributes.GetTreeAttribute("health");
+					if (healthyTree != null) {
+						infotext.AppendLine($"<font color=\"#ff8888\">Health: {healthyTree.GetFloat("currenthealth")}/{healthyTree.GetFloat("maxhealth")}</font>");
+					}
+					infotext.AppendLine($"<font color=\"#bbbbbb\">{EntityId}</font>");
+					if (WatchedAttributes.HasAttribute("kingdomGUID") && WatchedAttributes.GetString("kingdomGUID") != null) {
+						infotext.AppendLine($"<font color=\"{colorsOfKingdom}\">{LangUtility.Get("entries-keyword-kingdom")}: {WatchedAttributes.GetString("kingdomGUID")}</font>");
+					}
+					if (WatchedAttributes.HasAttribute("cultureGUID") && WatchedAttributes.GetString("cultureGUID") != null) {
+						infotext.AppendLine($"{LangUtility.Get("entries-keyword-culture")}: {WatchedAttributes.GetString("cultureGUID")}");
+					}
+					if (WatchedAttributes.HasAttribute("leadersGUID") && WatchedAttributes.GetString("leadersGUID") != null) {
+						infotext.AppendLine($"{LangUtility.Get("entries-keyword-leaders")}: {WatchedAttributes.GetString("leadersGUID")}");
+					}
+				} else {
+					ITreeAttribute nametagTree = WatchedAttributes.GetTreeAttribute("nametag");
+					if (nametagTree != null) {
+						if (nametagTree.HasAttribute("full")) {
+							infotext.AppendLine($"<font color=\"#bbbbbb\">{nametagTree.GetString("full")}</font>");
 						}
+					}
+					if (WatchedAttributes.HasAttribute("kingdomNAME") && WatchedAttributes.GetString("kingdomNAME") != null) {
+						infotext.AppendLine($"<font color=\"{colorsOfKingdom}\">{LangUtility.Get("entries-keyword-kingdom")}: {WatchedAttributes.GetString("kingdomNAME")}</font>");
+					}
+					if (WatchedAttributes.HasAttribute("cultureNAME") && WatchedAttributes.GetString("cultureNAME") != null) {
+						infotext.AppendLine($"{LangUtility.Get("entries-keyword-culture")}: {WatchedAttributes.GetString("cultureNAME")}");
+					}
+					if (WatchedAttributes.HasAttribute("leadersNAME") && WatchedAttributes.GetString("leadersNAME") != null) {
+						infotext.AppendLine($"{LangUtility.Get("entries-keyword-leaders")}: {WatchedAttributes.GetString("leadersNAME")}");
 					}
 				}
 				if (WatchedAttributes.HasAttribute("extraInfoText")) {
@@ -180,32 +182,31 @@ namespace VSKingdom {
 
 		public override void OnInteract(EntityAgent byEntity, ItemSlot itemslot, Vec3d hitPosition, EnumInteractMode mode) {
 			base.OnInteract(byEntity, itemslot, hitPosition, mode);
-			if (mode != EnumInteractMode.Interact || byEntity is not EntityPlayer) {
-				return;
-			}
+			if (mode != EnumInteractMode.Interact || byEntity is not EntityPlayer) { return; }
 			EntityPlayer player = byEntity as EntityPlayer;
-			EntitySentry entity = ServerAPI?.World.GetEntityById(this.EntityId) as EntitySentry;
+			EntitySentry entity = (ServerAPI?.World.GetEntityById(this.EntityId) as EntitySentry) ?? this;
 			string theirKingdom = player.WatchedAttributes.GetString("kingdomGUID");
-			string leadersGuid = WatchedAttributes.GetString("leadersGUID");
 			string kingdomGuid = WatchedAttributes.GetString("kingdomGUID");
+			string cultureGuid = WatchedAttributes.GetString("cultureGUID");
+			string leadersGuid = WatchedAttributes.GetString("leadersGUID");
 			// Remind them to join their leaders kingdom if they aren't already in it.
-			if (leadersGuid != null && leadersGuid == player.PlayerUID && kingdomGuid != theirKingdom) {
+			if (leadersGuid != null && leadersGuid == player.PlayerUID && Api.Side == EnumAppSide.Client) {
 				// This works! //
 				SentryUpdate update = new SentryUpdate();
 				update.playerUID = player.EntityId;
 				update.entityUID = EntityId;
 				update.kingdomGUID = theirKingdom;
-				update.cultureGUID = WatchedAttributes.GetString("cultureGUID");
-				update.leadersGUID = player.PlayerUID;
-				ClientAPI?.Network.GetChannel("sentrynetwork").SendPacket<SentryUpdate>(update);
+				update.cultureGUID = cultureGuid;
+				update.leadersGUID = leadersGuid;
+				ClientAPI.Network.GetChannel("sentrynetwork").SendPacket(update);
 			}
 			if (leadersGuid != null && leadersGuid == player.PlayerUID && player.Controls.Sneak && itemslot.Empty) {
 				ToggleInventoryDialog(player.Player);
 				return;
 			}
 			if (Alive && leadersGuid != null && leadersGuid == player.PlayerUID && Api.Side == EnumAppSide.Server) {
-				entity?.GetBehavior<EntityBehaviorTaskAI>().TaskManager?.GetTask<AiTaskSentryPatrol>()?.PauseExecute(player.EntityId);
-				entity?.GetBehavior<EntityBehaviorTaskAI>().TaskManager?.GetTask<AiTaskSentryWander>()?.PauseExecute();
+				entity?.GetBehavior<EntityBehaviorTaskAI>().TaskManager?.GetTask<AiTaskSentryPatrol>()?.PauseExecute(player);
+				entity?.GetBehavior<EntityBehaviorTaskAI>().TaskManager?.GetTask<AiTaskSentryWander>()?.PauseExecute(player);
 			}
 			if (!itemslot.Empty && player.Controls.Sneak) {
 				// TRY TO REVIVE!

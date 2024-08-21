@@ -26,16 +26,16 @@
 					"uv": [ 0.0, 0.0 ],
 					"rotationOrigin": [ 0.0, 0.75, 0.75 ],
 					"faces": {
-						"north": { "texture": "#pole", "uv": [ 0.0, 6.0, 10.0, 7.5 ], "autoUv": false },
-						"south": { "texture": "#pole", "uv": [ 0.0, 9.0, 10.0, 10.5 ], "autoUv": false },
-						"up": { "texture": "#pole", "uv": [ 0.0, 10.5, 10.0, 12.0 ], "autoUv": false },
-						"down": { "texture": "#pole", "uv": [ 0.0, 7.5, 10.0, 9.0 ], "autoUv": false }
+						"north": { "texture": "#pole", "uv": [ 0.0, 6.0, 10.0, 7.5 ], "rotation": 0, "autoUv": false },
+						"south": { "texture": "#pole", "uv": [ 0.0, 9.0, 10.0, 10.5 ], "rotation": 0, "autoUv": false },
+						"up": { "texture": "#pole", "uv": [ 0.0, 10.5, 10.0, 12.0 ], "rotation": 0, "autoUv": false },
+						"down": { "texture": "#pole", "uv": [ 0.0, 7.5, 10.0, 9.0 ], "rotation": 0, "autoUv": false }
 					},
 					"children": [
 						{
 							"name": "topShaft",
 							"from": [ 0.0, 0.0, -8.75 ],
-							"to": [ 1.5, 1.5, 10.25 ],
+							"to": [ 1.5, 1.5, 1.25 ],
 							"unwrapMode": 6,
 							"unwrapRotation": 1,
 							"autoUnwrap": false,
@@ -50,60 +50,6 @@
 								"down": { "texture": "#pole", "uv": [ 0.75, 0.0, 10.25, 1.5 ], "rotation": 90, "autoUv": false }
 							},
 							"children": [
-								{
-									"name": "clothFlagR1",
-									"from": [ 1.5, 0.75, 11.0 ],
-									"to": [ 5.5, 0.75, 19.0 ],
-									"autoUnwrap": false,
-									"uv": [ 4.5, 6.25 ],
-									"rotationOrigin": [ 1.5, 0.75, 15.0 ],
-									"faces": {
-										"up": { "texture": "#flag", "uv": [ 0.0, 0.0, 4.0, 4.0 ], "rotation": 270, "autoUv": false },
-										"down": { "texture": "#flag", "uv": [ 0.0, 0.0, 4.0, 4.0 ], "rotation": 270, "autoUv": false }
-									},
-									"children": [
-										{
-											"name": "clothFlagR2",
-											"from": [ 4.0, 0.0, 0.0 ],
-											"to": [ 8.0, 0.0, 8.0 ],
-											"autoUnwrap": false,
-											"uv": [ 0.0, 0.0 ],
-											"rotationOrigin": [ 4.0, 0.0, 4.0 ],
-											"faces": {
-												"up": { "texture": "#flag", "uv": [ 0.0, 4.0, 4.0, 8.0 ], "rotation": 270, "autoUv": false },
-												"down": { "texture": "#flag", "uv": [ 0.0, 4.0, 4.0, 8.0 ], "rotation": 270, "autoUv": false }
-											},
-											"children": [
-												{
-													"name": "clothFlagR3",
-													"from": [ 4.0, 0.0, 0.0 ],
-													"to": [ 8.0, 0.0, 8.0 ],
-													"autoUnwrap": false,
-													"uv": [ 0.0, 0.0 ],
-													"rotationOrigin": [ 4.0, 0.0, 4.0 ],
-													"faces": {
-														"up": { "texture": "#flag", "uv": [ 0.0, 8.0, 4.0, 12.0 ], "rotation": 270, "autoUv": false },
-														"down": { "texture": "#flag", "uv": [ 0.0, 8.0, 4.0, 12.0 ], "rotation": 270, "autoUv": false }
-													},
-													"children": [
-														{
-															"name": "clothFlagR4",
-															"from": [ 4.0, 0.0, 0.0 ],
-															"to": [ 8.0, 0.0, 8.0 ],
-															"autoUnwrap": false,
-															"uv": [ 0.0, 0.0 ],
-															"rotationOrigin": [ 4.0, 0.0, 4.0 ],
-															"faces": {
-																"up": { "texture": "#flag", "uv": [ 0.0, 12.0, 4.0, 16.0 ], "rotation": 270, "autoUv": false },
-																"down": { "texture": "#flag", "uv": [ 0.0, 12.0, 4.0, 16.0 ], "rotation": 270, "autoUv": false }
-															}
-														}
-													]
-												}
-											]
-										}
-									]
-								},
 								{
 									"name": "clothFlagL1",
 									"from": [ 1.5, 0.75, 0.0 ],
@@ -263,9 +209,6 @@
 					"elements": {
 						"poleShaftA": { "offsetX": 0.0, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 0.0 },
 						"topShaft": { "offsetX": 0.0, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 0.0 },
-						"clothFlagR1": { "offsetX": 0.0, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 0.0 },
-						"clothFlagR2": { "offsetX": 0.0, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 0.0 },
-						"clothFlagR4": { "offsetX": 0.0, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 0.0 },
 						"clothFlagL1": { "offsetX": 0.0, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 0.0 },
 						"clothFlagL2": { "offsetX": 0.0, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 0.0 },
 						"clothFlagL3": { "offsetX": 0.0, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 0.0 },
@@ -289,9 +232,6 @@
 				{
 					"frame": 1,
 					"elements": {
-						"clothFlagR1": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": -1.0 },
-						"clothFlagR2": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": -1.0 },
-						"clothFlagR3": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": -1.0 },
 						"clothFlagL1": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": -1.0 },
 						"clothFlagL2": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": -1.0 },
 						"clothFlagL3": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": -1.0 }
@@ -300,9 +240,6 @@
 				{
 					"frame": 5,
 					"elements": {
-						"clothFlagR1": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": -5.0 },
-						"clothFlagR2": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": -5.0 },
-						"clothFlagR3": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": -5.0 },
 						"clothFlagL1": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": -5.0 },
 						"clothFlagL2": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": -5.0 },
 						"clothFlagL3": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": -5.0 }
@@ -311,9 +248,6 @@
 				{
 					"frame": 7,
 					"elements": {
-						"clothFlagR1": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": -7.0 },
-						"clothFlagR2": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": -6.0 },
-						"clothFlagR3": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": -5.0 },
 						"clothFlagL3": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": -7.0 },
 						"clothFlagL2": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": -6.0 },
 						"clothFlagL1": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": -5.0 }
@@ -331,9 +265,6 @@
 				{
 					"frame": 1,
 					"elements": {
-						"clothFlagR1": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 1.0 },
-						"clothFlagR2": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 1.0 },
-						"clothFlagR3": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 1.0 },
 						"clothFlagL1": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 1.0 },
 						"clothFlagL2": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 1.0 },
 						"clothFlagL3": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 1.0 }
@@ -342,9 +273,6 @@
 				{
 					"frame": 5,
 					"elements": {
-						"clothFlagR1": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 5.0 },
-						"clothFlagR2": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 5.0 },
-						"clothFlagR3": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 5.0 },
 						"clothFlagL1": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 5.0 },
 						"clothFlagL2": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 5.0 },
 						"clothFlagL3": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 5.0 }
@@ -353,9 +281,6 @@
 				{
 					"frame": 7,
 					"elements": {
-						"clothFlagR1": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 7.0 },
-						"clothFlagR2": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 6.0 },
-						"clothFlagR3": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 5.0 },
 						"clothFlagL1": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 7.0 },
 						"clothFlagL2": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 6.0 },
 						"clothFlagL3": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": 5.0 }
@@ -373,10 +298,6 @@
 				{
 					"frame": 7,
 					"elements": {
-						"clothFlagR1": { "offsetX": -0.1, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": -1.0, "rotationZ": 0.0 },
-						"clothFlagR2": { "offsetX": -0.07, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": -1.0, "rotationZ": 0.0 },
-						"clothFlagR3": { "offsetX": -0.07, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": -1.0, "rotationZ": 0.0 },
-						"clothFlagR4": { "offsetX": -0.07, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": -1.0, "rotationZ": 0.0 },
 						"clothFlagL1": { "offsetX": -0.1, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": -1.0, "rotationZ": 0.0 },
 						"clothFlagL2": { "offsetX": -0.07, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": -1.0, "rotationZ": 0.0 },
 						"clothFlagL3": { "offsetX": -0.07, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": -1.0, "rotationZ": 0.0 },
@@ -395,10 +316,6 @@
 				{
 					"frame": 7,
 					"elements": {
-						"clothFlagR1": { "offsetX": -0.1, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 1.0, "rotationZ": 0.0 },
-						"clothFlagR2": { "offsetX": -0.07, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 1.0, "rotationZ": 0.0 },
-						"clothFlagR3": { "offsetX": -0.07, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 1.0, "rotationZ": 0.0 },
-						"clothFlagR4": { "offsetX": -0.07, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 1.0, "rotationZ": 0.0 },
 						"clothFlagL1": { "offsetX": -0.1, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 1.0, "rotationZ": 0.0 },
 						"clothFlagL2": { "offsetX": -0.07, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 1.0, "rotationZ": 0.0 },
 						"clothFlagL3": { "offsetX": -0.07, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 1.0, "rotationZ": 0.0 },
@@ -417,10 +334,6 @@
 				{
 					"frame": 7,
 					"elements": {
-						"clothFlagR1": { "offsetX": -0.1, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": -1.0, "rotationZ": -7.0 },
-						"clothFlagR2": { "offsetX": -0.07, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": -1.0, "rotationZ": -7.0 },
-						"clothFlagR3": { "offsetX": -0.07, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": -1.0, "rotationZ": -7.0 },
-						"clothFlagR4": { "offsetX": -0.07, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": -1.0, "rotationZ": 0.0 },
 						"clothFlagL1": { "offsetX": -0.1, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": -1.0, "rotationZ": -7.0 },
 						"clothFlagL2": { "offsetX": -0.07, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": -1.0, "rotationZ": -7.0 },
 						"clothFlagL3": { "offsetX": -0.07, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": -1.0, "rotationZ": -7.0 },
@@ -439,10 +352,6 @@
 				{
 					"frame": 7,
 					"elements": {
-						"clothFlagR1": { "offsetX": -0.1, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 1.0, "rotationZ": -7.0 },
-						"clothFlagR2": { "offsetX": -0.07, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 1.0, "rotationZ": -7.0 },
-						"clothFlagR3": { "offsetX": -0.07, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 1.0, "rotationZ": -7.0 },
-						"clothFlagR4": { "offsetX": -0.07, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 1.0, "rotationZ": 0.0 },
 						"clothFlagL1": { "offsetX": -0.1, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 1.0, "rotationZ": -7.0 },
 						"clothFlagL2": { "offsetX": -0.07, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 1.0, "rotationZ": -7.0 },
 						"clothFlagL3": { "offsetX": -0.07, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 1.0, "rotationZ": -7.0 },
@@ -461,10 +370,6 @@
 				{
 					"frame": 7,
 					"elements": {
-						"clothFlagR1": { "offsetX": -0.1, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": -1.0, "rotationZ": 7.0 },
-						"clothFlagR2": { "offsetX": -0.07, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": -1.0, "rotationZ": 7.0 },
-						"clothFlagR3": { "offsetX": -0.07, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": -1.0, "rotationZ": 7.0 },
-						"clothFlagR4": { "offsetX": -0.07, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": -1.0, "rotationZ": 0.0 },
 						"clothFlagL1": { "offsetX": -0.1, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": -1.0, "rotationZ": 7.0 },
 						"clothFlagL2": { "offsetX": -0.07, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": -1.0, "rotationZ": 7.0 },
 						"clothFlagL3": { "offsetX": -0.07, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": -1.0, "rotationZ": 7.0 },
@@ -483,10 +388,6 @@
 				{
 					"frame": 7,
 					"elements": {
-						"clothFlagR1": { "offsetX": -0.1, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 1.0, "rotationZ": 7.0 },
-						"clothFlagR2": { "offsetX": -0.07, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 1.0, "rotationZ": 7.0 },
-						"clothFlagR3": { "offsetX": -0.07, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 1.0, "rotationZ": 7.0 },
-						"clothFlagR4": { "offsetX": -0.07, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 1.0, "rotationZ": 0.0 },
 						"clothFlagL1": { "offsetX": -0.1, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 1.0, "rotationZ": 7.0 },
 						"clothFlagL2": { "offsetX": -0.07, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 1.0, "rotationZ": 7.0 },
 						"clothFlagL3": { "offsetX": -0.07, "offsetY": 0.0, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 1.0, "rotationZ": 7.0 },

@@ -247,7 +247,7 @@ namespace VSKingdom {
 			}, damage * GlobalConstants.CreatureDamageModifier);
 			// Only jump back if they killing blow was not dealt.
 			if (alive && !targetEntity.Alive) {
-				searchTask.TargetKilled();
+				searchTask.StopMovement();
 				cancelAttack = true;
 				return false;
 			}

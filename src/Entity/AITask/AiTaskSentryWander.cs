@@ -69,13 +69,13 @@ namespace VSKingdom {
 			base.StartExecute();
 			cancelWanders = false;
 			wanderRangeHor = NatFloat.createInvexp(1f, wanderRange);
-			wanderRangeHor = NatFloat.createInvexp(1f, wanderRange / 2);
+			wanderRangeVer = NatFloat.createInvexp(1f, wanderRange / 2f);
 			MoveAnimation();
 			bool ok = pathTraverser.WalkTowards(curTargetPos, curMoveSpeed, targetRanges, OnGoals, OnStuck);
 		}
 
 		public override bool ContinueExecute(float dt) {
-			if (!entity.ruleOrder[0] || entity.ruleOrder[1] || entity.ruleOrder[5] || !EmotionStatesSatisifed()) {
+			if (cancelWanders || !entity.ruleOrder[0] || entity.ruleOrder[1] || entity.ruleOrder[5] || !EmotionStatesSatisifed()) {
 				cancelWanders = true;
 				return false;
 			}
@@ -100,16 +100,14 @@ namespace VSKingdom {
 		public override void FinishExecute(bool cancelled) {
 			cooldownUntilMs = entity.World.ElapsedMilliseconds + mincooldown + entity.World.Rand.Next(maxcooldown - mincooldown);
 			StopAnimation();
-			pathTraverser.Stop();
 			if (entity.ruleOrder[6] && entity.ServerPos.SquareDistanceTo(entity.cachedData.postBlock) < maxSquareDis) {
 				HasReturnedTo();
 			}
 		}
 
-		public virtual void PauseExecute() {
-			pathTraverser.Stop();
-			StopAnimation();
+		public virtual void PauseExecute(EntityAgent entity) {
 			cancelWanders = true;
+			MoveAnimation();
 		}
 
 		private Vec3d LeaveTheWatersTarget() {
@@ -148,12 +146,12 @@ namespace VSKingdom {
 			Vec4d bestTarget = null;
 			Vec4d currTarget = new Vec4d();
 			if (failedPathfinds > 10) {
-				multiplier = NatFloat.createInvexp(0.1f, 0.9f).nextFloat();
+				multiplier = NatFloat.createInvexp(0.1f, 0.9f).nextFloat(1f, rand);
 			}
 			while (num-- > 0) {
-				double dx = wanderRangeHor.nextFloat() * (rand.Next(2) * 2 - 1) * multiplier;
-				double dy = wanderRangeVer.nextFloat() * (rand.Next(2) * 2 - 1) * multiplier;
-				double dz = wanderRangeHor.nextFloat() * (rand.Next(2) * 2 - 1) * multiplier;
+				double dx = wanderRangeHor.nextFloat(multiplier, rand) * (rand.Next(2) * 2 - 1);
+				double dy = wanderRangeVer.nextFloat(multiplier, rand) * (rand.Next(2) * 2 - 1);
+				double dz = wanderRangeHor.nextFloat(multiplier, rand) * (rand.Next(2) * 2 - 1);
 				currTarget.X = entity.ServerPos.X + dx;
 				currTarget.Y = entity.ServerPos.Y + dy;
 				currTarget.Z = entity.ServerPos.Z + dz;
@@ -172,9 +170,7 @@ namespace VSKingdom {
 						Vec3d startAhead = entity.ServerPos.XYZ.Ahead(1, 0, angleHor);
 						// Draw a line from here to there and check ahead to see if we will fall.
 						GameMath.BresenHamPlotLine2d((int)startAhead.X, (int)startAhead.Z, (int)blockAhead.X, (int)blockAhead.Z, (x, z) => {
-							if (mustStop) {
-								return;
-							}
+							if (mustStop) { return; }
 							int nowY = ToFloor(x, (int)startAhead.Y, z);
 							// Not more than 4 blocks down.
 							if (nowY < 0 || startAhead.Y - nowY > 4) {
@@ -205,9 +201,7 @@ namespace VSKingdom {
 				}
 				if (bestTarget == null || currTarget.W > bestTarget.W) {
 					bestTarget = new Vec4d(currTarget.X, currTarget.Y, currTarget.Z, currTarget.W);
-					if (currTarget.W >= 1.0) {
-						break;
-					}
+					if (currTarget.W >= 1.0) { break; }
 				}
 			}
 			if (bestTarget.W > 0.0) {

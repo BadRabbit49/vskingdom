@@ -69,6 +69,12 @@ namespace VSKingdom {
 				.RequiresPlayer()
 				.WithArgs(api.ChatCommands.Parsers.Word("commands", GlobalCodes.cultureCommands), api.ChatCommands.Parsers.OptionalAll("argument"))
 				.HandleWith(new OnCommandDelegate(OnCultureCommand));
+			// Chat command purely meant for console updating.
+			api.ChatCommands.Create("culture")
+				.RequiresPrivilege(Privilege.chat)
+				.RequiresPlayer()
+				.WithArgs(api.ChatCommands.Parsers.Word("commands", GlobalCodes.cultureCommands), api.ChatCommands.Parsers.OptionalAll("argument"))
+				.HandleWith(new OnCommandDelegate(OnCultureCommand));
 		}
 
 		public override void StartClientSide(ICoreClientAPI capi) {
@@ -76,9 +82,9 @@ namespace VSKingdom {
 			this.clientAPI = capi;
 			capi.Event.LevelFinalize += () => LevelFinalize(capi);
 			capi.Network.RegisterChannel("sentrynetwork")
-				.RegisterMessageType<PlayerUpdate>()
+				.RegisterMessageType<SentryOrders>()
 				.RegisterMessageType<SentryUpdate>()
-				.RegisterMessageType<SentryOrders>();
+				.RegisterMessageType<PlayerUpdate>();
 		}
 
 		public override void StartServerSide(ICoreServerAPI sapi) {
@@ -93,9 +99,9 @@ namespace VSKingdom {
 			sapi.Event.PlayerDeath += PlayerDeathFrom;
 			sapi.Event.ServerRunPhase(EnumServerRunPhase.Shutdown, CleanupData);
 			sapi.Network.RegisterChannel("sentrynetwork")
-				.RegisterMessageType<PlayerUpdate>().SetMessageHandler<PlayerUpdate>(OnPlayerUpdated)
+				.RegisterMessageType<SentryOrders>().SetMessageHandler<SentryOrders>(OnSentryOrdered)
 				.RegisterMessageType<SentryUpdate>().SetMessageHandler<SentryUpdate>(OnSentryUpdated)
-				.RegisterMessageType<SentryOrders>().SetMessageHandler<SentryOrders>(OnSentryOrdered);
+				.RegisterMessageType<PlayerUpdate>().SetMessageHandler<PlayerUpdate>(OnPlayerUpdated);
 		}
 
 		public override void Dispose() {
@@ -356,6 +362,7 @@ namespace VSKingdom {
 		}
 
 		private void OnSentryUpdated(IServerPlayer player, SentryUpdate sentryUpdate) {
+			serverAPI.Logger.Notification("WAS CALLED CORRECTLY!");
 			EntitySentry sentry = serverAPI.World.GetEntityById(sentryUpdate.entityUID) as EntitySentry;
 			// NEEDS TO BE DONE ON THE SERVER SIDE HERE!
 			if (sentryUpdate.kingdomGUID.Length > 0 && sentryUpdate.kingdomGUID != null) {
@@ -366,17 +373,31 @@ namespace VSKingdom {
 				sentry.WatchedAttributes.SetStringArray("enemiesLIST", kingdom.EnemiesGUID.ToArray());
 				sentry.WatchedAttributes.SetStringArray("friendsLIST", kingdom.FriendsGUID.ToArray());
 				sentry.WatchedAttributes.SetStringArray("outlawsLIST", kingdom.OutlawsGUID.ToArray());
+				sentry.cachedData.kingdomGUID = new string(kingdom.KingdomGUID);
+				sentry.cachedData.kingdomNAME = new string(kingdom.KingdomNAME);
+				sentry.cachedData.UpdateColours(new string[3] { kingdom.KingdomHEXA, kingdom.KingdomHEXB, kingdom.KingdomHEXC });
+				sentry.cachedData.UpdateEnemies(kingdom.EnemiesGUID.ToArray());
+				sentry.cachedData.UpdateFriends(kingdom.FriendsGUID.ToArray());
+				sentry.cachedData.UpdateOutlaws(kingdom.OutlawsGUID.ToArray());
+				serverAPI.Logger.Notification($"KINGDOM DATA\n{kingdom.KingdomGUID}\n{kingdom.KingdomNAME}\n{kingdom.KingdomHEXA}\n{kingdom.KingdomHEXB}\n{kingdom.KingdomHEXC}");
 			}
 			if (sentryUpdate.cultureGUID.Length > 0 && sentryUpdate.cultureGUID != null) {
 				var culture = cultureList.Find(cultureMatch => cultureMatch.CultureGUID == sentryUpdate.cultureGUID);
 				sentry.WatchedAttributes.SetString("cultureGUID", new string(culture.CultureGUID));
 				sentry.WatchedAttributes.SetString("cultureNAME", new string(culture.CultureNAME));
+				sentry.cachedData.cultureGUID = new string(culture.CultureGUID);
+				sentry.cachedData.cultureNAME = new string(culture.CultureNAME);
 			}
 			if (sentryUpdate.leadersGUID.Length > 0 && sentryUpdate.leadersGUID != null) {
 				var leaders = serverAPI.World.PlayerByUid(sentryUpdate?.leadersGUID) ?? null;
 				sentry.WatchedAttributes.SetString("leadersGUID", new string(leaders.PlayerUID));
 				sentry.WatchedAttributes.SetString("leadersNAME", new string(leaders.PlayerName));
+				sentry.cachedData.leadersGUID = new string(leaders.PlayerUID);
+				sentry.cachedData.leadersNAME = new string(leaders.PlayerName);
 			}
+			serverAPI.Network.BroadcastEntityPacket(sentryUpdate.entityUID, 1502);
+			// Try to fully sync entity packet to the sentry if possible.
+			serverAPI.Network.SendEntityPacket(player, sentryUpdate.entityUID, 1502);
 		}
 
 		private void OnSentryOrdered(IServerPlayer player, SentryOrders sentryOrders) {
@@ -709,7 +730,7 @@ namespace VSKingdom {
 			bool adminPass = args.Caller.HasPrivilege(Privilege.controlserver) || thisPlayer.PlayerName == "BadRabbit49";
 			bool canCreate = args.Caller.GetRole(serverAPI).PrivilegeLevel >= serverAPI.World.Config.GetInt("MinCreateLevel", -1);
 			bool maxCreate = serverAPI.World.Config.GetInt("MaxNewCultures", -1) != -1 && serverAPI.World.Config.GetInt("MaxNewCultures", -1) < (kingdomList.Count + 1);
-			bool hoursTime = (serverAPI.World.Calendar.TotalHours - thisCulture.FoundedHOUR) > (serverAPI.World.Calendar.TotalHours - serverAPI.World.Config.GetInt("MinCultureMake"));
+			bool hoursTime = (serverAPI.World.Calendar.TotalHours - (thisCulture?.FoundedHOUR ?? 0)) > (serverAPI.World.Calendar.TotalHours - serverAPI.World.Config.GetInt("MinCultureMake"));
 
 			string[] keywords = {
 				LangUtility.GetL(langCode, "entries-keyword-culture"),

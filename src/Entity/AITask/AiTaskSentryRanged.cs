@@ -84,13 +84,7 @@ namespace VSKingdom {
 				targetEntity = projectile.FiredBy;
 			}
 			if (ent.WatchedAttributes.HasAttribute("kingdomGUID")) {
-				if (banditPilled) {
-					return ent is EntityPlayer || (ent is EntitySentry sent && sent.cachedData.kingdomGUID != GlobalCodes.banditryGUID);
-				}
-				if (ent is EntitySentry sentry) {
-					return entity.cachedData.enemiesLIST.Contains(sentry.cachedData.kingdomGUID) || sentry.cachedData.kingdomGUID == GlobalCodes.banditryGUID;
-				}
-				return entity.cachedData.enemiesLIST.Contains(ent.WatchedAttributes.GetString("kingdomGUID"));
+				return IsAnEnemy(ent);
 			}
 			if (ignoreEntityCode || IsTargetEntity(ent.Code.Path)) {
 				return CanSense(ent, range);
@@ -205,7 +199,7 @@ namespace VSKingdom {
 			// Start animations if not already doing so.
 			if (!animsStarted) {
 				animsStarted = true;
-				searchTask.HoldingRange();
+				searchTask.StopMovement();
 				entity.AnimManager.StartAnimation(drawBowsMeta.Init());
 				if (drawingsound != null) {
 					entity.World.PlaySoundAt(drawingsound, entity, null, false);
@@ -291,14 +285,17 @@ namespace VSKingdom {
 			return true;
 		}
 
-		private bool IsEnemy(Entity target) {
-			if (entity.cachedData.enemiesLIST.Contains(target.WatchedAttributes.GetString("kingdomGUID"))) {
-				return true;
+		private bool IsAnEnemy(Entity target) {
+			if (banditPilled) {
+				return entity.cachedData.kingdomGUID != target.WatchedAttributes.GetString("kingdomGUID");
+			}
+			if (target is EntitySentry sentry) {
+				return entity.cachedData.enemiesLIST.Contains(sentry.cachedData.kingdomGUID) || sentry.cachedData.kingdomGUID == GlobalCodes.banditryGUID;
 			}
 			if (target is EntityPlayer player) {
-				return entity.cachedData.outlawsLIST.Contains(player?.PlayerUID);
+				return entity.cachedData.outlawsLIST.Contains(player.PlayerUID) || entity.cachedData.enemiesLIST.Contains(player.WatchedAttributes.GetString("kingdomGUID"));
 			}
-			return false;
+			return entity.cachedData.enemiesLIST.Contains(target.WatchedAttributes.GetString("kingdomGUID"));
 		}
 
 		private bool HasRanged() {

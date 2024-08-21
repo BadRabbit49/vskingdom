@@ -29,8 +29,8 @@ namespace VSKingdom {
 		protected Int32 currentStepAt;
 		protected Vec3d currentTarget;
 		protected float currentHours { get => world.Calendar.HourOfDay; }
-		protected float patrolStarts { get => entity.WatchedAttributes.GetFloat("shiftStarts"); }
-		protected float patrolEnding { get => entity.WatchedAttributes.GetFloat("shiftEnding"); }
+		protected float patrolStarts { get => entity.WatchedAttributes.GetFloat("shiftStarts", 0f); }
+		protected float patrolEnding { get => entity.WatchedAttributes.GetFloat("shiftEnding", 24f); }
 		protected Vec3d outpostBlock { get => entity.WatchedAttributes.GetBlockPos("postBlock").ToVec3d(); }
 		protected Vec3i[] waypoints { get => entity.WatchedAttributes.GetVec3is("patrolVec3i"); }
 		
@@ -145,11 +145,11 @@ namespace VSKingdom {
 			StopAnimation();
 		}
 
-		public void PauseExecute(long entityID) {
-			pathTraverser.Stop();
-			StopAnimation();
+		public void PauseExecute(EntityAgent entity) {
+			cancelPatrols = true;
 			pauseByPlayer = true;
-			pauseEntityId = entityID;
+			MoveAnimation();
+			pauseEntityId = entity.EntityId;
 			lastPausingMs = entity.World.ElapsedMilliseconds;
 		}
 

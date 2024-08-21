@@ -192,7 +192,7 @@ public class ItemPeople : Item {
 
 			// Setup outpost info!
 			entity.WatchedAttributes.SetDouble("postRange", _outpostSize);
-			entity.WatchedAttributes.SetBlockPos("postBlock", _outpostXyzd);
+			entity.WatchedAttributes.SetBlockPos("postBlock", _outpostXyzd.Copy());
 
 			// Setup orders stuff!
 			entity.WatchedAttributes.SetBool("orderWander", true);
@@ -208,7 +208,7 @@ public class ItemPeople : Item {
 			entity.WatchedAttributes.SetFloat("pursueRange", 16f);
 			entity.WatchedAttributes.SetFloat("shiftStarts", 0f);
 			entity.WatchedAttributes.SetFloat("shiftEnding", 24f);
-			entity.WatchedAttributes.SetVec3is("patrolVec3i", new Vec3i[] { blockSel.FullPosition.AsVec3i });
+			entity.WatchedAttributes.SetVec3is("patrolVec3i", new Vec3i[] { new Vec3i(blockSel.Position) });
 			entity.WatchedAttributes.SetString("enlistedStatus", entState);
 			
 			// Wander:0 / Follow:1 / Engage:2 / Pursue:3 / Shifts:4 / Patrol:5 / Return:6 //
@@ -227,6 +227,7 @@ public class ItemPeople : Item {
 				swimAnims = properties.Attributes["swimAnims"].AsString("swim").ToLower(),
 				jumpAnims = properties.Attributes["jumpAnims"].AsString("jump").ToLower(),
 				diesAnims = properties.Attributes["diesAnims"].AsString("dies").ToLower(),
+				postBlock = _outpostXyzd.ToVec3d(),
 				kingdomGUID = _kingdomGuid,
 				kingdomNAME = _kingdomName,
 				cultureGUID = _cultureGuid,

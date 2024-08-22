@@ -12,7 +12,7 @@ namespace VSKingdom {
 		public EntitySentry entity;
 		#pragma warning restore CS0108
 		protected bool cancelIdling = false;
-		protected bool entityWasInRange;
+		protected bool isInEntRange = false;
 		protected int minduration;
 		protected int maxduration;
 		protected long idleUntilMs;
@@ -58,10 +58,10 @@ namespace VSKingdom {
 					return false;
 				}
 				if (elapsedMilliseconds - lastInRange > 2000) {
-					entityWasInRange = InRange();
+					isInEntRange = InRange();
 					lastInRange = elapsedMilliseconds;
 				}
-				if (entityWasInRange) {
+				if (isInEntRange) {
 					return false;
 				}
 				Block block = entity.World.BlockAccessor.GetBlock(new BlockPos((int)entity.ServerPos.X, (int)entity.ServerPos.Y - 1, (int)entity.ServerPos.Z, (int)entity.ServerPos.Dimension), 1);
@@ -134,10 +134,10 @@ namespace VSKingdom {
 			if (rand.NextDouble() < 0.3) {
 				long elapsedMilliseconds = entity.World.ElapsedMilliseconds;
 				if (elapsedMilliseconds - lastInRange > 1500) {
-					entityWasInRange = InRange();
+					isInEntRange = InRange();
 					lastInRange = elapsedMilliseconds;
 				}
-				if (entityWasInRange) {
+				if (isInEntRange) {
 					return false;
 				}
 			}

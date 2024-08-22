@@ -75,7 +75,8 @@ namespace VSKingdom {
 					} catch { }
 				}
 				if (!victim.RightHandItemSlot.Empty) {
-					if ((killer.cachedData.recruitINFO[0] == "range" && victim.RightHandItemSlot.Itemstack.Item is ItemBow) || (killer.cachedData.recruitINFO[0] == "melee" && victim.RightHandItemSlot.Itemstack.Item is not ItemBow)) {
+					string killerClass = killer.Properties.Attributes["baseClass"].AsString("melee").ToLower();
+					if ((killerClass == "range" && victim.RightHandItemSlot.Itemstack.Item is ItemBow) || (killerClass == "melee" && victim.RightHandItemSlot.Itemstack.Item is not ItemBow)) {
 						try {
 							ItemStack victimWeapon = victim.RightHandItemSlot?.Itemstack ?? null;
 							ItemStack killerWeapon = killer.RightHandItemSlot?.Itemstack ?? null;

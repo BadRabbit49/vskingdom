@@ -1,6 +1,4 @@
-using System.Threading.Channels;
 using Vintagestory.API.Common;
-using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
@@ -14,7 +12,7 @@ namespace VSKingdom {
 		#pragma warning restore CS0108
 		protected float curMoveSpeed;
 		protected string curAnimation;
-		protected Vec3d curTargetPos => pathTraverser.CurrentTarget;
+		protected Vec3d curTargetPos => pathTraverser.CurrentTarget.Clone();
 
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);

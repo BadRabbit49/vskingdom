@@ -12,8 +12,8 @@ namespace VSKingdom {
 				nametagTree.SetString("name", "");
 				nametagTree.SetString("last", "");
 				nametagTree.SetString("full", "");
-				nametagTree.SetInt("showtagonlywhentargeted", 1);
-				nametagTree.SetInt("renderRange", 500);
+				nametagTree.SetBool("showtagonlywhentargeted", entity.World.Config.GetBool("HideAllNames"));
+				nametagTree.SetInt("renderRange", entity.World.Config.GetInt("NameRenderDist", 500));
 				entity.WatchedAttributes.MarkPathDirty("nametag");
 			}
 		}

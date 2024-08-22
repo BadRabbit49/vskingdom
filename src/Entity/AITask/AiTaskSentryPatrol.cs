@@ -141,7 +141,6 @@ namespace VSKingdom {
 
 		public override void FinishExecute(bool cancelled) {
 			cooldownUntilMs = entity.World.ElapsedMilliseconds + mincooldown + entity.World.Rand.Next(maxcooldown - mincooldown);
-			pathTraverser.Stop();
 			StopAnimation();
 		}
 
@@ -156,9 +155,7 @@ namespace VSKingdom {
 		private void StareAt(float dt) {
 			Vec3f targetVec = new Vec3f();
 			Entity target = world.GetEntityById(pauseEntityId);
-			if (target == null || !pauseByPlayer) {
-				return;
-			}
+			if (target == null || !pauseByPlayer) { return; }
 			targetVec.Set((float)(target.ServerPos.X - entity.ServerPos.X), (float)(target.ServerPos.Y - entity.ServerPos.Y), (float)(target.ServerPos.Z - entity.ServerPos.Z));
 			float desiredYaw = (float)Math.Atan2(targetVec.X, targetVec.Z);
 			float maxturnRad = 360 * GameMath.DEG2RAD;
@@ -194,9 +191,9 @@ namespace VSKingdom {
 
 		private void HasReturnedTo() {
 			entity.ruleOrder[6] = false;
-			SentryOrders updatedOrders = new SentryOrders() { entityUID = entity.EntityId, returning = false, usedorder = false };
+			SentryOrdersToServer updatedOrders = new SentryOrdersToServer() { entityUID = entity.EntityId, returning = false, usedorder = false };
 			IServerPlayer nearestPlayer = entity.ServerAPI.World.NearestPlayer(entity.ServerPos.X, entity.ServerPos.Y, entity.ServerPos.Z) as IServerPlayer;
-			entity.ServerAPI?.Network.GetChannel("sentrynetwork").SendPacket<SentryOrders>(updatedOrders, nearestPlayer);
+			entity.ServerAPI?.Network.GetChannel("sentrynetwork").SendPacket<SentryOrdersToServer>(updatedOrders, nearestPlayer);
 		}
 
 		private void MoveAnimation() {
@@ -234,19 +231,10 @@ namespace VSKingdom {
 			Vec3d startAhead = entity.ServerPos.XYZ.Ahead(1, 0, angleHor);
 			// Draw a line from here to there and check ahead to see if we will fall.
 			GameMath.BresenHamPlotLine2d((int)startAhead.X, (int)startAhead.Z, (int)blockAhead.X, (int)blockAhead.Z, (x, z) => {
-				if (mustStop) {
-					return;
-				}
+				if (mustStop) { return; }
 				int nowY = ToFloor(x, (int)startAhead.Y, z);
-				// Not more than 4 blocks down.
-				if (nowY < 0 || startAhead.Y - nowY > 4) {
-					willFall = true;
-					mustStop = true;
-				}
-				// Not more than 2 blocks up.
-				if (nowY - startAhead.Y > 2) {
-					mustStop = true;
-				}
+				if (nowY < 0 || startAhead.Y - nowY > 4) { willFall = true; mustStop = true; }
+				if (nowY - startAhead.Y > 2) { mustStop = true; }
 				startAhead.Y = nowY;
 			});
 			return willFall;

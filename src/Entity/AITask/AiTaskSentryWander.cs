@@ -238,9 +238,9 @@ namespace VSKingdom {
 
 		private void HasReturnedTo() {
 			entity.ruleOrder[6] = false;
-			SentryOrders updatedOrders = new SentryOrders() { entityUID = entity.EntityId, returning = false, usedorder = false };
+			SentryOrdersToServer updatedOrders = new SentryOrdersToServer() { entityUID = entity.EntityId, returning = false, usedorder = false };
 			IServerPlayer nearestPlayer = entity.ServerAPI.World.NearestPlayer(entity.ServerPos.X, entity.ServerPos.Y, entity.ServerPos.Z) as IServerPlayer;
-			entity.ServerAPI?.Network.GetChannel("sentrynetwork").SendPacket<SentryOrders>(updatedOrders, nearestPlayer);
+			entity.ServerAPI?.Network.GetChannel("sentrynetwork").SendPacket<SentryOrdersToServer>(updatedOrders, nearestPlayer);
 		}
 
 		private void MoveAnimation() {

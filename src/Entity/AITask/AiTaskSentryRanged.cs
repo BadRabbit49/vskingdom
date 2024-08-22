@@ -179,7 +179,6 @@ namespace VSKingdom {
 			curTurnAnglePerSec = minTurnAnglePerSec + (float)entity.World.Rand.NextDouble() * (maxTurnAnglePerSec - minTurnAnglePerSec);
 			curTurnAnglePerSec *= GameMath.DEG2RAD * 50 * 0.02f;
 			searchTask.SetTargetEnts(targetEntity);
-			searchTask.StartExecute();
 		}
 
 		public override bool ContinueExecute(float dt) {
@@ -193,9 +192,7 @@ namespace VSKingdom {
 			float yawDist = GameMath.AngleRadDistance(entity.ServerPos.Yaw, desiredYaw);
 			entity.ServerPos.Yaw += GameMath.Clamp(yawDist, -curTurnAnglePerSec * dt, curTurnAnglePerSec * dt);
 			entity.ServerPos.Yaw = entity.ServerPos.Yaw % GameMath.TWOPI;
-			if (Math.Abs(yawDist) > 0.02) {
-				return true;
-			}
+			if (Math.Abs(yawDist) > 0.02) { return true; }
 			// Start animations if not already doing so.
 			if (!animsStarted) {
 				animsStarted = true;

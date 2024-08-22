@@ -1,39 +1,14 @@
 ﻿using System;
 using System.Linq;
 using System.Text;
+using System.Drawing;
 using System.Collections.Generic;
 using Vintagestory.API.Server;
 using Vintagestory.API.Util;
 
 namespace VSKingdom {
-	internal static class GuidUtility {
-		public static string RandomizeGUID(string GUID, int SIZE = 8, string[] LIST = null) {
-			if (GUID != null && GUID.Length == SIZE) {
-				return GUID;
-			}
-			bool repeating = true;
-			Random rnd = new Random();
-			StringBuilder strBuilder = new StringBuilder();
-			while (repeating) {
-				strBuilder.Clear();
-				Enumerable
-					.Range(65, 26).Select(e => ((char)e).ToString())
-					.Concat(Enumerable.Range(97, 26).Select(e => ((char)e).ToString()))
-					.Concat(Enumerable.Range(0, 7).Select(e => e.ToString()))
-					.OrderBy(e => Guid.NewGuid()).Take(SIZE)
-					.ToList().ForEach(e => strBuilder.Append(e));
-				if (LIST != null) {
-					repeating = LIST.Contains(strBuilder.ToString());
-				} else {
-					repeating = false;
-				}
-			}
-			return strBuilder.ToString();
-		}
-	}
-
-	internal static class KingUtility {
-		public static string CorrectedTYPE(string kingdomNAME) {
+	internal static class KingdomUtility {
+		public static string CorrectedType(string kingdomNAME) {
 			string[] monTypes = { "kingdom", "monarchy", "dynasty", "commonwealth", "empire", "imperium", "sultanate", "fiefdom", "tribal", "tribe" };
 			string[] dicTypes = { "dictatorship", "administration", "state", "authority", "people's" };
 			string[] repTypes = { "republic", "united", "republik", "república", "repubblica", "anarchal", "commune" };
@@ -55,7 +30,7 @@ namespace VSKingdom {
 			return "MONARCHY";
 		}
 
-		public static string CorrectedNAME(string kingdomTYPE, string kingdomVARS, bool getName = false, bool getLong = false) {
+		public static string CorrectedName(string kingdomTYPE, string kingdomVARS, bool getName = false, bool getLong = false) {
 			if (getName) {
 				if (kingdomVARS.ToLower().StartsWith("the ")) {
 					kingdomVARS = kingdomVARS.Remove(0, 3);
@@ -73,7 +48,7 @@ namespace VSKingdom {
 			return null;
 		}
 
-		public static string CorrectedLEAD(string kingdomTYPE, bool getName = false, bool getLong = false, bool getDesc = false) {
+		public static string CorrectedLead(string kingdomTYPE, bool getName = false, bool getLong = false, bool getDesc = false) {
 			if (getName) {
 				switch (kingdomTYPE) {
 					case "MONARCHY": return "King";
@@ -101,7 +76,7 @@ namespace VSKingdom {
 			return null;
 		}
 
-		public static string CorrectedROLE(string kingdomTYPE) {
+		public static string CorrectedRole(string kingdomTYPE) {
 			switch (kingdomTYPE) {
 				case "MONARCHY": return "Peasant/F/F/F/F/F/F:Soldier/T/T/T/F/T/T:Lordship/T/T/T/T/T/T";
 				case "DICTATOR": return "Subject/T/T/F/F/F/F:Trooper/T/T/F/F/T/T:Oligarch/T/T/T/T/T/T";
@@ -110,7 +85,7 @@ namespace VSKingdom {
 			}
 		}
 
-		public static string GetMemberINFO(HashSet<string> playersINFO, string playersGUID) {
+		public static string GetMemberInfo(HashSet<string> playersINFO, string playersGUID) {
 			foreach (string player in playersINFO) {
 				if (player.Split(':')[0] == playersGUID) {
 					return player;
@@ -119,7 +94,7 @@ namespace VSKingdom {
 			return null;
 		}
 
-		public static string GetMemberROLE(HashSet<string> playersINFO, string playersGUID) {
+		public static string GetMemberRole(HashSet<string> playersINFO, string playersGUID) {
 			foreach (string player in playersINFO) {
 				string[] playerCard = player.Split(':');
 				if (playerCard[0] == playersGUID) {
@@ -129,17 +104,17 @@ namespace VSKingdom {
 			return null;
 		}
 
-		public static string GetLeaderROLE(string membersROLE) {
+		public static string GetLeaderRole(string membersROLE) {
 			string[] allRoles = membersROLE.Replace("/T", "").Replace("/F", "").Split(':');
 			return allRoles[allRoles.Length - 1];
 		}
 
-		public static string[] GetRolesNAME(string membersROLE) {
+		public static string[] GetRolesName(string membersROLE) {
 			string[] allRoles = membersROLE.Replace("/T", "").Replace("/F", "").Split(':');
 			return allRoles;
 		}
 
-		public static bool[] GetRolesPRIV(string membersROLE, string role) {
+		public static bool[] GetRolesPriv(string membersROLE, string role) {
 			if (membersROLE == null || membersROLE == "" || role == null || role == "") {
 				return new bool[6] { false, false, false, false, false, false };
 			}
@@ -187,7 +162,7 @@ namespace VSKingdom {
 		}
 
 		public static string PlayerDetails(string playersGUID, string membersROLE = null, string specifcROLE = null) {
-			string[] allRoles = GetRolesNAME(membersROLE);
+			string[] allRoles = GetRolesName(membersROLE);
 			string joinedRole = membersROLE.Split(':')[allRoles.IndexOf(specifcROLE)];
 			if (specifcROLE == null || !allRoles.Contains(specifcROLE)) {
 				joinedRole = membersROLE.Split(':')[0].Split('/')[0];
@@ -209,8 +184,8 @@ namespace VSKingdom {
 		}
 	}
 
-	internal static class CultUtility {
-		public static string CorrectedNAME(string cultureNAME) {
+	internal static class CultureUtility {
+		public static string CorrectedName(string cultureNAME) {
 			string oldName = cultureNAME.Replace(" ", "_");
 			string newName = "";
 			string[] fullName = oldName.Split('_');
@@ -223,7 +198,7 @@ namespace VSKingdom {
 			return newName.Remove(newName.Length - 1);
 		}
 		
-		public static string CorrectedLONG(string cultureNAME) {
+		public static string CorrectedLong(string cultureNAME) {
 			string oldName = cultureNAME.Replace(" ", "_");
 			foreach (var addCombo in FixedLiterature.CulturalAdditionSuffixes) {
 				if (oldName.EndsWith(addCombo.Key)) {
@@ -249,8 +224,20 @@ namespace VSKingdom {
 			return basicInfo + intricate;
 		}
 	}
+	
+	internal static class ColoursUtility {
+		public static string RandomizeCode(int minHue = 0, int maxHue = 255) {
+			if (minHue < 000) { minHue = 000; }
+			if (maxHue > 255) { maxHue = 255; }
+			Random rnd = new Random();
+			int colorR = rnd.Next(minHue, maxHue);
+			int colorG = rnd.Next(minHue, maxHue);
+			int colorB = rnd.Next(minHue, maxHue);
+			Color srgb = Color.FromArgb(colorR, colorG, colorB);
+			string hex = srgb.R.ToString("X2") + srgb.G.ToString("X2") + srgb.B.ToString("X2");
+			return "#" + hex;
+		}
 
-	internal static class ColorUtility {
 		public static string GetHexCode(string color) {
 			if (color.StartsWith('#')) {
 				char[] hex = color.Where(c => (char.IsLetterOrDigit(c) || char.IsWhiteSpace(c) || c == '-')).ToArray();
@@ -258,7 +245,6 @@ namespace VSKingdom {
 					return new string(new char[] { '#', hex[0], hex[1], hex[2], hex[3], hex[4], hex[5] });
 				}
 			}
-
 			string fixedCode = color.ToLowerInvariant().RemoveDiacritics().Replace("-", "").Replace("_", "");
 			switch (fixedCode) {
 				case "black": return "#0d0d0d";

@@ -3,14 +3,14 @@ using System.IO;
 using System.Text;
 using System.Collections.Generic;
 using HarmonyLib;
-using Vintagestory.GameContent;
+using Vintagestory.API.Config;
+using Vintagestory.API.Client;
 using Vintagestory.API.Server;
+using Vintagestory.API.Common;
+using Vintagestory.API.Common.Entities;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Datastructures;
-using Vintagestory.API.Config;
-using Vintagestory.API.Common;
-using Vintagestory.API.Client;
-using Vintagestory.API.Common.Entities;
+using Vintagestory.GameContent;
 
 namespace VSKingdom {
 	public class BlockEntityPost : BlockEntityContainer, IHeatSource, IPointOfInterest {
@@ -21,17 +21,17 @@ namespace VSKingdom {
 
 		public bool fireLive { get => Block.Variant["state"] == "live"; }
 		public bool hasSmoke { get => Block.Variant["fuels"] != "temp" && fireLive; }
-		public bool doRedraw { get; set; }
-		public bool cPrvBurn { get; set; }
-		public int metlTier { get; set; }
-		public int capacity { get; set; }
-		public int maxpawns { get; set; }
-		public int respawns { get; set; }
-		public double areasize { get; set; }
-		public double burnTime { get; set; }
-		public double maxBTime { get; set; }
-		public double burnFuel { get; set; }
-		public string ownerUID { get; set; }
+		public bool doRedraw;
+		public bool cPrvBurn;
+		public int metlTier;
+		public int capacity;
+		public int maxpawns;
+		public int respawns;
+		public double areasize;
+		public double burnTime;
+		public double maxBTime;
+		public double burnFuel;
+		public string ownerUID;
 		public string Type => "downtime";
 		public string DialogTitle { get => Lang.Get("Brazier"); }
 		public enum EnumBlockContainerPacketId { OpenInventory = 5000 }
@@ -42,10 +42,8 @@ namespace VSKingdom {
 		public override string InventoryClassName { get => "Fuels"; }
 		public ItemSlot fuelSlot { get => inventory[0]; }
 		public ItemSlot ammoSlot { get => inventory[1]; }
-
 		public FirepitContentsRenderer renderer;
 		public List<long> EntityUIDs { get; set; } = new List<long>();
-		
 		public static Dictionary<string, int> tiers = new Dictionary<string, int> {
 			{ "lead", 2 },
 			{ "copper", 2 },
@@ -137,14 +135,14 @@ namespace VSKingdom {
 			burnFuel = tree.GetDouble("burnFuel");
 			ownerUID = tree.GetString("ownerUID");
 			EntityUIDs = GetListFromString(tree.GetString("entities"));
-			if (Api?.Side == EnumAppSide.Client) {
+			if (Api.Side == EnumAppSide.Client) {
 				UpdateRenderer();
-			}
-			if (Api?.Side == EnumAppSide.Client && (cPrvBurn != fireLive || doRedraw)) {
-				GetBehavior<BlockBehaviorResupply>()?.ToggleAmbientSounds(fireLive);
-				cPrvBurn = fireLive;
-				MarkDirty(true);
-				doRedraw = false;
+				if (cPrvBurn != fireLive || doRedraw) {
+					GetBehavior<BlockBehaviorResupply>()?.ToggleAmbientSounds(fireLive);
+					cPrvBurn = fireLive;
+					MarkDirty(true);
+					doRedraw = false;
+				}
 			}
 		}
 
@@ -223,19 +221,19 @@ namespace VSKingdom {
 
 		public void UseRespawn() {
 			respawns--;
-			// Change the block if at a quarter health.
+			// Change the block if at a quarter health and kill the block if no more respawns left.
 			if (Block.Variant["level"] != "hurt" && respawns <= (maxpawns / 4)) {
-				(Api as ICoreServerAPI)?.World.BlockAccessor.ExchangeBlock(Api.World.GetBlock(Block.CodeWithVariant("level", "hurt")).Id, Pos);
+				Api.World.BlockAccessor.ExchangeBlock(Api.World.GetBlock(Block.CodeWithVariant("level", "hurt")).Id, Pos);
 			}
-			// Kill the block if no more respawns left.
 			if (respawns <= 0) {
-				(Api as ICoreServerAPI)?.World.BlockAccessor.ExchangeBlock(Api.World.GetBlock(Block.CodeWithVariant("level", "dead")).Id, Pos);
+				Api.World.BlockAccessor.ExchangeBlock(Api.World.GetBlock(Block.CodeWithVariants(new Dictionary<string, string>() { { "level", "dead" }, { "state", "done" } })).Id, Pos);
 			}
+			MarkDirty(true);
 		}
 
 		public void Extinguish() {
 			if (Block.Variant["state"] == "live") {
-				(Api as ICoreServerAPI)?.World.BlockAccessor.ExchangeBlock(Api.World.GetBlock(Block.CodeWithVariant("state", "done")).Id, Pos);
+				Api.World.BlockAccessor.ExchangeBlock(Api.World.GetBlock(Block.CodeWithVariant("state", "done")).Id, Pos);
 				MarkDirty(true);
 			}
 		}
@@ -265,9 +263,7 @@ namespace VSKingdom {
 		}
 
 		private void UpdateRenderer() {
-			if (renderer is null) {
-				return;
-			}
+			if (renderer is null) { return; }
 			renderer.contentStackRenderer?.Dispose();
 			renderer.contentStackRenderer = null;
 		}

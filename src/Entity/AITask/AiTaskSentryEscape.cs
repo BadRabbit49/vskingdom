@@ -135,8 +135,10 @@ namespace VSKingdom {
 			if (targetEntity == null || !targetEntity.Alive) {
 				return false;
 			}
-			if (entity.cachedData.recruitINFO[0] == "range" && hasDirectContact(targetEntity, 4f, 4f)) {
-				return true;
+			if (entity.cachedData.recruitINFO == "CIVILIAN" || entity.Properties.Attributes["baseClass"].AsString("melee").ToLower() != "range") {
+				if (hasDirectContact(targetEntity, 8f, 4f)) {
+					return true;
+				}
 			}
 			if (targetEntity.HasBehavior<EntityBehaviorHealth>()) {
 				Vec3d targetPosOffset = new Vec3d().Set(entity.World.Rand.NextDouble() * 2.0 - 1.0, 0.0, entity.World.Rand.NextDouble() * 2.0 - 1.0);

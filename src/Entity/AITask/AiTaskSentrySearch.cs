@@ -29,8 +29,8 @@ namespace VSKingdom {
 		protected float seekingRange;
 		protected float curMoveSpeed;
 		protected string curAnimation;
+		protected Vec3d curTargetPos;
 		protected Vec3d lastGoalReachedPos;
-		protected Vec3d targetPos;
 		protected Dictionary<long, int> futilityCounters;
 		protected EnumAttackPattern attackPattern;
 		protected bool InTheReachOfTargets => targetEntity.ServerPos.SquareDistanceTo(entity.ServerPos.XYZ) < (extraTargetOffset * extraTargetOffset);
@@ -43,19 +43,16 @@ namespace VSKingdom {
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);
 			this.partitionUtil = entity.Api.ModLoader.GetModSystem<EntityPartitioning>();
+			this.archerPilled = taskConfig["isArcher"].AsBool(false);
+			this.retaliateAttacks = taskConfig["retaliateAttacks"].AsBool(true);
 			this.mincooldown = taskConfig["mincooldown"].AsInt(1000);
 			this.maxcooldown = taskConfig["maxcooldown"].AsInt(1500);
-			this.retaliateAttacks = taskConfig["retaliateAttacks"].AsBool(true);
-			this.extraTargetOffset = taskConfig["extraTargetOffset"].AsFloat(1f);
+			this.extraTargetOffset = archerPilled ? (taskConfig["extraTargetOffset"].AsFloat(1f) * 5f) : taskConfig["extraTargetOffset"].AsFloat(1f);
 			this.maximumFollowTime = taskConfig["maximumFollowTime"].AsFloat(60f);
 			this.retreatRange = taskConfig["retreatRange"].AsFloat(36f);
 			this.seekingRange = taskConfig["seekingRange"].AsFloat(25f);
 			this.curMoveSpeed = taskConfig["curMoveSpeed"].AsFloat(0.03f);
 			this.skipEntityCodes = taskConfig["skipEntityCodes"].AsArray<string>()?.Select((string str) => AssetLocation.Create(str, entity.Code.Domain)).ToArray();
-			this.archerPilled = taskConfig["isArcher"].AsBool(false);
-			if (archerPilled) {
-				extraTargetOffset *= 5f;
-			}
 		}
 
 		public override bool ShouldExecute() {
@@ -66,7 +63,7 @@ namespace VSKingdom {
 			cancelSearch = false;
 			currentFollowTime = 0f;
 			maximumRange = pursueRange * pursueRange;
-			targetPos = targetEntity.ServerPos.XYZ;
+			curTargetPos = targetEntity.ServerPos.XYZ;
 			if (RemainInRetreatMode) {
 				Retreats();
 				return;
@@ -122,10 +119,10 @@ namespace VSKingdom {
 				if (RecentlyTookDamages && (!lastPathfind || IsInEmotionState("fleeondamage"))) {
 					Retreats();
 				}
-				if (attackPattern == EnumAttackPattern.DirectAttack && currentUpdateTime >= 0.75f && targetPos.SquareDistanceTo(targetEntity.ServerPos.XYZ) >= 9f) {
-					targetPos.Set(targetEntity.ServerPos.X + targetEntity.ServerPos.Motion.X * 10.0, targetEntity.ServerPos.Y, targetEntity.ServerPos.Z + targetEntity.ServerPos.Motion.Z * 10.0);
+				if (attackPattern == EnumAttackPattern.DirectAttack && currentUpdateTime >= 0.75f && curTargetPos.SquareDistanceTo(targetEntity.ServerPos.XYZ) >= 9f) {
+					curTargetPos.Set(targetEntity.ServerPos.X + targetEntity.ServerPos.Motion.X * 10.0, targetEntity.ServerPos.Y, targetEntity.ServerPos.Z + targetEntity.ServerPos.Motion.Z * 10.0);
 					MoveAnimation();
-					pathTraverser.WalkTowards(targetPos, curMoveSpeed, TargetDist(), OnGoals, OnStuck);
+					pathTraverser.WalkTowards(curTargetPos, curMoveSpeed, TargetDist(), OnGoals, OnStuck);
 					currentUpdateTime = 0f;
 				}
 				if (attackPattern == EnumAttackPattern.DirectAttack || attackPattern == EnumAttackPattern.BesiegeTarget) {
@@ -134,10 +131,10 @@ namespace VSKingdom {
 					pathTraverser.CurrentTarget.Z = targetEntity.ServerPos.Z;
 				}
 			} else if (attackPattern == EnumAttackPattern.TacticalRetreat && world.Rand.NextDouble() < 0.2) {
-				updateTargetPosFleeMode(targetPos);
-				pathTraverser.CurrentTarget.X = targetPos.X;
-				pathTraverser.CurrentTarget.Y = targetPos.Y;
-				pathTraverser.CurrentTarget.Z = targetPos.Z;
+				updateTargetPosFleeMode(curTargetPos);
+				pathTraverser.CurrentTarget.X = curTargetPos.X;
+				pathTraverser.CurrentTarget.Y = curTargetPos.Y;
+				pathTraverser.CurrentTarget.Z = curTargetPos.Z;
 				MoveAnimation();
 			}
 			if (pathTraverser.Active) {
@@ -174,7 +171,7 @@ namespace VSKingdom {
 			if (targetEntity == null || !targetEntity.Alive) {
 				StopAnimation();
 				targetEntity = null;
-				targetPos = null;
+				curTargetPos = null;
 				cancelSearch = true;
 			}
 		}
@@ -182,7 +179,7 @@ namespace VSKingdom {
 		public override bool Notify(string key, object data) {
 			if (key == "seekEntity" && data != null) {
 				targetEntity = (Entity)data;
-				targetPos = targetEntity.ServerPos.XYZ;
+				curTargetPos = targetEntity.ServerPos.XYZ;
 				return true;
 			}
 			return false;
@@ -190,7 +187,7 @@ namespace VSKingdom {
 
 		public void SetTargetEnts(Entity target) {
 			targetEntity = target;
-			targetPos = target?.ServerPos.XYZ ?? targetPos;
+			curTargetPos = target?.ServerPos.XYZ ?? curTargetPos;
 		}
 
 		public void StopMovement() {
@@ -202,46 +199,46 @@ namespace VSKingdom {
 			int searchDepth = (world.Rand.NextDouble() < 0.05) ? 10000 : 3500;
 			attackPattern = EnumAttackPattern.DirectAttack;
 			MoveAnimation();
-			pathTraverser.NavigateTo_Async(targetPos, curMoveSpeed, TargetDist(), OnGoals, OnStuck, DoSieged, searchDepth, 1);
+			pathTraverser.NavigateTo_Async(curTargetPos, curMoveSpeed, TargetDist(), OnGoals, OnStuck, DoSieged, searchDepth, 1);
 		}
 
 		private void DoSieged() {
 			// Unable to perform direct attack pattern, trying sieged!
 			attackPattern = EnumAttackPattern.BesiegeTarget;
 			MoveAnimation();
-			pathTraverser.NavigateTo_Async(targetPos, curMoveSpeed, TargetDist(), OnGoals, OnStuck, DoCircle, 3500, 3);
+			pathTraverser.NavigateTo_Async(curTargetPos, curMoveSpeed, TargetDist(), OnGoals, OnStuck, DoCircle, 3500, 3);
 		}
 
 		private void DoCircle() {
 			// Unable to perform sieged attack pattern, trying circle!
-			if (targetPos.DistanceTo(entity.ServerPos.XYZ) > seekingRange) {
+			if (curTargetPos.DistanceTo(entity.ServerPos.XYZ) > seekingRange) {
 				Retreats();
 				return;
 			}
 			attackPattern = EnumAttackPattern.CircleTarget;
 			lastPathfind = false;
-			float num1 = (float)Math.Atan2(entity.ServerPos.X - targetPos.X, entity.ServerPos.Z - targetPos.Z);
+			float num1 = (float)Math.Atan2(entity.ServerPos.X - curTargetPos.X, entity.ServerPos.Z - curTargetPos.Z);
 			for (int i = 0; i < 3; i++) {
 				double value = (double)num1 + 0.5 + world.Rand.NextDouble() / 2.0;
 				double num2 = 4.0 + world.Rand.NextDouble() * 6.0;
 				double x = GameMath.Sin(value) * num2;
 				double z = GameMath.Cos(value) * num2;
-				targetPos.Add(x, 0.0, z);
+				curTargetPos.Add(x, 0.0, z);
 				int num3 = 0;
 				bool flag = false;
-				BlockPos blockPos = new BlockPos((int)targetPos.X, (int)targetPos.Y, (int)targetPos.Z, targetPos.AsBlockPos.dimension);
+				BlockPos blockPos = new BlockPos((int)curTargetPos.X, (int)curTargetPos.Y, (int)curTargetPos.Z, curTargetPos.AsBlockPos.dimension);
 				int num4 = 0;
 				while (num3 < 5) {
 					if (world.BlockAccessor.GetBlock(new BlockPos(blockPos.X, blockPos.Y - num4, blockPos.Z, blockPos.dimension)).SideSolid[BlockFacing.UP.Index] && !world.CollisionTester.IsColliding(world.BlockAccessor, entity.SelectionBox, new Vec3d((double)blockPos.X + 0.5, blockPos.Y - num4 + 1, (double)blockPos.Z + 0.5), alsoCheckTouch: false)) {
 						flag = true;
-						targetPos.Y -= num4;
-						targetPos.Y += 1.0;
+						curTargetPos.Y -= num4;
+						curTargetPos.Y += 1.0;
 						break;
 					}
 					if (world.BlockAccessor.GetBlock(new BlockPos(blockPos.X, blockPos.Y + num4, blockPos.Z, blockPos.dimension)).SideSolid[BlockFacing.UP.Index] && !world.CollisionTester.IsColliding(world.BlockAccessor, entity.SelectionBox, new Vec3d((double)blockPos.X + 0.5, blockPos.Y + num4 + 1, (double)blockPos.Z + 0.5), alsoCheckTouch: false)) {
 						flag = true;
-						targetPos.Y += num4;
-						targetPos.Y += 1.0;
+						curTargetPos.Y += num4;
+						curTargetPos.Y += 1.0;
 						break;
 					}
 					num3++;
@@ -249,7 +246,7 @@ namespace VSKingdom {
 				}
 				if (flag) {
 					MoveAnimation();
-					pathTraverser.NavigateTo_Async(targetPos, curMoveSpeed, TargetDist(), OnGoals, OnStuck, Retreats, 3500, 1);
+					pathTraverser.NavigateTo_Async(curTargetPos, curMoveSpeed, TargetDist(), OnGoals, OnStuck, Retreats, 3500, 1);
 					return;
 				}
 			}
@@ -259,12 +256,12 @@ namespace VSKingdom {
 		private void Retreats() {
 			// Unable to perform circle attack pattern, trying retreat!
 			if (!RemainInOffenseMode && (RecentlyTookDamages || RemainInRetreatMode)) {
-				updateTargetPosFleeMode(targetPos);
-				pathTraverser.CurrentTarget.X = targetPos.X;
-				pathTraverser.CurrentTarget.Y = targetPos.Y;
-				pathTraverser.CurrentTarget.Z = targetPos.Z;
+				updateTargetPosFleeMode(curTargetPos);
+				pathTraverser.CurrentTarget.X = curTargetPos.X;
+				pathTraverser.CurrentTarget.Y = curTargetPos.Y;
+				pathTraverser.CurrentTarget.Z = curTargetPos.Z;
 				MoveAnimation();
-				pathTraverser.WalkTowards(targetPos, curMoveSpeed, targetEntity.SelectionBox.XSize + 0.2f, OnGoals, OnStuck);
+				pathTraverser.WalkTowards(curTargetPos, curMoveSpeed, targetEntity.SelectionBox.XSize + 0.2f, OnGoals, OnStuck);
 				if (attackPattern != EnumAttackPattern.TacticalRetreat) {
 					lastRetreatsAtMs = entity.World.ElapsedMilliseconds;
 				}
@@ -279,9 +276,7 @@ namespace VSKingdom {
 		}
 
 		private void OnGoals() {
-			if (attackPattern != 0 && attackPattern != EnumAttackPattern.BesiegeTarget) {
-				return;
-			}
+			if (attackPattern != 0 && attackPattern != EnumAttackPattern.BesiegeTarget) { return; }
 			if (lastGoalReachedPos != null && lastGoalReachedPos.SquareDistanceTo(entity.ServerPos) < 0.005f) {
 				if (futilityCounters == null) {
 					futilityCounters = new Dictionary<long, int>();
@@ -289,9 +284,7 @@ namespace VSKingdom {
 					futilityCounters.TryGetValue(targetEntity.EntityId, out var value);
 					value++;
 					futilityCounters[targetEntity.EntityId] = value;
-					if (value > 19) {
-						return;
-					}
+					if (value > 19) { return; }
 				}
 			}
 			lastGoalReachedPos = new Vec3d(entity.Pos);
@@ -305,7 +298,7 @@ namespace VSKingdom {
 				StopAnimation();
 				return;
 			}
-			double distance = entity.ServerPos.SquareDistanceTo(targetPos);
+			double distance = entity.ServerPos.SquareDistanceTo(curTargetPos);
 			entity.AnimManager.StopAnimation(curAnimation);
 			if (entity.FeetInLiquid && !entity.Swimming) {
 				curMoveSpeed = entity.cachedData.walkSpeed;

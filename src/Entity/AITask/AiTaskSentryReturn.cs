@@ -90,9 +90,9 @@ namespace VSKingdom {
 		}
 
 		private void UpdateOrders(bool @returning) {
-			SentryOrders updatedOrders = new SentryOrders() { entityUID = entity.EntityId, returning = @returning, usedorder = false };
+			SentryOrdersToServer updatedOrders = new SentryOrdersToServer() { entityUID = entity.EntityId, returning = @returning, usedorder = false };
 			IServerPlayer nearestPlayer = entity.ServerAPI.World.NearestPlayer(entity.ServerPos.X, entity.ServerPos.Y, entity.ServerPos.Z) as IServerPlayer;
-			entity.ServerAPI?.Network.GetChannel("sentrynetwork").SendPacket<SentryOrders>(updatedOrders, nearestPlayer);
+			entity.ServerAPI?.Network.GetChannel("sentrynetwork").SendPacket<SentryOrdersToServer>(updatedOrders, nearestPlayer);
 		}
 
 		private bool CheckTeleport() {

@@ -1,8 +1,9 @@
-﻿using Vintagestory.API.MathTools;
+﻿using System;
+using System.Linq;
+using System.Text;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
-using System;
-using System.Diagnostics;
+using Vintagestory.API.MathTools;
 
 namespace VSKingdom {
 	internal static class MathUtility {
@@ -41,7 +42,7 @@ namespace VSKingdom {
 			return true;
 		}
 
-		public static int  GetRandom(int num, int low = 0) {
+		public static int GetRandom(int num, int low = 0) {
 			Random rnd = new Random();
 			return rnd.Next(low, num);
 		}
@@ -51,11 +52,28 @@ namespace VSKingdom {
 			return strings[rnd.Next(0, strings.Length - 1)];
 		}
 
-		public static TimeSpan Time(Action action) {
-			Stopwatch stopwatch = Stopwatch.StartNew();
-			action();
-			stopwatch.Stop();
-			return stopwatch.Elapsed;
+		public static string RandomGuid(string guid, int size, string[] LIST = null) {
+			if (guid != null && guid.Length == size) {
+				return guid;
+			}
+			bool repeating = true;
+			Random rnd = new Random();
+			StringBuilder strBuilder = new StringBuilder();
+			while (repeating) {
+				strBuilder.Clear();
+				Enumerable
+					.Range(65, 26).Select(e => ((char)e).ToString())
+					.Concat(Enumerable.Range(97, 26).Select(e => ((char)e).ToString()))
+					.Concat(Enumerable.Range(0, 7).Select(e => e.ToString()))
+					.OrderBy(e => Guid.NewGuid()).Take(size)
+					.ToList().ForEach(e => strBuilder.Append(e));
+				if (LIST != null) {
+					repeating = LIST.Contains(strBuilder.ToString());
+				} else {
+					repeating = false;
+				}
+			}
+			return strBuilder.ToString();
 		}
 	}
 }

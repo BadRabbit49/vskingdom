@@ -38,7 +38,8 @@ namespace VSKingdom {
 			bool playerIsLeader = entity.WatchedAttributes.GetString("leadersGUID") == player.PlayerUID;
 			bool playerIsFriend = entity.WatchedAttributes.GetString("kingdomGUID") == player.WatchedAttributes.GetString("kingdomGUID");
 			bool entityIsSmited = entity.Alive == false;
-			
+			double sliderLength = 192;
+
 			ElementBounds invBounds = ElementBounds.Fill.WithFixedPadding(GuiStyle.ElementToDialogPadding);
 			invBounds.BothSizing = ElementSizing.FitToChildren;
 			// Dialog Bounds //
@@ -55,36 +56,26 @@ namespace VSKingdom {
 			ElementBounds munitionsSlotsBounds = ElementStdBounds.SlotGrid(EnumDialogArea.None, 0, 176, 1, 1).FixedGrow(0, UIPadding);
 			ElementBounds healthitmSlotsBounds = ElementStdBounds.SlotGrid(EnumDialogArea.None, 0, 227, 1, 1).FixedGrow(0, UIPadding);
 			// Orders Bounds //
-
-			double sliderLength = 192;
-
 			ElementBounds goWanderStringBounds = ElementBounds.Fixed(0, 330 + UIPadding, 76, 28);
 			ElementBounds goWanderSliderBounds = ElementBounds.Fixed(0, 330 + Quartered, sliderLength, 30);
 			ElementBounds goWanderSwitchBounds = ElementBounds.Fixed(sliderLength + 12, 330 + Quartered, 24, 24);
-
 			ElementBounds goFollowStringBounds = ElementBounds.Fixed(0, 380 + UIPadding, 76, 24);
 			ElementBounds goFollowSliderBounds = ElementBounds.Fixed(0, 380 + Quartered, sliderLength, 30);
 			ElementBounds goFollowSwitchBounds = ElementBounds.Fixed(sliderLength + 12, 380 + Quartered, 24, 24);
-
 			ElementBounds goEngageStringBounds = ElementBounds.Fixed(0, 430 + UIPadding, 76, 24);
 			ElementBounds goEngageSliderBounds = ElementBounds.Fixed(0, 430 + Quartered, sliderLength, 30);
 			ElementBounds goEngageSwitchBounds = ElementBounds.Fixed(sliderLength + 12, 430 + Quartered, 24, 24);
-
 			ElementBounds goPursueStringBounds = ElementBounds.Fixed(0, 480 + UIPadding, 76, 24);
 			ElementBounds goPursueSliderBounds = ElementBounds.Fixed(0, 480 + Quartered, sliderLength, 30);
 			ElementBounds goPursueSwitchBounds = ElementBounds.Fixed(sliderLength + 12, 480 + Quartered, 24, 24);
-
 			ElementBounds doShiftsStringBounds = ElementBounds.Fixed(0, 530 + UIPadding, 76, 24);
 			ElementBounds doShiftsSliderBounds = ElementBounds.Fixed(0, 530 + Quartered, sliderLength/2, 30);
 			ElementBounds doFinishSliderBounds = ElementBounds.Fixed(sliderLength/2, 530 + Quartered, sliderLength/2, 30);
 			ElementBounds doShiftsSwitchBounds = ElementBounds.Fixed(sliderLength + 12, 530 + Quartered, 24, 24);
-
 			ElementBounds goPatrolStringBounds = ElementBounds.Fixed(0, 580 + UIPadding, 76, 24);
 			ElementBounds goPatrolInputsBounds = ElementBounds.Fixed(0, 580 + Quartered, sliderLength, 30);
 			ElementBounds goPatrolSwitchBounds = ElementBounds.Fixed(sliderLength + 12, 580 + Quartered, 24, 24);
-
 			ElementBounds returnToButtonBounds = ElementStdBounds.ToggleButton(0, 640 + UIPadding, 94, 48).WithAlignment(EnumDialogArea.RightFixed);
-
 			// Inventory //
 			clothingsSlotsBounds.FixedRightOf(armourSlotBoundsHead, 10);
 			accessorySlotsBounds.FixedRightOf(clothingsSlotsBounds, 10);
@@ -209,7 +200,7 @@ namespace VSKingdom {
 		}
 
 		protected bool OnGiveCommand(string orders, bool toggle) {
-			SentryOrders newOrders = new SentryOrders();
+			SentryOrdersToServer newOrders = new SentryOrdersToServer();
 			newOrders.playerUID = player.EntityId;
 			newOrders.entityUID = entity.EntityId;
 			switch (orders) {
@@ -238,16 +229,14 @@ namespace VSKingdom {
 					break;
 			}
 			capi.ShowChatMessage(LangUtility.GetL(langCodes, $"gui-{orders.Replace("order", "command-").ToLower()}-{toggle.ToString().ToLower()}"));
-			capi.Network.GetChannel("sentrynetwork").SendPacket<SentryOrders>(newOrders);
+			capi.Network.GetChannel("sentrynetwork").SendPacket<SentryOrdersToServer>(newOrders);
 			if (orders == "orderReturn") {
 				return TryClose();
 			}
 			return true;
 		}
 
-		protected void OnCloseDialog() {
-			TryClose();
-		}
+		protected void OnCloseDialog() => TryClose();
 
 		protected void SendInvPacket(object packet) => capi.Network.SendPacketClient(packet);
 
@@ -304,7 +293,10 @@ namespace VSKingdom {
 				foreach (string point in allPoints) {
 					// [3,9,20] //
 					string[] coord = point.Replace("[", "").Replace("]", "").Split(',');
-					coords.Add(new Vec3i((int)Math.Ceiling(double.Parse(coord[0])), (int)Math.Ceiling(double.Parse(coord[1])), (int)Math.Ceiling(double.Parse(coord[2]))));
+					int ix = (int)Math.Ceiling(double.Parse(coord[0]) + capi.World.DefaultSpawnPosition.X);
+					int iy = (int)Math.Ceiling(double.Parse(coord[1]));
+					int iz = (int)Math.Ceiling(double.Parse(coord[2]) + capi.World.DefaultSpawnPosition.Z);
+					coords.Add(new Vec3i(ix, iy, iz));
 				}
 				entity.WatchedAttributes.SetVec3is("patrolVec3i", coords.ToArray());
 			} catch { }
@@ -331,7 +323,7 @@ namespace VSKingdom {
 			}
 			string[] strpoints = new string[waypoints.Length];
 			for (int i = 0; i < waypoints.Length; i++) {
-				strpoints[i] = $"[{waypoints[i].X},{waypoints[i].Y},{waypoints[i].Z}]";
+				strpoints[i] = $"[{waypoints[i].X - capi.World.DefaultSpawnPosition.X},{waypoints[i].Y},{waypoints[i].Z - capi.World.DefaultSpawnPosition.Z}]";
 			}
 			return string.Join(", ", strpoints);
 		}

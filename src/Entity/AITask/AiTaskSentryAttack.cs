@@ -146,13 +146,10 @@ namespace VSKingdom {
 				entity.ServerPos.Yaw = entity.ServerPos.Yaw % (MathF.PI * 2f);
 				flag = Math.Abs(num) < maximumRange * (MathF.PI / 180f);
 			}
-
 			if (!attackFinish) {
 				attackFinish = currAnim != null && !entity.AnimManager.IsAnimationActive(currAnim);
 			}
-			
 			animsRunning = lastAnim != null ? entity.AnimManager.GetAnimationState(lastAnim).Running : false;
-
 			if (!animsRunning && attackFinish && flag) {
 				attackFinish = false;
 				animsRunning = AttackTarget();
@@ -209,7 +206,7 @@ namespace VSKingdom {
 				targetEntity = source.GetCauseEntity();
 				lastHelpedMs = entity.World.ElapsedMilliseconds;
 				// Alert all surrounding units! We're under attack!
-				foreach (EntitySentry sentry in entity.World.GetEntitiesAround(entity.ServerPos.XYZ, 20, 4, entity => (entity is EntitySentry))) {
+				foreach (EntitySentry sentry in entity.World.GetEntitiesAround(entity.ServerPos.XYZ, 20f, 4f, entity => (entity is EntitySentry))) {
 					if (entity.cachedData.kingdomGUID == sentry.cachedData.kingdomGUID) {
 						var taskManager = sentry.GetBehavior<EntityBehaviorTaskAI>()?.TaskManager;
 						taskManager.GetTask<AiTaskSentryAttack>()?.OnAllyAttacked(source.SourceEntity);

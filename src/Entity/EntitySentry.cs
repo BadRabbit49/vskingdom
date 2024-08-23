@@ -12,6 +12,7 @@ using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
 using Vintagestory.GameContent;
+using System.Numerics;
 
 namespace VSKingdom {
 	public class EntitySentry : EntityHumanoid {
@@ -98,6 +99,12 @@ namespace VSKingdom {
 					coloursHEXB = new string(previousExists ? clientData.coloursHEXB : "#ffffff"),
 					coloursHEXC = new string(previousExists ? clientData.coloursHEXA : "#ffffff")
 				};
+				SentryUpdateToServer update = new SentryUpdateToServer();
+				update.entityUID = EntityId;
+				update.kingdomGUID = WatchedAttributes.GetString("kingdomGUID");
+				update.cultureGUID = WatchedAttributes.GetString("cultureGUID");
+				update.leadersGUID = WatchedAttributes.GetString("leadersGUID");
+				ClientAPI.Network.GetChannel("sentrynetwork").SendPacket(update);
 			}
 		}
 
@@ -163,7 +170,6 @@ namespace VSKingdom {
 			if (leadersGuid != null && leadersGuid == player.PlayerUID && Api.Side == EnumAppSide.Client) {
 				// This works! //
 				SentryUpdateToServer update = new SentryUpdateToServer();
-				update.playerUID = player.EntityId;
 				update.entityUID = EntityId;
 				update.kingdomGUID = theirKingdom;
 				update.cultureGUID = cultureGuid;
@@ -227,7 +233,6 @@ namespace VSKingdom {
 							followed.Add(sentry.EntityId);
 						}
 						ServerAPI?.Network.GetChannel("sentrynetwork").SendPacket<SentryUpdateToServer>(new SentryUpdateToServer() {
-							playerUID = player.EntityId,
 							entityUID = sentry.EntityId,
 							kingdomGUID = sentry.WatchedAttributes.GetString("kingdomGUID"),
 							cultureGUID = sentry.WatchedAttributes.GetString("cultureGUID"),
@@ -388,8 +393,8 @@ namespace VSKingdom {
 					}
 				}
 				cachedData.healRates = Math.Clamp((1f - (1f * healTotal)), 0f, 2f);
-				cachedData.moveSpeed = Math.Clamp((walkSpeed + (walkSpeed * massTotal)), 0f, walkSpeed * 2f);
-				cachedData.walkSpeed = Math.Clamp((moveSpeed + (moveSpeed * massTotal)), 0f, moveSpeed * 2f);
+				cachedData.walkSpeed = Math.Clamp((walkSpeed + (walkSpeed * massTotal)), 0f, walkSpeed * 2f);
+				cachedData.moveSpeed = Math.Clamp((moveSpeed + (moveSpeed * massTotal)), 0f, moveSpeed * 2f);
 				cachedData.weapRange = hasWeapon ? RightHandItemSlot.Itemstack.Collectible.AttackRange : GlobalConstants.DefaultAttackRange;
 				cachedData.recruitINFO = new string(hasWeapon ? "ENLISTED" : Properties.Attributes["baseState"].AsString("CIVILIAN"));
 				if (Api.World.BlockAccessor.GetBlockEntity(WatchedAttributes.GetBlockPos("postBlock")) is BlockEntityPost post) {

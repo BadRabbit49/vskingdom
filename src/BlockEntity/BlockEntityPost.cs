@@ -71,7 +71,8 @@ namespace VSKingdom {
 			maxpawns = 2 * metlTier;
 			respawns = 3 * metlTier;
 			areasize = 4 * metlTier;
-			RegisterGameTickListener(Returnings, 90000);
+			maxBTime = metlTier * (Api.World.Calendar.HoursPerDay * Api.World.Calendar.DaysPerMonth);
+			RegisterGameTickListener(Returnings, 60000);
 			// Register entity as a point of interest.
 			if (api is ICoreServerAPI sapi) {
 				sapi.ModLoader.GetModSystem<POIRegistry>().AddPOI(this);
@@ -81,11 +82,7 @@ namespace VSKingdom {
 		public override void OnBlockPlaced(ItemStack byItemStack = null) {
 			base.OnBlockPlaced(byItemStack);
 			if (Block.Variant["fuels"] != "null") {
-				if (Block.Variant["fuels"] == "temp") {
-					maxBTime = burnTime = 60 * Api.World.Calendar.HoursPerDay * Api.World.Calendar.DaysPerMonth;
-				} else {
-					maxBTime = burnTime = 60 * Api.World.Calendar.HoursPerDay;
-				}
+				burnTime = maxBTime;
 			}
 		}
 		
@@ -145,9 +142,8 @@ namespace VSKingdom {
 				}
 			}
 		}
-
+		
 		public override void ToTreeAttributes(ITreeAttribute tree) {
-			base.ToTreeAttributes(tree);
 			// Retrieve inventory values.
 			ITreeAttribute invtree = new TreeAttribute();
 			Inventory.ToTreeAttributes(invtree);
@@ -164,6 +160,7 @@ namespace VSKingdom {
 			tree.SetDouble("burnFuel", burnFuel);
 			tree.SetString("ownerUID", ownerUID);
 			tree.SetString("entities", GetStringFromList(EntityUIDs));
+			base.ToTreeAttributes(tree);
 		}
 		
 		public override void OnReceivedClientPacket(IPlayer player, int packetid, byte[] data) {
@@ -217,6 +214,15 @@ namespace VSKingdom {
 					taskManager.GetTask<AiTaskSentryReturn>()?.StartExecute();
 				}
 			}
+			/* TODO MAKE BURN TIMES CORRECT AND OPTIMIZE IT */
+			if (fireLive) {
+				// Go down by 60 seconds each time.
+				burnTime -= 60;
+				if (burnTime < 0) {
+					burnTime = 0;
+					Extinguish();
+				}
+			}
 		}
 
 		public void UseRespawn() {
@@ -228,6 +234,11 @@ namespace VSKingdom {
 			if (respawns <= 0) {
 				Api.World.BlockAccessor.ExchangeBlock(Api.World.GetBlock(Block.CodeWithVariants(new Dictionary<string, string>() { { "level", "dead" }, { "state", "done" } })).Id, Pos);
 			}
+			MarkDirty(true);
+		}
+
+		public void ChangeFuel(string fuel) {
+			Api.World.BlockAccessor.ExchangeBlock(Api.World.GetBlock(Block.CodeWithVariant("fuels", fuel)).Id, Pos);
 			MarkDirty(true);
 		}
 
@@ -250,10 +261,10 @@ namespace VSKingdom {
 			// Special case for temporal gear! Resets all respawns and lasts an entire month!
 			if (stack.Item is ItemTemporalGear) {
 				respawns = maxpawns;
-				maxBTime = burnTime = 60 * calendar.HoursPerDay * calendar.DaysPerMonth;
+				burnTime = maxBTime;
 			} else {
 				CombustibleProperties fuelCopts = stack.Collectible.CombustibleProps;
-				maxBTime = burnTime = fuelCopts.BurnDuration * 60 + (fuelCopts.BurnDuration * 60 * calendar.CalendarSpeedMul);
+				burnTime += Math.Clamp((fuelCopts.BurnDuration * calendar.HoursPerDay), 0, maxBTime);
 			}
 			MarkDirty(true);
 		}
@@ -303,7 +314,8 @@ namespace VSKingdom {
 		}
 
 		public override void OnBlockBroken(IWorldAccessor world, BlockPos pos, IPlayer byPlayer, float dropQuantityMultiplier = 1) {
-			if ((api.World.BlockAccessor.GetBlockEntity(pos) as BlockEntityPost).ownerUID == byPlayer.PlayerUID || LastCodePart(0) == "dead") {
+			BlockEntityPost thisPost = GetBlockEntity<BlockEntityPost>(pos) ?? null;
+			if (thisPost == null || thisPost.ownerUID == byPlayer.PlayerUID || LastCodePart(0) == "dead") {
 				base.OnBlockBroken(world, pos, byPlayer, dropQuantityMultiplier);
 			}
 		}
@@ -317,7 +329,20 @@ namespace VSKingdom {
 			}
 			bool takesTemporal = Variant["metal"] == "electrum";
 			if ((!takesTemporal && itemType is ItemFirewood) || (!takesTemporal && itemType is ItemCoal) || (takesTemporal && itemType is ItemTemporalGear)) {
+				string newFuel = "null";
+				if (itemType is ItemCoal) {
+					newFuel = "coal";
+				} else if (itemType is ItemFirewood) {
+					newFuel = "wood";
+				} else if (itemType is ItemTemporalGear) {
+					newFuel = "temp";
+				}
+				thisPost.ChangeFuel(newFuel);
 				thisPost.IgniteWithFuel(slot.Itemstack);
+				slot.TakeOut(1);
+				slot.MarkDirty();
+			} else if (itemType.Attributes["currency"].Exists && thisPost.respawns < thisPost.maxpawns) {
+				thisPost.respawns++;
 				slot.TakeOut(1);
 				slot.MarkDirty();
 			}

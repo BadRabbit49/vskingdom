@@ -12,6 +12,7 @@ namespace VSKingdom {
 		#pragma warning restore CS0108
 		protected float groupsOffset;
 		protected float squaredRange;
+		protected float prvMoveSpeed;
 		protected float curMoveSpeed;
 		protected string curAnimation;
 		protected float followsRange { get => entity.WatchedAttributes.GetFloat("followRange", 2f); }
@@ -35,21 +36,25 @@ namespace VSKingdom {
 				targetEntity.WatchedAttributes.SetAttribute("followerEntityUids", new LongArrayAttribute(new long[] { entity.EntityId }));
 			}
 			targetEntity = GetGuardedEntity();
+			groupsOffset = 1;
 			long[] followers = (targetEntity.WatchedAttributes.GetAttribute("followerEntityUids") as LongArrayAttribute)?.value;
-			groupsOffset = targetEntity.SelectionBox.XSize + 0.2f;
 			for (int i = 0; i < followers.Length; i++) {
-				groupsOffset += entity.World.GetEntityById(followers[i])?.SelectionBox.XSize ?? 0;
-				if (entity.EntityId == followers[i]) { break; }
+				if (entity.EntityId == followers[i]) {
+					groupsOffset = i + 1;
+					break;
+				}
 			}
-			pathTraverser.NavigateTo_Async(targetEntity.ServerPos.XYZ, curMoveSpeed, groupsOffset, OnGoals, OnStuck, null, 1000, 1);
+			groupsOffset *= targetEntity.SelectionBox.XSize + followsRange;
+			squaredRange = groupsOffset * groupsOffset;
+			MoveAnimation();
+			prvMoveSpeed = curMoveSpeed;
+			bool go = pathTraverser.NavigateTo_Async(targetEntity.ServerPos.XYZ, prvMoveSpeed, groupsOffset, OnGoals, OnStuck, null, 1000, (int)groupsOffset);
 			targetOffset.Set(entity.World.Rand.NextDouble() * 2 - 1, 0, entity.World.Rand.NextDouble() * 2 - 1);
 			stuck = false;
 			// Overridden base method to avoid constant teleporting when stuck.
 			if (allowTeleport && entity.ServerPos.SquareDistanceTo(targetEntity.ServerPos.X + targetOffset.X, targetEntity.ServerPos.Y, targetEntity.ServerPos.Z + targetOffset.Z) > teleportAfterRange * teleportAfterRange) {
 				tryTeleport();
 			}
-			squaredRange = followsRange * followsRange;
-			MoveAnimation();
 		}
 
 		public override bool CanContinueExecute() {
@@ -65,7 +70,6 @@ namespace VSKingdom {
 			pathTraverser.CurrentTarget.Z = z;
 			float num = entity.ServerPos.SquareDistanceTo(x, y, z);
 			if (num < squaredRange) {
-				pathTraverser.Stop();
 				return false;
 			}
 			if (allowTeleport && num > teleportAfterRange * teleportAfterRange && entity.World.Rand.NextDouble() < 0.05) {
@@ -73,6 +77,11 @@ namespace VSKingdom {
 			}
 			if (!stuck) {
 				MoveAnimation();
+				if (prvMoveSpeed != curMoveSpeed) {
+					prvMoveSpeed = curMoveSpeed;
+					pathTraverser.Stop();
+					pathTraverser.NavigateTo_Async(targetEntity.ServerPos.XYZ, prvMoveSpeed, groupsOffset, OnGoals, OnStuck, null, 1000, (int)groupsOffset);
+				}
 				return pathTraverser.Active;
 			}
 			return false;
@@ -95,18 +104,16 @@ namespace VSKingdom {
 		}
 
 		protected void OnGoals() {
-			pathTraverser.Stop();
 			MoveAnimation();
-			pathTraverser.NavigateTo_Async(targetEntity.ServerPos.XYZ, curMoveSpeed, groupsOffset, OnGoals, OnStuck, null, 1000, 1);
+			pathTraverser.Retarget();
 		}
 
 		private void MoveAnimation() {
 			if (!entity.ruleOrder[1]) {
-				curMoveSpeed = 0;
 				StopAnimation();
 				return;
 			}
-			double distance = entity.ServerPos.SquareDistanceTo(curTargetPos);
+			double distance = entity.ServerPos.SquareDistanceTo(targetEntity.ServerPos);
 			entity.AnimManager.StopAnimation(curAnimation);
 			if (entity.FeetInLiquid && !entity.Swimming) {
 				curMoveSpeed = entity.cachedData.walkSpeed;
@@ -114,17 +121,19 @@ namespace VSKingdom {
 			} else if (entity.Swimming) {
 				curMoveSpeed = entity.cachedData.moveSpeed;
 				curAnimation = new string(entity.cachedData.swimAnims);
-			} else if (distance > 81f) {
+			} else if (distance > 36f) {
 				curMoveSpeed = entity.cachedData.moveSpeed;
 				curAnimation = new string(entity.cachedData.moveAnims);
-			} else if (distance > 4f && distance < 81f) {
+			} else if (distance > 4f && distance < 36f) {
 				curMoveSpeed = entity.cachedData.walkSpeed;
 				curAnimation = new string(entity.cachedData.walkAnims);
 			} else {
 				StopAnimation();
 				return;
 			}
-			entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = curAnimation, Code = curAnimation, MulWithWalkSpeed = true, BlendMode = EnumAnimationBlendMode.Average, EaseInSpeed = 999f, EaseOutSpeed = 1f }.Init());
+			if (!entity.AnimManager.IsAnimationActive(curAnimation)) {
+				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = curAnimation, Code = curAnimation, MulWithWalkSpeed = true, BlendMode = EnumAnimationBlendMode.Average, EaseInSpeed = 999f, EaseOutSpeed = 1f }.Init());
+			}
 		}
 
 		private void StopAnimation() {

@@ -347,7 +347,6 @@ namespace VSKingdom {
 			if (bestPlayer == null) { return; }
 			foreach (var sentry in nearbyEnts) {
 				OnSentryUpdated(bestPlayer, new SentryUpdateToServer() {
-					playerUID = bestPlayer.Entity.EntityId,
 					entityUID = sentry.EntityId,
 					kingdomGUID = sentry.WatchedAttributes.GetString("kingdomGUID"),
 					cultureGUID = sentry.WatchedAttributes.GetString("cultureGUID"),
@@ -1481,7 +1480,6 @@ namespace VSKingdom {
 	}
 	[ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
 	public class SentryUpdateToServer {
-		public long playerUID;
 		public long entityUID;
 		public string kingdomGUID;
 		public string cultureGUID;

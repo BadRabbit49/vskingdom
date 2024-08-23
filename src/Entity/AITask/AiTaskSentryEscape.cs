@@ -56,11 +56,6 @@ namespace VSKingdom {
 			if (rand.NextDouble() > 3 * 0.1) {
 				return false;
 			}
-			/**if (noEntityCodes && (attackedByEntity is null || !retaliateAttacks)) {
-				return false;
-			}
-			entity.World.FrameProfiler.Mark("task-fleeentity-shouldexecute-init");
-			entity.World.FrameProfiler.Mark("task-fleeentity-shouldexecute-entitysearch");**/
 			if (targetEntity != null) {
 				updateTargetPosFleeMode(targetPos);
 				return true;

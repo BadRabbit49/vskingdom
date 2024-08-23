@@ -9,6 +9,7 @@ using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
+using Vintagestory.GameContent;
 
 namespace VSKingdom;
 public class ItemPeople : Item {
@@ -216,6 +217,22 @@ public class ItemPeople : Item {
 					friendsLIST = _kingdomFRIENDS,
 					outlawsLIST = _kingdomOUTLAWS
 				};
+
+				for (int i = 0; i < GlobalCodes.dressCodes.Length; i++) {
+					string code = GlobalCodes.dressCodes[i] + "Spawn";
+					if (!properties.Attributes[code].Exists) { break; }
+					try {
+						var item = api.World.GetItem(new AssetLocation(MathUtility.GetRandom(properties.Attributes[code].AsArray<string>(null))));
+						ItemStack itemstack = new ItemStack(item, 1);
+						if (i == 18 && sentry.GearInventory[16].Itemstack.Item is ItemBow) {
+							itemstack = new ItemStack(item, MathUtility.GetRandom(item.MaxStackSize, 5));
+						}
+						var newstack = api.World.SpawnItemEntity(itemstack, entity.ServerPos.XYZ) as EntityItem;
+						sentry.GearInventory[i].Itemstack = newstack?.Itemstack;
+						newstack.Die(EnumDespawnReason.PickedUp, null);
+						sentry.GearInvSlotModified(i);
+					} catch { }
+				}
 			}
 		}
 

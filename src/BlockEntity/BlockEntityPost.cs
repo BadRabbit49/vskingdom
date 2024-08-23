@@ -308,15 +308,12 @@ namespace VSKingdom {
 			}
 		}
 
-		public override void OnHeldInteractStart(ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel, bool firstEvent, ref EnumHandHandling handling) {
-			if (slot.Empty) {
-				return;
-			}
+		public override bool OnBlockInteractStart(IWorldAccessor world, IPlayer byPlayer, BlockSelection blockSel) {
+			ItemSlot slot = byPlayer.InventoryManager.ActiveHotbarSlot;
 			BlockEntityPost thisPost = GetBlockEntity<BlockEntityPost>(blockSel) ?? null;
 			Item itemType = slot?.Itemstack?.Item ?? null;
 			if (thisPost == null || itemType == null) {
-				base.OnHeldInteractStart(slot, byEntity, blockSel, entitySel, firstEvent, ref handling);
-				return;
+				return base.OnBlockInteractStart(world, byPlayer, blockSel);
 			}
 			bool takesTemporal = Variant["metal"] == "electrum";
 			if ((!takesTemporal && itemType is ItemFirewood) || (!takesTemporal && itemType is ItemCoal) || (takesTemporal && itemType is ItemTemporalGear)) {
@@ -324,7 +321,7 @@ namespace VSKingdom {
 				slot.TakeOut(1);
 				slot.MarkDirty();
 			}
-			base.OnHeldInteractStart(slot, byEntity, blockSel, entitySel, firstEvent, ref handling);
+			return base.OnBlockInteractStart(world, byPlayer, blockSel);
 		}
 
 		public override bool AllowSnowCoverage(IWorldAccessor world, BlockPos blockPos) {

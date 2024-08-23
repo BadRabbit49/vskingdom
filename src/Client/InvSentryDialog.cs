@@ -185,9 +185,7 @@ namespace VSKingdom {
 				double offX = entity.SelectionBox.X2 - entity.OriginSelectionBox.X2;
 				double offZ = entity.SelectionBox.Z2 - entity.OriginSelectionBox.Z2;
 				Vec3d pos = MatrixToolsd.Project(new Vec3d(entity.Pos.X + offX, entity.Pos.Y + Positions, entity.Pos.Z + offZ), capi.Render.PerspectiveProjectionMat, capi.Render.PerspectiveViewMat, capi.Render.FrameWidth, capi.Render.FrameHeight);
-				if (pos.Z < 0) {
-					return;
-				}
+				if (pos.Z < 0) { return; }
 				SingleComposer.Bounds.Alignment = EnumDialogArea.None;
 				SingleComposer.Bounds.fixedOffsetX = 0;
 				SingleComposer.Bounds.fixedOffsetY = 0;

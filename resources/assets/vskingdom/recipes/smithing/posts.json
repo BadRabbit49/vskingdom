@@ -1,6 +1,6 @@
 ﻿[
 	{
-		"ingredients": { "type": "item", "code": "game:ingot-*", "name": "metal", "allowedVariants": [ "lead", "copper", "brass", "steel", "electrum" ], "quantity": 1 },
+		"ingredients": { "type": "item", "code": "game:ingot-*", "name": "metal", "allowedVariants": [ "lead", "copper", "brass", "steel", "electrum" ] },
 		"name": "Outpost",
 		"pattern": [
 			[

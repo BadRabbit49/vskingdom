@@ -471,8 +471,6 @@ namespace VSKingdom {
 				PlayerUpdateToServer newUpdate = new PlayerUpdateToServer() { followers = new long[] { sentry.EntityId }, operation = (newOrders[1] ? "add" : "del") };
 				OnPlayerUpdated(player, newUpdate);
 			}
-			// Try to fully sync entity packet to the sentry if possible.
-			serverAPI.Network.SendEntityPacket(player, sentryOrders.entityUID, 1503);
 		}
 
 		private TextCommandResult OnKingdomsCommand(TextCommandCallingArgs args) {
@@ -688,15 +686,14 @@ namespace VSKingdom {
 						return TextCommandResult.Error(LangUtility.SetL(langCode, "command-error-badperms", (string)args[0]));
 					} else if (!thisKingdom.EnemiesGUID.Contains(thatKingdom.KingdomGUID)) {
 						return TextCommandResult.Error(LangUtility.SetL(langCode, "command-error-notatwar", thatKingdom.KingdomNAME));
-					}
-					if (thisKingdom.PeaceOffers.Contains(thatKingdom.KingdomGUID) || GlobalCodes.kingdomIDs.Contains(thatKingdom.KingdomGUID)) {
+					} else if (thisKingdom.PeaceOffers.Contains(thatKingdom.KingdomGUID) || GlobalCodes.kingdomIDs.Contains(thatKingdom.KingdomGUID)) {
 						EndWarKingdom(thisKingdom.KingdomGUID, thatKingdom.KingdomGUID);
-					} else {
-						kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == thatKingdom.KingdomGUID).PeaceOffers.Add(thisKingdom.KingdomGUID);
-						SaveKingdom();
-						serverAPI.BroadcastMessageToAllGroups(LangUtility.SetL(langCode, "command-message-peaces", thisKingdom.KingdomLONG, thatKingdom.KingdomLONG), EnumChatType.Notification);
+						return TextCommandResult.Success(LangUtility.SetL(langCode, "command-success-treaty", fullargs));
 					}
-					return TextCommandResult.Success(LangUtility.SetL(langCode, "command-success-treaty", fullargs));
+					kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == thatKingdom.KingdomGUID).PeaceOffers.Add(thisKingdom.KingdomGUID);
+					SaveKingdom();
+					serverAPI.BroadcastMessageToAllGroups(LangUtility.SetL(langCode, "command-message-peaces", thisKingdom.KingdomLONG, thatKingdom.KingdomLONG), EnumChatType.Notification);
+					return TextCommandResult.Success("");
 				// Sets an enemy of the Kingdom.
 				case "outlaw":
 					if (!inKingdom) {
@@ -1002,7 +999,14 @@ namespace VSKingdom {
 				if (!entity.HasBehavior<EntityBehaviorLoyalties>()) {
 					continue;
 				} else if (entity.WatchedAttributes.GetString("cultureGUID") == cultureGUID) {
-					entity.WatchedAttributes.SetString("cultureGUID", GlobalCodes.commonerGUID);
+					entity.WatchedAttributes.SetString("cultureGUID", GlobalCodes.seraphimGUID);
+				}
+			}
+			foreach (var player in serverAPI.World.AllPlayers) {
+				if (player.WorldData.GetModdata("playerCultureGUID") != null) {
+					if (SerializerUtil.Deserialize<string>(player.WorldData.GetModdata("playerCultureGUID")) == cultureGUID) {
+						player.WorldData.SetModdata("playerCultureGUID", SerializerUtil.Serialize(GlobalCodes.seraphimGUID));
+					}
 				}
 			}
 			cultureList.Remove(culture);
@@ -1027,7 +1031,7 @@ namespace VSKingdom {
 			if (oldKingdom.PlayersGUID.Count == 0 && kingdomGUID != GlobalCodes.commonerGUID && kingdomGUID != GlobalCodes.banditryGUID) {
 				DeleteKingdom(oldKingdom.KingdomGUID);
 			} else if (oldKingdom.LeadersGUID == caller.PlayerUID) {
-				/** TODO: Start Elections if Kingdom is REPUBLIC or assign by RANK! **/
+				/* TODO: Start Elections if Kingdom is REPUBLIC or assign by RANK! */
 				oldKingdom.LeadersGUID = KingdomUtility.MostSeniority(serverAPI, oldKingdom.KingdomGUID);
 			}
 			newKingdom.PlayersGUID.Add(caller.PlayerUID);

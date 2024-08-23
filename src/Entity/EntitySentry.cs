@@ -51,8 +51,6 @@ namespace VSKingdom {
 				ServerAPI = sapi;
 				WatchedAttributes.RegisterModifiedListener("inventory", ReadInventoryFromAttributes);
 				GetBehavior<EntityBehaviorHealth>().onDamaged += (dmg, dmgSource) => HealthUtility.handleDamaged(World.Api, this, dmg, dmgSource);
-			}
-			if (Api.Side == EnumAppSide.Server) {
 				ReadInventoryFromAttributes();
 			}
 		}
@@ -60,35 +58,11 @@ namespace VSKingdom {
 		public override void OnEntitySpawn() {
 			base.OnEntitySpawn();
 			this.OnEntityLoaded();
-			for (int i = 0; i < GlobalCodes.dressCodes.Length; i++) {
-				string code = GlobalCodes.dressCodes[i] + "Spawn";
-				if (!Properties.Attributes[code].Exists) { break; }
-				try {
-					var item = World.GetItem(new AssetLocation(MathUtility.GetRandom(Properties.Attributes[code].AsArray<string>(null))));
-					ItemStack itemstack = new ItemStack(item, 1);
-					if (i == 18 && GearInventory[16].Itemstack.Item is ItemBow) {
-						itemstack = new ItemStack(item, MathUtility.GetRandom(item.MaxStackSize, 5));
-					}
-					var newstack = World.SpawnItemEntity(itemstack, this.ServerPos.XYZ) as EntityItem;
-					GearInventory[i].Itemstack = newstack?.Itemstack;
-					newstack.Die(EnumDespawnReason.PickedUp, null);
-					GearInvSlotModified(i);
-				} catch { }
-			}
 		}
 
 		public override void OnEntityLoaded() {
 			base.OnEntityLoaded();
 			if (Api.Side == EnumAppSide.Server) {
-				ruleOrder = new bool[7] {
-					WatchedAttributes.GetBool("orderWander", true),
-					WatchedAttributes.GetBool("orderFollow", false),
-					WatchedAttributes.GetBool("orderEngage", true),
-					WatchedAttributes.GetBool("orderPursue", true),
-					WatchedAttributes.GetBool("orderShifts", false),
-					WatchedAttributes.GetBool("orderPatrol", false),
-					WatchedAttributes.GetBool("orderReturn", false)
-				};
 				bool previousExists = cachedData != null;
 				cachedData = new SentryDataCache() {
 					moveSpeed = Properties.Attributes["moveSpeed"].AsFloat(0.030f),
@@ -112,6 +86,7 @@ namespace VSKingdom {
 					outlawsLIST = (previousExists ? cachedData.outlawsLIST : new string[] { })
 				};
 				UpdateStats();
+				UpdateTasks();
 			}
 			if (Api.Side == EnumAppSide.Client) {
 				bool previousExists = clientData != null;
@@ -281,7 +256,7 @@ namespace VSKingdom {
 			base.OnReceivedClientPacket(player, packetid, data);
 			switch (packetid) {
 				case 1502:
-					UpdateStuff(data);
+					UpdateInfos(data);
 					return;
 				case 1505:
 					player.InventoryManager.OpenInventory(GearInventory);
@@ -299,7 +274,7 @@ namespace VSKingdom {
 					UpdateStats();
 					return;
 				case 1502:
-					UpdateStuff(data);
+					UpdateInfos(data);
 					return;
 				case 1503:
 					UpdateTasks();
@@ -434,7 +409,7 @@ namespace VSKingdom {
 			}
 		}
 
-		public virtual void UpdateStuff(byte[] data) {
+		public virtual void UpdateInfos(byte[] data) {
 			SentryUpdateToEntity update = SerializerUtil.Deserialize<SentryUpdateToEntity>(data);
 			if (update == null) { return; }
 			WatchedAttributes.SetString("kingdomGUID", new string(update.kingdomGUID));

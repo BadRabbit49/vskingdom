@@ -27,15 +27,13 @@ namespace VSKingdom {
 			// Block Classes
 			api.RegisterBlockClass("BlockBody", typeof(BlockBody));
 			api.RegisterBlockClass("BlockPost", typeof(BlockPost));
-			// Block Behaviors //
-			api.RegisterBlockEntityBehaviorClass("Resupply", typeof(BlockBehaviorResupply));
 			// Block Entities //
 			api.RegisterBlockEntityClass("BlockEntityBody", typeof(BlockEntityBody));
 			api.RegisterBlockEntityClass("BlockEntityPost", typeof(BlockEntityPost));
-			// Items //
+			// Items Classes //
 			api.RegisterItemClass("ItemBanner", typeof(ItemBanner));
 			api.RegisterItemClass("ItemPeople", typeof(ItemPeople));
-			// Entities //
+			// Entity Classes //
 			api.RegisterEntity("EntitySentry", typeof(EntitySentry));
 			// Entity Behaviors //
 			api.RegisterEntityBehaviorClass("KingdomFullNames", typeof(EntityBehaviorFullNames));
@@ -192,7 +190,7 @@ namespace VSKingdom {
 			}
 			SaveAllData();
 		}
-
+		
 		private void LevelFinalize(ICoreClientAPI capi) {
 			capi.Gui.Icons.CustomIcons["backpack"] = capi.Gui.Icons.SvgIconSource(new AssetLocation("vskingdom:textures/icons/character/backpack.svg"));
 			capi.Gui.Icons.CustomIcons["baguette"] = capi.Gui.Icons.SvgIconSource(new AssetLocation("vskingdom:textures/icons/character/baguette.svg"));

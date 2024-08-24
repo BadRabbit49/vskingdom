@@ -10,6 +10,7 @@ namespace VSKingdom {
 		#pragma warning disable CS0108
 		public EntitySentry entity;
 		#pragma warning restore CS0108
+		protected bool stopMovement;
 		protected float groupsOffset;
 		protected float squaredRange;
 		protected float prvMoveSpeed;
@@ -124,7 +125,7 @@ namespace VSKingdom {
 			} else if (distance > 36f) {
 				curMoveSpeed = entity.cachedData.moveSpeed;
 				curAnimation = new string(entity.cachedData.moveAnims);
-			} else if (distance > 4f && distance < 36f) {
+			} else if (distance > squaredRange && distance < 36f) {
 				curMoveSpeed = entity.cachedData.walkSpeed;
 				curAnimation = new string(entity.cachedData.walkAnims);
 			} else {

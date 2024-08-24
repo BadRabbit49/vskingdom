@@ -291,10 +291,10 @@ namespace VSKingdom {
 				foreach (string point in allPoints) {
 					// [3,9,20] //
 					string[] coord = point.Replace("[", "").Replace("]", "").Split(',');
-					int ix = (int)Math.Ceiling(double.Parse(coord[0]) + capi.World.DefaultSpawnPosition.X);
-					int iy = (int)Math.Ceiling(double.Parse(coord[1]));
-					int iz = (int)Math.Ceiling(double.Parse(coord[2]) + capi.World.DefaultSpawnPosition.Z);
-					coords.Add(new Vec3i(ix, iy, iz));
+					int numX = (int)Math.Ceiling(double.Parse(coord[0]) + capi.World.DefaultSpawnPosition.X);
+					int numY = (int)Math.Ceiling(double.Parse(coord[1]));
+					int numZ = (int)Math.Ceiling(double.Parse(coord[2]) + capi.World.DefaultSpawnPosition.Z);
+					coords.Add(new Vec3i(numX, numY, numZ));
 				}
 				entity.WatchedAttributes.SetVec3is("patrolVec3i", coords.ToArray());
 			} catch { }
@@ -321,7 +321,10 @@ namespace VSKingdom {
 			}
 			string[] strpoints = new string[waypoints.Length];
 			for (int i = 0; i < waypoints.Length; i++) {
-				strpoints[i] = $"[{waypoints[i].X - capi.World.DefaultSpawnPosition.X},{waypoints[i].Y},{waypoints[i].Z - capi.World.DefaultSpawnPosition.Z}]";
+				int numX = (int)(waypoints[i].X - capi.World.DefaultSpawnPosition.X);
+				int numY = (int)(waypoints[i].Y);
+				int numZ = (int)(waypoints[i].Z - capi.World.DefaultSpawnPosition.Z);
+				strpoints[i] = $"[{numX},{numY},{numZ}]";
 			}
 			return string.Join(", ", strpoints);
 		}

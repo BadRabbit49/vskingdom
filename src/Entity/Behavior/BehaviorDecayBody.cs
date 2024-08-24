@@ -140,11 +140,11 @@ namespace VSKingdom {
 					}
 				}
 			} else {
-				foreach (ItemSlot item in entity.GearInventory) {
-					if (!item.Empty) {
-						entity.Api.World.SpawnItemEntity(item.Itemstack, entity.ServerPos.XYZ);
-						item.Itemstack = null;
-						item.MarkDirty();
+				for (int i = 0; i < entity.GearInventory.Count; i++) {
+					if (!entity.GearInventory[i].Empty) {
+						entity.Api.World.SpawnItemEntity(entity.GearInventory[i].Itemstack, entity.ServerPos.XYZ);
+						entity.GearInventory[i].Itemstack = null;
+						entity.GearInventory[i].MarkDirty();
 					}
 				}
 			}
@@ -201,7 +201,7 @@ namespace VSKingdom {
 					// Make sure it is safe to spawn here and we aren't going to suffocate or get stuck.
 					if (belowBlock.IsReplacableBy(new BlockRequireSolidGround()) && aboveBlock.IsReplacableBy(new BlockRequireSolidGround())) {
 						entity.TeleportTo(belowSpace);
-						outpost?.UseRespawn();
+						outpost?.UseRespawn(1);
 						entity.Revive();
 						// Stop decaying!
 						DiedInABattle = false;

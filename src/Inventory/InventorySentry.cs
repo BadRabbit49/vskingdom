@@ -1,4 +1,5 @@
-﻿using Vintagestory.API.Common;
+﻿using System.Linq;
+using Vintagestory.API.Common;
 
 namespace VSKingdom {
 	public class InventorySentry : InventoryGeneric {
@@ -32,6 +33,13 @@ namespace VSKingdom {
 			return (!isMerge) ? (baseWeight + 1f) : (baseWeight + 3f);
 		}
 
+		public override bool TryMoveItemStack(IPlayer player, string[] invIds, int[] slotIds, ref ItemStackMoveOperation op) {
+			if (player != null && WouldInventoryBeEmpty(slotIds)) {
+				return false;
+			}
+			return base.TryMoveItemStack(player, invIds, slotIds, ref op);
+		}
+
 		protected override ItemSlot NewSlot(int slotId) {
 			switch (slotId) {
 				case 15: return new ItemSlotKnightLeft(this);
@@ -41,6 +49,15 @@ namespace VSKingdom {
 				case 19: return new ItemSlotKnightHeal(this);
 				default: return new ItemSlotKnightWear(this, slotId);
 			}
+		}
+
+		public virtual bool WouldInventoryBeEmpty(int[] ignoreSlots) {
+			// How many slots are empty?
+			for (int i = 0; i < slots.Length; i++) {
+				if (ignoreSlots.Contains(i)) { continue; }
+				if (!slots[i].Empty) { return false; }
+			}
+			return true;
 		}
 	}
 }

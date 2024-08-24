@@ -2,7 +2,6 @@
 	"code": "post",
 	"class": "BlockPost",
 	"entityClass": "BlockEntityPost",
-	"entityBehaviors": [ { "name": "Resupply" } ],
 	"attributes": {
 		"handbook": { "includeByType": { "*-null-none-good": true, "*": false } }
 	},

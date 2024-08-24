@@ -12,14 +12,13 @@ using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
 using Vintagestory.GameContent;
-using System.Numerics;
 
 namespace VSKingdom {
 	public class EntitySentry : EntityHumanoid {
 		public EntitySentry() { }
 		public virtual bool[] ruleOrder { get; set; }
 		public virtual string inventory => "gear-" + EntityId;
-		public virtual EntityTalkUtil talkUtil { get; set; }
+		public virtual SentryTalkUtils sentryTalk { get; set; }
 		public virtual SentryDataCache cachedData { get; set; }
 		public virtual ClientDataCache clientData { get; set; }
 		public virtual InventorySentry gearInv { get; set; }
@@ -45,7 +44,7 @@ namespace VSKingdom {
 			// Register stuff for client-side api.
 			if (api is ICoreClientAPI capi) {
 				ClientAPI = capi;
-				talkUtil = new EntityTalkUtil(capi, this);
+				sentryTalk = new SentryTalkUtils(capi, this);
 			}
 			// Register listeners if api is on server.
 			if (api is ICoreServerAPI sapi) {

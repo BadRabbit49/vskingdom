@@ -92,7 +92,7 @@ namespace VSKingdom {
 			this.serverAPI = sapi;
 			this.serverLang = sapi.World.Config.GetString("ServerLanguage", "en");
 			sapi.Event.SaveGameCreated += MakeAllData;
-			sapi.Event.GameWorldSave += SaveAllData;
+			sapi.Event.GameWorldSave += WriteToDisk;
 			sapi.Event.SaveGameLoaded += LoadAllData;
 			sapi.Event.PlayerJoin += PlayerJoinsGame;
 			sapi.Event.PlayerDisconnect += PlayerLeaveGame;
@@ -138,6 +138,7 @@ namespace VSKingdom {
 			if (!cultureList.Exists(cultureMatch => cultureMatch.CultureGUID.Contains(GlobalCodes.clockwinGUID))) {
 				CreateCulture(GlobalCodes.clockwinGUID, Lang.GetL(serverLang, "vskingdom:entries-keyword-clocks"), null, false);
 			}
+
 		}
 
 		private void SavePlayers(IServerPlayer player) {
@@ -157,13 +158,23 @@ namespace VSKingdom {
 			serverAPI.WorldManager.SaveGame.StoreData("cultureData", SerializerUtil.Serialize(cultureList));
 		}
 
-		private void SaveAllData() {
+		private void SaveAllData(bool writeToDisk = true) {
 			serverAPI.WorldManager.SaveGame.StoreData("kingdomData", SerializerUtil.Serialize(kingdomList));
 			serverAPI.WorldManager.SaveGame.StoreData("cultureData", SerializerUtil.Serialize(cultureList));
 			foreach (var player in serverAPI.World.AllOnlinePlayers) { SavePlayers(player as IServerPlayer); }
 		}
 
 		private void LoadAllData() {
+			serverAPI.GetOrCreateDataPath("ModConfig/VSKingdom");
+			KingdomData kingdomData = VSKingdomData.ReadData<KingdomData>(serverAPI, "VSKingdom/KingdomData.json");
+			CultureData cultureData = VSKingdomData.ReadData<CultureData>(serverAPI, "VSKingdom/CultureData.json");
+			serverAPI.WorldManager.SaveGame.StoreData("kingdomData", SerializerUtil.Serialize(kingdomData.Kingdoms.Values.ToList()));
+			serverAPI.WorldManager.SaveGame.StoreData("cultureData", SerializerUtil.Serialize(cultureData.Cultures.Values.ToList()));
+			kingdomList = kingdomData.Kingdoms.Values.ToList();
+			cultureList = cultureData.Cultures.Values.ToList();
+		}
+
+		private void LoadBitData() {
 			byte[] kingdomData = serverAPI.WorldManager.SaveGame.GetData("kingdomData");
 			byte[] cultureData = serverAPI.WorldManager.SaveGame.GetData("cultureData");
 			kingdomList = kingdomData is null ? new List<Kingdom>() : SerializerUtil.Deserialize<List<Kingdom>>(kingdomData);
@@ -190,7 +201,16 @@ namespace VSKingdom {
 			}
 			SaveAllData();
 		}
-		
+
+		private void WriteToDisk() {
+			serverAPI.WorldManager.SaveGame.StoreData("kingdomData", SerializerUtil.Serialize(kingdomList));
+			serverAPI.WorldManager.SaveGame.StoreData("cultureData", SerializerUtil.Serialize(cultureList));
+			foreach (var player in serverAPI.World.AllOnlinePlayers) { SavePlayers(player as IServerPlayer); }
+			serverAPI.GetOrCreateDataPath("ModConfig/VSKingdom");
+			VSKingdomData.ReadData<KingdomData>(serverAPI, "VSKingdom/KingdomData.json");
+			VSKingdomData.ReadData<CultureData>(serverAPI, "VSKingdom/CultureData.json");
+		}
+
 		private void LevelFinalize(ICoreClientAPI capi) {
 			capi.Gui.Icons.CustomIcons["backpack"] = capi.Gui.Icons.SvgIconSource(new AssetLocation("vskingdom:textures/icons/character/backpack.svg"));
 			capi.Gui.Icons.CustomIcons["baguette"] = capi.Gui.Icons.SvgIconSource(new AssetLocation("vskingdom:textures/icons/character/baguette.svg"));

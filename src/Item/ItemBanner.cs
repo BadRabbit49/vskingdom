@@ -11,11 +11,9 @@ namespace VSKingdom {
 
 		public override void OnHeldInteractStart(ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel, bool firstEvent, ref EnumHandHandling handling) {
 			base.OnHeldInteractStart(slot, byEntity, blockSel, entitySel, firstEvent, ref handling);
-			if (byEntity is EntityPlayer player) {
-				if (player.Api.Side == EnumAppSide.Client) {
-					Vec3d coordinates = (player.Player.CurrentBlockSelection?.FullPosition ?? player.Player.CurrentEntitySelection?.Entity?.ServerPos.AsBlockPos.ToVec3d() ?? player.ServerPos.AsBlockPos.ToVec3d());
-					(player.Api as ICoreClientAPI)?.ShowChatMessage($"[{coordinates.X},{coordinates.Y},{coordinates.Z}]");
-				}
+			if (byEntity is EntityPlayer player && player.Api.Side == EnumAppSide.Client) {
+				Vec3d coordinates = (player.Player.CurrentBlockSelection?.FullPosition ?? player.Player.CurrentEntitySelection?.Entity?.ServerPos.AsBlockPos.ToVec3d() ?? player.ServerPos.AsBlockPos.ToVec3d());
+				(player.Api as ICoreClientAPI)?.ShowChatMessage($"[{coordinates.X},{coordinates.Y},{coordinates.Z}]");
 			}
 		}
 

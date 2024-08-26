@@ -158,7 +158,7 @@ namespace VSKingdom {
 			serverAPI.WorldManager.SaveGame.StoreData("cultureData", SerializerUtil.Serialize(cultureList));
 		}
 
-		private void SaveAllData(bool writeToDisk = true) {
+		private void SaveAllData() {
 			serverAPI.WorldManager.SaveGame.StoreData("kingdomData", SerializerUtil.Serialize(kingdomList));
 			serverAPI.WorldManager.SaveGame.StoreData("cultureData", SerializerUtil.Serialize(cultureList));
 			foreach (var player in serverAPI.World.AllOnlinePlayers) { SavePlayers(player as IServerPlayer); }
@@ -237,7 +237,7 @@ namespace VSKingdom {
 			player.Entity.WatchedAttributes.GetTreeAttribute("nametag")?.SetString("name", _roleplayName);
 
 			if (!player.Entity.WatchedAttributes.HasAttribute("kingdomGUID") || !KingdomExists(player.Entity.WatchedAttributes.GetString("kingdomGUID"))) {
-				serverAPI.Logger.Error(LangUtility.RefL(serverLang, "command-error-cantfind", "entries-keyword-kingdom"));
+				serverAPI.Logger.Error(LangUtility.SetL(serverLang, "command-error-cantfind", "entries-keyword-kingdom"));
 				player.Entity.WatchedAttributes.SetString("kingdomGUID", _kingdomsGuid);
 				Kingdom _kingdomsRefs = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == _kingdomsGuid);
 				foreach (var member in _kingdomsRefs.PlayersINFO) {
@@ -252,7 +252,7 @@ namespace VSKingdom {
 				SaveKingdom();
 			}
 			if (!player.Entity.WatchedAttributes.HasAttribute("cultureGUID") || !CultureExists(player.Entity.WatchedAttributes.GetString("cultureGUID"))) {
-				serverAPI.Logger.Error(LangUtility.RefL(serverLang, "command-error-cantfind", "entries-keyword-culture"));
+				serverAPI.Logger.Error(LangUtility.SetL(serverLang, "command-error-cantfind", "entries-keyword-culture"));
 				SwitchCulture(player, GlobalCodes.commonerGUID);
 			}
 			SavePlayers(player);

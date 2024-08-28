@@ -21,6 +21,8 @@
 		"helmSpawn": [ "game:clothes-armor-head-brigandine-iron", "game:armor-head-sewn-leather", "", "" ],
 		"bodySpawn": [ "game:clothes-armor-body-brigandine-iron", "game:armor-body-jerkin-leather", "", "" ],
 		"legsSpawn": [ "game:clothes-armor-body-brigandine-iron", "game:armor-legs-jerkin-leather", "", "" ],
+		"deathAnim": [ "dies", "dies1", "dies2" ],
+		"deathBone": [ "humanoid1", "humanoid2", "humanoid3", "humanoid4", "humanoid5", "humanoid6", "humanoid7" ],
 		"skinnableParts": [
 			{
 				"code": "baseskin",
@@ -320,7 +322,7 @@
 			{ "code": "emotionstates", "states": [ { "code": "aggressiveondamage", "duration": 7, "chance": 1.00, "slot": 0, "priority": 2, "accumType": "noaccum" }, { "code": "fleeondamage", "duration": 3, "chance": 0.50, "slot": 2, "priority": 5, "accumType": "max", "whenHealthRelBelow": 0.15 } ] },
 			{ "code": "KingdomFullNames" },
 			{ "code": "KingdomLoyalties" },
-			{ "code": "SoldierDecayBody", "hoursToDecay": 24, "skeletonBody": [ "humanoid1", "humanoid2" ] },
+			{ "code": "SoldierDecayBody", "hoursToDecay": 24 },
 			{
 				"code": "taskai",
 				"aitasks": [

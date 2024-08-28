@@ -13,6 +13,8 @@
 		"gearSpawn": [ "game:clothes-upperbody-tattered-linen-shirt" ],
 		"pantSpawn": [ "game:clothes-lowerbody-commoner-trousers", "game:clothes-lowerbody-survivor" ],
 		"shoeSpawn": [ "game:clothes-foot-survivor", "game:clothes-foot-peasent-slippers" ],
+		"deathAnim": [ "dies", "dies1", "dies2" ],
+		"deathBone": [ "humanoid1", "humanoid2", "humanoid3", "humanoid4", "humanoid5", "humanoid6", "humanoid7" ],
 		"skinnableParts": [
 			{
 				"code": "baseskin",
@@ -317,7 +319,7 @@
 			{ "code": "emotionstates", "states": [ { "code": "aggressiveondamage", "duration": 7, "chance": 1.00, "slot": 0, "priority": 2, "accumType": "noaccum" }, { "code": "fleeondamage", "duration": 3, "chance": 0.75, "slot": 2, "priority": 5, "accumType": "max", "whenHealthRelBelow": 0.15 } ] },
 			{ "code": "KingdomFullNames" },
 			{ "code": "KingdomLoyalties" },
-			{ "code": "SoldierDecayBody", "hoursToDecay": 96, "skeletonBody": [ "humanoid1", "humanoid2" ] },
+			{ "code": "SoldierDecayBody", "hoursToDecay": 96 },
 			{
 				"code": "taskai",
 				"aitasks": [

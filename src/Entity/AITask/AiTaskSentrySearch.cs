@@ -80,11 +80,6 @@ namespace VSKingdom {
 		}
 
 		public override bool CanContinueExecute() {
-			if (targetEntity == null) {
-				cancelSearch = true;
-				StopAnimation();
-				return false;
-			}
 			if (pathTraverser.Ready) {
 				lastAttackedAtMs = entity.World.ElapsedMilliseconds;
 				lastPathfind = true;
@@ -95,7 +90,8 @@ namespace VSKingdom {
 		}
 
 		public override bool ContinueExecute(float dt) {
-			if (cancelSearch || !targetEntity.Alive) {
+			if (cancelSearch || targetEntity == null || !targetEntity.Alive) {
+				cancelSearch = true;
 				return false;
 			}
 			if (currentFollowTime == 0f && world.Rand.NextDouble() < 0.25) {
@@ -156,7 +152,7 @@ namespace VSKingdom {
 			if (flag && currentFollowTime < maximumFollowTime && dist < seekingRange) {
 				if (!(dist > TargetDist())) {
 					if (targetEntity is EntityAgent entityAgent) {
-						return entityAgent?.ServerControls?.TriesToMove ?? false;
+						return entityAgent?.ServerControls.TriesToMove ?? false;
 					}
 					return false;
 				}
@@ -169,10 +165,9 @@ namespace VSKingdom {
 			cooldownUntilMs = entity.World.ElapsedMilliseconds + mincooldown + entity.World.Rand.Next(maxcooldown - mincooldown);
 			lastFinishedAtMs = entity.World.ElapsedMilliseconds;
 			if (targetEntity == null || !targetEntity.Alive) {
-				StopAnimation();
+				StopMovements();
 				targetEntity = null;
 				curTargetPos = null;
-				cancelSearch = true;
 			}
 		}
 
@@ -190,12 +185,18 @@ namespace VSKingdom {
 			curTargetPos = target?.ServerPos.XYZ ?? curTargetPos;
 		}
 
-		public void StopMovement() {
+		public void StopMovements() {
 			cancelSearch = true;
+			pathTraverser.CurrentTarget.X = entity.ServerPos.X;
+			pathTraverser.CurrentTarget.Y = entity.ServerPos.Y;
+			pathTraverser.CurrentTarget.Z = entity.ServerPos.Z;
+			pathTraverser.Stop();
 			StopAnimation();
 		}
 
 		private void DoDirect() {
+			// Just go forward towards the target!
+			if (cancelSearch) { return; }
 			int searchDepth = (world.Rand.NextDouble() < 0.05) ? 10000 : 3500;
 			attackPattern = EnumAttackPattern.DirectAttack;
 			MoveAnimation();
@@ -204,6 +205,7 @@ namespace VSKingdom {
 
 		private void DoSieged() {
 			// Unable to perform direct attack pattern, trying sieged!
+			if (cancelSearch) { return; }
 			attackPattern = EnumAttackPattern.BesiegeTarget;
 			MoveAnimation();
 			pathTraverser.NavigateTo_Async(curTargetPos, curMoveSpeed, TargetDist(), OnGoals, OnStuck, DoCircle, 3500, 3);
@@ -211,6 +213,7 @@ namespace VSKingdom {
 
 		private void DoCircle() {
 			// Unable to perform sieged attack pattern, trying circle!
+			if (cancelSearch) { return; }
 			if (curTargetPos.DistanceTo(entity.ServerPos.XYZ) > seekingRange) {
 				Retreats();
 				return;
@@ -277,6 +280,7 @@ namespace VSKingdom {
 
 		private void OnGoals() {
 			if (attackPattern != 0 && attackPattern != EnumAttackPattern.BesiegeTarget) { return; }
+			if (cancelSearch) { return; }
 			if (lastGoalReachedPos != null && lastGoalReachedPos.SquareDistanceTo(entity.ServerPos) < 0.005f) {
 				if (futilityCounters == null) {
 					futilityCounters = new Dictionary<long, int>();
@@ -306,10 +310,10 @@ namespace VSKingdom {
 			} else if (entity.Swimming) {
 				curMoveSpeed = entity.cachedData.moveSpeed;
 				curAnimation = new string(entity.cachedData.swimAnims);
-			} else if (distance > 81f) {
+			} else if (distance >= 25f) {
 				curMoveSpeed = entity.cachedData.moveSpeed;
 				curAnimation = new string(entity.cachedData.moveAnims);
-			} else if (distance > 1f && distance < 81f) {
+			} else if (distance >= 1f && distance < 25f) {
 				curMoveSpeed = entity.cachedData.walkSpeed;
 				curAnimation = new string(entity.cachedData.walkAnims);
 			} else {
@@ -366,6 +370,13 @@ namespace VSKingdom {
 				return true;
 			}
 			return blockReinforcement.IsLockedForInteract(pos, world.PlayerByUid(entity.cachedData.leadersGUID));
+		}
+
+		private bool ValidPos(Vec3d pos) {
+			if (world.CollisionTester.IsColliding(world.BlockAccessor, entity.SelectionBox, pos, false)) {
+				return !world.CollisionTester.IsColliding(world.BlockAccessor, entity.SelectionBox, new Vec3d().Set(pos).Add(0.0, 1.2, 0.0), false);
+			}
+			return true;
 		}
 
 		private bool NotSafe() {

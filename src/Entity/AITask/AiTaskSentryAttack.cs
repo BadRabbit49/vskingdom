@@ -191,6 +191,9 @@ namespace VSKingdom {
 
 		public override void FinishExecute(bool cancelled) {
 			cooldownUntilMs = entity.World.ElapsedMilliseconds + mincooldown + entity.World.Rand.Next(maxcooldown - mincooldown);
+			if (targetEntity == null || !targetEntity.Alive || !IsTargetableEntity(targetEntity, (float)targetEntity.ServerPos.DistanceTo(entity.ServerPos))) {
+				searchTask.StopMovements();
+			}
 			if (currAnim != null) {
 				entity.AnimManager.StopAnimation(currAnim);
 			}
@@ -244,7 +247,7 @@ namespace VSKingdom {
 			}, damage * GlobalConstants.CreatureDamageModifier);
 			// Only jump back if they killing blow was not dealt.
 			if (alive && !targetEntity.Alive) {
-				searchTask.StopMovement();
+				searchTask.StopMovements();
 				cancelAttack = true;
 				return false;
 			}

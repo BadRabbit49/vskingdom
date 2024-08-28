@@ -17,7 +17,6 @@ namespace VSKingdom {
 		Harmony harmony = new Harmony("badrabbit49.vskingdom");
 		public ICoreClientAPI clientAPI;
 		public ICoreServerAPI serverAPI;
-		public string serverLang { get; set; }
 
 		private List<Kingdom> kingdomList;
 		private List<Culture> cultureList;
@@ -69,12 +68,6 @@ namespace VSKingdom {
 				.WithAlias("culture")
 				.WithArgs(api.ChatCommands.Parsers.Word("commands", GlobalCodes.cultureCommands), api.ChatCommands.Parsers.OptionalAll("argument"))
 				.HandleWith(new OnCommandDelegate(OnCulturesCommand));
-			api.ChatCommands.Create("roleplay")
-				.RequiresPrivilege(Privilege.chat)
-				.RequiresPlayer()
-				.WithAlias("rewrite")
-				.WithArgs(api.ChatCommands.Parsers.Word("commands", GlobalCodes.rewriteCommands), api.ChatCommands.Parsers.OptionalAll("argument"))
-				.HandleWith(new OnCommandDelegate(OnRoleplayCommand));
 		}
 
 		public override void StartClientSide(ICoreClientAPI capi) {
@@ -90,7 +83,6 @@ namespace VSKingdom {
 		public override void StartServerSide(ICoreServerAPI sapi) {
 			base.StartServerSide(sapi);
 			this.serverAPI = sapi;
-			this.serverLang = sapi.World.Config.GetString("ServerLanguage", "en");
 			sapi.Event.SaveGameCreated += MakeAllData;
 			sapi.Event.GameWorldSave += WriteToDisk;
 			sapi.Event.SaveGameLoaded += LoadAllData;
@@ -110,10 +102,14 @@ namespace VSKingdom {
 		}
 
 		private void MakeAllData() {
-			byte[] kingdomData = serverAPI.WorldManager.SaveGame.GetData("kingdomData");
-			byte[] cultureData = serverAPI.WorldManager.SaveGame.GetData("cultureData");
-			kingdomList = kingdomData is null ? new List<Kingdom>() : SerializerUtil.Deserialize<List<Kingdom>>(kingdomData);
-			cultureList = cultureData is null ? new List<Culture>() : SerializerUtil.Deserialize<List<Culture>>(cultureData);
+			if (kingdomList is null || kingdomList.Count == 0) {
+				byte[] kingdomData = serverAPI.WorldManager.SaveGame.GetData("kingdomData");
+				kingdomList = kingdomData is null ? new List<Kingdom>() : SerializerUtil.Deserialize<List<Kingdom>>(kingdomData);
+			}
+			if (cultureList is null || cultureList.Count == 0) {
+				byte[] cultureData = serverAPI.WorldManager.SaveGame.GetData("cultureData");
+				cultureList = cultureData is null ? new List<Culture>() : SerializerUtil.Deserialize<List<Culture>>(cultureData);
+			}
 			if (!kingdomList.Exists(kingdomMatch => kingdomMatch.KingdomGUID == GlobalCodes.commonerGUID)) {
 				CreateKingdom(GlobalCodes.commonerGUID, Lang.GetL(serverLang, "vskingdom:entries-keyword-common"), null, false);
 				var commoners = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == GlobalCodes.commonerGUID);
@@ -121,6 +117,9 @@ namespace VSKingdom {
 				commoners.KingdomHEXB = "#b5b5b5";
 				commoners.KingdomHEXC = "#ffffff";
 				commoners.MembersROLE = "Commoner/T/T/T/T/F/F";
+				commoners.LeadersNAME = "Nobody";
+				commoners.LeadersLONG = null;
+				commoners.LeadersDESC = null;
 				SaveKingdom();
 			}
 			if (!kingdomList.Exists(kingdomMatch => kingdomMatch.KingdomGUID == GlobalCodes.banditryGUID)) {
@@ -130,6 +129,9 @@ namespace VSKingdom {
 				banditrys.KingdomHEXB = "#0c0c0c";
 				banditrys.KingdomHEXC = "#ff9300";
 				banditrys.MembersROLE = "Banditry/T/T/T/T/F/F";
+				banditrys.LeadersNAME = "Nobody";
+				banditrys.LeadersLONG = null;
+				banditrys.LeadersDESC = null;
 				SaveKingdom();
 			}
 			if (!cultureList.Exists(cultureMatch => cultureMatch.CultureGUID.Contains(GlobalCodes.seraphimGUID))) {
@@ -138,16 +140,7 @@ namespace VSKingdom {
 			if (!cultureList.Exists(cultureMatch => cultureMatch.CultureGUID.Contains(GlobalCodes.clockwinGUID))) {
 				CreateCulture(GlobalCodes.clockwinGUID, Lang.GetL(serverLang, "vskingdom:entries-keyword-clocks"), null, false);
 			}
-
-		}
-
-		private void SavePlayers(IServerPlayer player) {
-			string _roleplayName = player.Entity.WatchedAttributes.GetTreeAttribute("nametag")?.GetString("name");
-			string _kingdomsGuid = player.Entity.WatchedAttributes.GetString("kingdomGUID") ?? new string(GlobalCodes.commonerGUID);
-			string _culturesGuid = player.Entity.WatchedAttributes.GetString("cultureGUID") ?? new string(GlobalCodes.seraphimGUID);
-			player.WorldData.SetModdata("playerNametagNAME", SerializerUtil.Serialize(_roleplayName));
-			player.WorldData.SetModdata("playerKingdomGUID", SerializerUtil.Serialize(_kingdomsGuid));
-			player.WorldData.SetModdata("playerCultureGUID", SerializerUtil.Serialize(_culturesGuid));
+			WriteToDisk();
 		}
 
 		private void SaveKingdom() {
@@ -161,7 +154,6 @@ namespace VSKingdom {
 		private void SaveAllData() {
 			serverAPI.WorldManager.SaveGame.StoreData("kingdomData", SerializerUtil.Serialize(kingdomList));
 			serverAPI.WorldManager.SaveGame.StoreData("cultureData", SerializerUtil.Serialize(cultureList));
-			foreach (var player in serverAPI.World.AllOnlinePlayers) { SavePlayers(player as IServerPlayer); }
 		}
 
 		private void LoadAllData() {
@@ -172,6 +164,7 @@ namespace VSKingdom {
 			serverAPI.WorldManager.SaveGame.StoreData("cultureData", SerializerUtil.Serialize(cultureData.Cultures.Values.ToList()));
 			kingdomList = kingdomData.Kingdoms.Values.ToList();
 			cultureList = cultureData.Cultures.Values.ToList();
+			MakeAllData();
 		}
 
 		private void LoadBitData() {
@@ -200,12 +193,12 @@ namespace VSKingdom {
 				}
 			}
 			SaveAllData();
+			WriteToDisk();
 		}
 
 		private void WriteToDisk() {
 			serverAPI.WorldManager.SaveGame.StoreData("kingdomData", SerializerUtil.Serialize(kingdomList));
 			serverAPI.WorldManager.SaveGame.StoreData("cultureData", SerializerUtil.Serialize(cultureList));
-			foreach (var player in serverAPI.World.AllOnlinePlayers) { SavePlayers(player as IServerPlayer); }
 			serverAPI.GetOrCreateDataPath("ModConfig/VSKingdom");
 			VSKingdomData.ReadData<KingdomData>(serverAPI, "VSKingdom/KingdomData.json");
 			VSKingdomData.ReadData<CultureData>(serverAPI, "VSKingdom/CultureData.json");
@@ -222,50 +215,60 @@ namespace VSKingdom {
 		}
 
 		private void PlayerJoinsGame(IServerPlayer player) {
-			bool _needsNewInfo = true;
+			bool _notInKingdom = !player.Entity.WatchedAttributes.HasAttribute("kingdomGUID") || !KingdomExists(player.Entity.WatchedAttributes.GetString("kingdomGUID"));
+			bool _notInCulture = !player.Entity.WatchedAttributes.HasAttribute("cultureGUID") || !CultureExists(player.Entity.WatchedAttributes.GetString("cultureGUID"));
 			bool _hideNametags = serverAPI.World.Config.GetBool("HideAllNames", true);
 			long _nametagRange = serverAPI.World.Config.GetInt("NameRenderDist", 100);
-			bool _hasRPNametag = player.WorldData.GetModdata("playerNametagNAME") != null;
-			bool _hasKingdomID = player.WorldData.GetModdata("playerKingdomGUID") != null;
-			bool _hasCultureID = player.WorldData.GetModdata("playerCultureGUID") != null;
-			string _roleplayName = _hasRPNametag ? SerializerUtil.Deserialize<string>(player.WorldData.GetModdata("playerNametagNAME")) : new string(player.PlayerName);
-			string _kingdomsGuid = _hasRPNametag ? SerializerUtil.Deserialize<string>(player.WorldData.GetModdata("playerKingdomGUID")) : new string(GlobalCodes.commonerGUID);
-			string _culturesGuid = _hasCultureID ? SerializerUtil.Deserialize<string>(player.WorldData.GetModdata("playerCultureGUID")) : new string(GlobalCodes.seraphimGUID);
-
 			player.Entity.WatchedAttributes.GetTreeAttribute("nametag")?.SetBool("showtagonlywhentargeted", _hideNametags);
 			player.Entity.WatchedAttributes.GetTreeAttribute("nametag")?.SetInt("renderRange", (int)_nametagRange);
-			player.Entity.WatchedAttributes.GetTreeAttribute("nametag")?.SetString("name", _roleplayName);
-
-			if (!player.Entity.WatchedAttributes.HasAttribute("kingdomGUID") || !KingdomExists(player.Entity.WatchedAttributes.GetString("kingdomGUID"))) {
+			if (_notInKingdom) {
 				serverAPI.Logger.Error(LangUtility.SetL(serverLang, "command-error-cantfind", "entries-keyword-kingdom"));
-				player.Entity.WatchedAttributes.SetString("kingdomGUID", _kingdomsGuid);
-				Kingdom _kingdomsRefs = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == _kingdomsGuid);
-				foreach (var member in _kingdomsRefs.PlayersINFO) {
-					if (member.Split(':')[0] == player.PlayerUID) { _needsNewInfo = false; break; }
+				foreach (Kingdom kingdom in kingdomList) {
+					bool _needsInfo = true;
+					bool _commoners = kingdom.KingdomGUID == GlobalCodes.commonerGUID;
+					if (kingdom.PlayersGUID.Contains(player.PlayerUID)) {
+						player.Entity.WatchedAttributes.SetString("kingdomGUID", kingdom.KingdomGUID);
+						foreach (var member in kingdom.PlayersINFO) {
+							if (member.Split(':')[0] == player.PlayerUID) {
+								_needsInfo = false;
+								break;
+							}
+						}
+						if (_needsInfo && !_commoners) {
+							kingdom.PlayersINFO.Add(KingdomUtility.PlayerDetails(player.PlayerUID, kingdom.MembersROLE, null));
+						}
+						if (!kingdom.PlayersGUID.Contains(player.PlayerUID) && !_commoners) {
+							kingdom.PlayersGUID.Add(player.PlayerUID);
+						}
+						SaveKingdom();
+						break;
+					}
 				}
-				if (_needsNewInfo) {
-					_kingdomsRefs.PlayersINFO.Add(KingdomUtility.PlayerDetails(player.PlayerUID, _kingdomsRefs.MembersROLE, null));
-				}
-				if (!_kingdomsRefs.PlayersGUID.Contains(player.PlayerUID)) {
-					_kingdomsRefs.PlayersGUID.Add(player.PlayerUID);
-				}
-				SaveKingdom();
 			}
-			if (!player.Entity.WatchedAttributes.HasAttribute("cultureGUID") || !CultureExists(player.Entity.WatchedAttributes.GetString("cultureGUID"))) {
+			if (_notInCulture) {
 				serverAPI.Logger.Error(LangUtility.SetL(serverLang, "command-error-cantfind", "entries-keyword-culture"));
-				SwitchCulture(player, GlobalCodes.commonerGUID);
+				foreach (Culture culture in cultureList) {
+					bool _commoners = culture.CultureGUID == GlobalCodes.seraphimGUID;
+					if (culture.PlayersGUID.Contains(player.PlayerUID)) {
+						player.Entity.WatchedAttributes.SetString("cultureGUID", culture.CultureGUID);
+						if (!culture.PlayersGUID.Contains(player.PlayerUID) && !_commoners) {
+							culture.PlayersGUID.Add(player.PlayerUID);
+						}
+						SaveCulture();
+						break;
+					}
+				}
 			}
-			SavePlayers(player);
 			UpdateSentries(player.Entity.ServerPos.XYZ);
 		}
 		
 		private void PlayerLeaveGame(IServerPlayer player) {
-			SavePlayers(player);
 			SaveAllData();
 		}
 
 		private void PlayerDeathFrom(IServerPlayer player, DamageSource damage) {
-			if (serverAPI.World.Config.GetAsBool("DropsOnDeath") && damage.GetCauseEntity() is EntitySentry) {
+			if (serverAPI.ModLoader.IsModEnabled("playercorpse")) { return; }
+			if (serverAPI.World.Config.GetAsBool("AllowLooting") && damage.GetCauseEntity() is EntitySentry) {
 				var killer = damage.GetCauseEntity();
 				var victim = player.Entity;
 				var thatKingdom = killer.WatchedAttributes.GetString("kingdomGUID", GlobalCodes.commonerGUID);
@@ -273,7 +276,7 @@ namespace VSKingdom {
 				// If the entities were at war with eachother then loot will be dropped. Specifically their armor and what they had in their right hand slot.
 				if (thisKingdom.EnemiesGUID.Contains(thatKingdom) || thatKingdom == GlobalCodes.banditryGUID) {
 					// If the killer can, try looting the player corpse right away, take what is better.
-					if (serverAPI.World.Config.GetAsBool("AllowLooting") && killer is EntitySentry sentry) {
+					if (killer is EntitySentry sentry) {
 						for (int i = 12; i < 14; i++) {
 							if (victim.GearInventory[i].Empty) {
 								continue;
@@ -305,54 +308,55 @@ namespace VSKingdom {
 							}
 						}
 					}
+				}
+			}
+			if (serverAPI.World.Config.GetAsBool("DropsOnDeath")) {
+				var blockAccessor = serverAPI.World.BlockAccessor;
+				double x = player.Entity.ServerPos.X + player.Entity.SelectionBox.X1 - player.Entity.OriginSelectionBox.X1;
+				double y = player.Entity.ServerPos.Y + player.Entity.SelectionBox.Y1 - player.Entity.OriginSelectionBox.Y1;
+				double z = player.Entity.ServerPos.Z + player.Entity.SelectionBox.Z1 - player.Entity.OriginSelectionBox.Z1;
+				double d = player.Entity.ServerPos.Dimension;
 
-					var blockAccessor = victim.World.BlockAccessor;
-					double x = victim.ServerPos.X + victim.SelectionBox.X1 - victim.OriginSelectionBox.X1;
-					double y = victim.ServerPos.Y + victim.SelectionBox.Y1 - victim.OriginSelectionBox.Y1;
-					double z = victim.ServerPos.Z + victim.SelectionBox.Z1 - victim.OriginSelectionBox.Z1;
-					double d = victim.ServerPos.Dimension;
-
-					BlockPos bonePos = new BlockPos((int)x, (int)y, (int)z, (int)d);
-					string[] SkeletonBodies = new string[] { "humanoid1", "humanoid2" };
-					Block skeletonBlock = serverAPI.World.GetBlock(new AssetLocation(LangUtility.Get("body-" + SkeletonBodies[serverAPI.World.Rand.Next(0, SkeletonBodies.Length)])));
-					Block exblock = blockAccessor.GetBlock(bonePos);
-					bool placedBlock = false;
-					// Ensure the blocks here are replaceable like grass or something.
-					if (exblock.IsReplacableBy(new BlockRequireSolidGround())) {
-						blockAccessor.SetBlock(skeletonBlock.BlockId, bonePos);
-						blockAccessor.MarkBlockDirty(bonePos);
-						placedBlock = true;
-					} else {
-						foreach (BlockFacing facing in BlockFacing.HORIZONTALS) {
-							facing.IterateThruFacingOffsets(bonePos);
-							exblock = blockAccessor.GetBlock(bonePos);
-							if (exblock.IsReplacableBy(new BlockRequireSolidGround())) {
-								blockAccessor.SetBlock(skeletonBlock.BlockId, bonePos);
-								blockAccessor.MarkBlockDirty(bonePos);
-								placedBlock = true;
-								break;
-							}
+				BlockPos bonePos = new BlockPos((int)x, (int)y, (int)z, (int)d);
+				string[] SkeletonBodies = new string[] { "humanoid1", "humanoid2" };
+				Block skeletonBlock = serverAPI.World.GetBlock(new AssetLocation(LangUtility.Get("body-" + SkeletonBodies[serverAPI.World.Rand.Next(0, SkeletonBodies.Length)])));
+				Block exblock = blockAccessor.GetBlock(bonePos);
+				bool placedBlock = false;
+				// Ensure the blocks here are replaceable like grass or something.
+				if (exblock.IsReplacableBy(new BlockRequireSolidGround())) {
+					blockAccessor.SetBlock(skeletonBlock.BlockId, bonePos);
+					blockAccessor.MarkBlockDirty(bonePos);
+					placedBlock = true;
+				} else {
+					foreach (BlockFacing facing in BlockFacing.HORIZONTALS) {
+						facing.IterateThruFacingOffsets(bonePos);
+						exblock = blockAccessor.GetBlock(bonePos);
+						if (exblock.IsReplacableBy(new BlockRequireSolidGround())) {
+							blockAccessor.SetBlock(skeletonBlock.BlockId, bonePos);
+							blockAccessor.MarkBlockDirty(bonePos);
+							placedBlock = true;
+							break;
 						}
 					}
-					// Spawn the body block here if it was placed, drop all items if not possible.
-					if (placedBlock && victim.WatchedAttributes.HasAttribute("inventory")) {
-						// Initialize BlockEntityBody here and put stuff into it.
-						if (blockAccessor.GetBlockEntity(bonePos) is BlockEntityBody decblock) {
-							// Get the inventory of the person who died if they have one.
-							for (int i = 12; i < 14; i++) {
-								try { victim.GearInventory[i].TryPutInto(serverAPI.World, decblock.gearInv[i], victim.GearInventory[i].StackSize); } catch { }
-							}
-							if (!victim.RightHandItemSlot.Empty && victim.RightHandItemSlot.Itemstack.Collectible.Attributes["toolrackTransform"].Exists) {
-								try { victim.RightHandItemSlot.TryPutInto(serverAPI.World, decblock.gearInv[16], 1); } catch { }
-							}
+				}
+				// Spawn the body block here if it was placed, drop all items if not possible.
+				if (placedBlock && player.Entity.WatchedAttributes.HasAttribute("inventory")) {
+					// Initialize BlockEntityBody here and put stuff into it.
+					if (blockAccessor.GetBlockEntity(bonePos) is BlockEntityBody decblock) {
+						// Get the inventory of the person who died if they have one.
+						for (int i = 12; i < 14; i++) {
+							try { player.Entity.GearInventory[i].TryPutInto(serverAPI.World, decblock.gearInv[i], player.Entity.GearInventory[i].StackSize); } catch { }
 						}
-					} else {
-						foreach (ItemSlot item in victim.GearInventory) {
-							if (!item.Empty) {
-								serverAPI.World.SpawnItemEntity(item.Itemstack, victim.ServerPos.XYZ);
-								item.Itemstack = null;
-								item.MarkDirty();
-							}
+						if (!player.Entity.RightHandItemSlot.Empty && player.Entity.RightHandItemSlot.Itemstack.Collectible.Attributes["toolrackTransform"].Exists) {
+							try { player.Entity.RightHandItemSlot.TryPutInto(serverAPI.World, decblock.gearInv[16], 1); } catch { }
+						}
+					}
+				} else {
+					foreach (ItemSlot item in player.Entity.GearInventory) {
+						if (!item.Empty) {
+							serverAPI.World.SpawnItemEntity(item.Itemstack, player.Entity.ServerPos.XYZ);
+							item.Itemstack = null;
+							item.MarkDirty();
 						}
 					}
 				}
@@ -522,9 +526,9 @@ namespace VSKingdom {
 				case "create":
 					if (!usingArgs) {
 						return TextCommandResult.Error(LangUtility.SetL(langCode, "command-error-argsnone", string.Concat(args.Command.ToString(), (string)args[0])));
-					} else if (NameTaken(fullargs)) {
+					} else if (!NameAvailable(fullargs, null)) {
 						return TextCommandResult.Error(LangUtility.SetL(langCode, "command-error-nametook", keywords[0]));
-					} else if (InKingdom(callerID)) {
+					} else if (PartOfKingdom(callerID)) {
 						return TextCommandResult.Error(LangUtility.SetL(langCode, "command-error-ismember", keywords[0]));
 					} else if (!canCreate) {
 						return TextCommandResult.Error(LangUtility.SetL(langCode, "command-error-badperms", (string)args[0]));
@@ -639,7 +643,7 @@ namespace VSKingdom {
 				case "become":
 					if (!KingdomExists(null, fullargs)) {
 						return TextCommandResult.Error(LangUtility.SetL(langCode, "command-error-notexist", keywords[0]));
-					} else if (GetKingdom(null, fullargs).PlayersGUID.Contains(thisPlayer.PlayerUID)) {
+					} else if (GetKingdom(fullargs).PlayersGUID.Contains(thisPlayer.PlayerUID)) {
 						return TextCommandResult.Error(LangUtility.SetL(langCode, "command-error-ismember", keywords[0]));
 					}
 					/* TODO: ADD REQUEST TO JOIN TO QUERY thatKingdom.RequestGUID */
@@ -681,7 +685,7 @@ namespace VSKingdom {
 					return TextCommandResult.Success(LangUtility.SetL(langCode, "command-success-rebels", thisKingdom.KingdomNAME));
 				// Declares war on Kingdom.
 				case "attack":
-					if (!IsKingdom(null, fullargs)) {
+					if (!KingdomExists(null, fullargs)) {
 						return TextCommandResult.Error(LangUtility.SetL(langCode, "command-error-notexist", fullargs));
 					} else if (!inKingdom) {
 						return TextCommandResult.Error(LangUtility.SetL(langCode, "command-error-nopartof", keywords[0]));
@@ -695,7 +699,7 @@ namespace VSKingdom {
 					}
 				// Declares peace to Kingdom.
 				case "treaty":
-					if (!IsKingdom(null, fullargs)) {
+					if (!KingdomExists(null, fullargs)) {
 						return TextCommandResult.Error(LangUtility.SetL(langCode, "command-error-notexist", fullargs));
 					} else if (!inKingdom) {
 						return TextCommandResult.Error(LangUtility.SetL(langCode, "command-error-nopartof", keywords[0]));
@@ -778,7 +782,7 @@ namespace VSKingdom {
 				case "create":
 					if (!usingArgs) {
 						return TextCommandResult.Error(LangUtility.SetL(langCode, "command-error-argsnone", (string)args[0]));
-					} else if (cultureList.Exists(cultureMatch => cultureMatch.CultureNAME.ToLowerInvariant() == fullargs?.ToLowerInvariant())) {
+					} else if (!NameAvailable(null, fullargs)) {
 						return TextCommandResult.Error(LangUtility.SetL(langCode, "command-error-nametook", keywords[0]));
 					} else if (!canCreate && !adminPass) {
 						return TextCommandResult.Error(LangUtility.SetL(langCode, "command-error-badperms", (string)args[0]));
@@ -814,7 +818,7 @@ namespace VSKingdom {
 				case "invite":
 					if (!usingArgs && thisPlayer.CurrentEntitySelection.Entity is EntityPlayer) {
 						thatPlayer = (thisPlayer.CurrentEntitySelection.Entity as EntityPlayer)?.Player;
-						thisCulture.InviteGUID.Add(thatPlayer.PlayerUID);
+						thisCulture.InvitesGUID.Add(thatPlayer.PlayerUID);
 						SaveCulture();
 						return TextCommandResult.Success(LangUtility.SetL(langCode, "command-success-invite", thatPlayer.PlayerName));
 					} else if (!usingArgs) {
@@ -822,14 +826,14 @@ namespace VSKingdom {
 					} else if (thatPlayer == null) {
 						return TextCommandResult.Error(LangUtility.SetL(langCode, "command-error-noplayer", fullargs));
 					}
-					thisCulture.InviteGUID.Add(thatPlayer.PlayerUID);
+					thisCulture.InvitesGUID.Add(thatPlayer.PlayerUID);
 					SaveCulture();
 					return TextCommandResult.Success(LangUtility.SetL(langCode, "command-success-invite", thatPlayer.PlayerName));
 				// Accept invite to join culture.
 				case "accept":
 					if (!usingArgs) {
 						return TextCommandResult.Success(CultureInvite(callerID));
-					} else if (thatCulture != null && thatCulture.InviteGUID.Contains(thisPlayer.PlayerUID)) {
+					} else if (thatCulture != null && thatCulture.InvitesGUID.Contains(thisPlayer.PlayerUID)) {
 						SwitchCulture(thisPlayer as IServerPlayer, thatCulture.CultureGUID);
 						return TextCommandResult.Success(LangUtility.SetL(langCode, "command-success-accept", thatCulture.CultureNAME));
 					}
@@ -838,12 +842,12 @@ namespace VSKingdom {
 				case "reject":
 					if (!usingArgs) {
 						return TextCommandResult.Success(CultureInvite(callerID));
-					} else if (inCulture && thatPlayer != null && thisCulture.InviteGUID.Contains(thatPlayer.PlayerUID)) {
-						thisCulture.InviteGUID.Remove(thatPlayer.PlayerUID);
+					} else if (inCulture && thatPlayer != null && thisCulture.InvitesGUID.Contains(thatPlayer.PlayerUID)) {
+						thisCulture.InvitesGUID.Remove(thatPlayer.PlayerUID);
 						SaveCulture();
 						return TextCommandResult.Success(LangUtility.SetL(langCode, "command-success-reject", thatPlayer.PlayerUID));
-					} else if (thatCulture != null && thatCulture.InviteGUID.Contains(thisPlayer.PlayerUID)) {
-						thatCulture.InviteGUID.Remove(thisPlayer.PlayerUID);
+					} else if (thatCulture != null && thatCulture.InvitesGUID.Contains(thisPlayer.PlayerUID)) {
+						thatCulture.InvitesGUID.Remove(thisPlayer.PlayerUID);
 						SaveCulture();
 						return TextCommandResult.Success(LangUtility.SetL(langCode, "command-success-reject", thatCulture.CultureNAME));
 					}
@@ -876,34 +880,6 @@ namespace VSKingdom {
 			return TextCommandResult.Error(LangUtility.GetL(langCode, "command-help-culture"));
 		}
 
-		private TextCommandResult OnRoleplayCommand(TextCommandCallingArgs args) {
-			string fullargs = (string)args[1];
-			string callerID = args.Caller.Player.PlayerUID;
-			string langCode = args.LanguageCode;
-			IPlayer thisPlayer = args.Caller.Player;
-			IPlayer thatPlayer = serverAPI.World.PlayerByUid(serverAPI.PlayerData.GetPlayerDataByLastKnownName(fullargs.Split(' ')[0])?.PlayerUID) ?? null;
-			bool hasAdminPass = args.Caller.HasPrivilege(Privilege.controlserver) || args.Caller.Player.PlayerName == "BadRabbit49";
-			bool playerRename = new string[] { "rename", "name", "firstname", "first", "username", "setname" }.Contains((string)args[0]);
-			bool changePlayer = hasAdminPass && playerRename && thatPlayer != null;
-			if (!serverAPI.World.Config.GetBool("AllowRenames") || args.ArgCount < 1 || (string)args[1] == null || (string)args[1] == "") {
-				return TextCommandResult.Error(LangUtility.SetL(langCode, "command-error-unknowns", (string)args[0]));
-			}
-			if (changePlayer) {
-				string newName = string.Join(' ', fullargs.Split(' ').RemoveEntry(0));
-				serverAPI.Logger.Notification($"{thisPlayer.PlayerName} has renamed {thatPlayer.PlayerName} from {thatPlayer.Entity.WatchedAttributes.GetTreeAttribute("nametag")?.GetString("name")} to {newName}.");
-				(thatPlayer as IServerPlayer)?.WorldData.SetModdata("playerNametagNAME", SerializerUtil.Serialize(newName));
-				(thatPlayer as IServerPlayer)?.Entity.WatchedAttributes.GetTreeAttribute("nametag")?.SetString("name", newName);
-				return TextCommandResult.Success($"Changed {thatPlayer.PlayerName}'s name to {newName}!");
-			}
-			if (playerRename) {
-				serverAPI.Logger.Notification($"{thisPlayer.PlayerName} has renamed themselves from {thisPlayer.Entity.WatchedAttributes.GetTreeAttribute("nametag")?.GetString("name")} to {(string)args[1]}.");
-				(thisPlayer as IServerPlayer)?.WorldData.SetModdata("playerNametagNAME", SerializerUtil.Serialize((string)args[1]));
-				(thisPlayer as IServerPlayer)?.Entity.WatchedAttributes.GetTreeAttribute("nametag")?.SetString("name", (string)args[1]);
-				return TextCommandResult.Success($"Name changed to {(string)args[1]}!");
-			}
-			return TextCommandResult.Error(LangUtility.SetL(langCode, "command-error-unknowns", (string)args[0]));
-		}
-
 		public void CreateKingdom(string newKingdomGUID, string newKingdomNAME, string founderGUID, bool autoJoin) {
 			Kingdom newKingdom = new Kingdom();
 			newKingdom.KingdomGUID = MathUtility.RandomGuid(newKingdomGUID, 8, GetKingdomGUIDs());
@@ -923,18 +899,20 @@ namespace VSKingdom {
 			newKingdom.FoundedDATE = serverAPI.World.Calendar.PrettyDate();
 			newKingdom.FoundedHOUR = serverAPI.World.Calendar.TotalHours;
 			newKingdom.CurrentVOTE = null;
-			if (founderGUID != null && serverAPI.World.PlayerByUid(founderGUID) is IPlayer founder) {
-				if (autoJoin && founder.Entity.HasBehavior<EntityBehaviorLoyalties>()) {
-					founder.Entity.GetBehavior<EntityBehaviorLoyalties>().kingdomGUID = newKingdom.KingdomGUID;
-					newKingdom.LeadersGUID = founderGUID;
-					newKingdom.PlayersGUID.Add(founderGUID);
-					newKingdom.PlayersINFO.Add(KingdomUtility.PlayerDetails(founderGUID, newKingdom.MembersROLE, KingdomUtility.GetLeaderRole(newKingdom.MembersROLE)));
-					newKingdom.EntitiesALL.Add(founder.Entity.EntityId);
-				}
+			if (autoJoin && founderGUID != null && serverAPI.World.PlayerByUid(founderGUID) is IPlayer founder) {
+				founder.Entity.WatchedAttributes.SetString("kingdomGUID", newKingdom.KingdomGUID);
+				newKingdom.LeadersGUID = founderGUID;
+				newKingdom.PlayersGUID.Add(founderGUID);
+				newKingdom.PlayersINFO.Add(KingdomUtility.PlayerDetails(founderGUID, newKingdom.MembersROLE, KingdomUtility.GetLeaderRole(newKingdom.MembersROLE)));
+				newKingdom.EntitiesALL.Add(founder.Entity.EntityId);
 				founder.Entity.World.PlaySoundAt(new AssetLocation("game:sounds/effect/cashregister"), founder.Entity);
 			}
 			kingdomList.Add(newKingdom);
 			SaveKingdom();
+			if (autoJoin) {
+				WriteToDisk();
+				UpdateSentries(serverAPI.World.PlayerByUid(founderGUID).Entity.ServerPos.XYZ);
+			}
 		}
 
 		public void CreateCulture(string newCultureGUID, string newCultureNAME, string founderGUID, bool autoJoin) {
@@ -948,49 +926,57 @@ namespace VSKingdom {
 			newCulture.FoundedDATE = serverAPI.World.Calendar.PrettyDate();
 			newCulture.FoundedHOUR = serverAPI.World.Calendar.TotalHours;
 			newCulture.Predecessor = null;
-			newCulture.MascFNames = LangUtility.Open(serverAPI.World.Config.GetString("BasicMascNames")).ToHashSet<string>();
-			newCulture.FemmFNames = LangUtility.Open(serverAPI.World.Config.GetString("BasicFemmNames")).ToHashSet<string>();
-			newCulture.CommLNames = LangUtility.Open(serverAPI.World.Config.GetString("BasicLastNames")).ToHashSet<string>();
+			newCulture.MFirstNames = LangUtility.Open(serverAPI.World.Config.GetString("BasicMascNames")).ToHashSet<string>();
+			newCulture.FFirstNames = LangUtility.Open(serverAPI.World.Config.GetString("BasicFemmNames")).ToHashSet<string>();
+			newCulture.FamilyNames = LangUtility.Open(serverAPI.World.Config.GetString("BasicLastNames")).ToHashSet<string>();
 			if (autoJoin && founderGUID != null && serverAPI.World.PlayerByUid(founderGUID) is IPlayer founder) {
 				string oldCultureGUID = founder.Entity.WatchedAttributes.GetString("cultureGUID");
 				newCulture.Predecessor = oldCultureGUID;
-				if (oldCultureGUID != GlobalCodes.commonerGUID && cultureList.Exists(cultureMatch => cultureMatch.CultureGUID == oldCultureGUID)) {
+				if (oldCultureGUID != GlobalCodes.seraphimGUID && cultureList.Exists(cultureMatch => cultureMatch.CultureGUID == oldCultureGUID)) {
 					Culture oldCulture = cultureList.Find(cultureMatch => cultureMatch.CultureGUID == oldCultureGUID);
-					newCulture.MascFNames = oldCulture.MascFNames;
-					newCulture.FemmFNames = oldCulture.FemmFNames;
-					newCulture.CommLNames = oldCulture.CommLNames;
-					newCulture.SkinColors = oldCulture.SkinColors;
-					newCulture.EyesColors = oldCulture.EyesColors;
-					newCulture.HairColors = oldCulture.HairColors;
-					newCulture.HairStyles = oldCulture.HairStyles;
-					newCulture.HairExtras = oldCulture.HairExtras;
-					newCulture.FaceStyles = oldCulture.FaceStyles;
-					newCulture.FaceBeards = oldCulture.FaceBeards;
-					newCulture.WoodBlocks = oldCulture.WoodBlocks;
-					newCulture.RockBlocks = oldCulture.RockBlocks;
+					oldCulture.PlayersGUID.Remove(founderGUID);
+					if (oldCulture.FounderGUID == founderGUID && oldCulture.PlayersGUID.Count > 0) {
+						oldCulture.FounderGUID = oldCulture.PlayersGUID.ToArray()[0];
+					}
+					newCulture.MFirstNames = oldCulture.MFirstNames;
+					newCulture.FFirstNames = oldCulture.FFirstNames;
+					newCulture.FamilyNames = oldCulture.FamilyNames;
+					newCulture.SkinColours = oldCulture.SkinColours;
+					newCulture.EyesColours = oldCulture.EyesColours;
+					newCulture.HairColours = oldCulture.HairColours;
+					newCulture.HairsStyles = oldCulture.HairsStyles;
+					newCulture.HairsExtras = oldCulture.HairsExtras;
+					newCulture.FacesStyles = oldCulture.FacesStyles;
+					newCulture.FacesBeards = oldCulture.FacesBeards;
+					newCulture.WoodsBlocks = oldCulture.WoodsBlocks;
+					newCulture.StoneBlocks = oldCulture.StoneBlocks;
 				}
-				founder.Entity.GetBehavior<EntityBehaviorLoyalties>().cultureGUID = newCulture.CultureGUID;
+				founder.Entity.WatchedAttributes.SetString("cultureGUID", newCulture.CultureGUID);
+				newCulture.PlayersGUID.Add(founderGUID);
 				var AvailableSkinParts = founder.Entity.GetBehavior<EntityBehaviorExtraSkinnable>();
 				foreach (var skinpart in AvailableSkinParts.AppliedSkinParts) {
 					switch (skinpart.PartCode) {
-						case "baseskin": newCulture.SkinColors.Add(skinpart.Code.ToString()); continue;
-						case "eyecolor": newCulture.EyesColors.Add(skinpart.Code.ToString()); continue;
-						case "haircolor": newCulture.HairColors.Add(skinpart.Code.ToString()); continue;
-						case "hairbase": newCulture.HairStyles.Add(skinpart.Code.ToString()); continue;
-						case "hairextra": newCulture.HairExtras.Add(skinpart.Code); continue;
-						case "mustache": newCulture.FaceStyles.Add(skinpart.Code); continue;
-						case "beard": newCulture.FaceBeards.Add(skinpart.Code); continue;
+						case "baseskin": newCulture.SkinColours.Add(skinpart.Code.ToString()); continue;
+						case "eyecolor": newCulture.EyesColours.Add(skinpart.Code.ToString()); continue;
+						case "haircolor": newCulture.HairColours.Add(skinpart.Code.ToString()); continue;
+						case "hairbase": newCulture.HairsStyles.Add(skinpart.Code.ToString()); continue;
+						case "hairextra": newCulture.HairsExtras.Add(skinpart.Code); continue;
+						case "mustache": newCulture.FacesStyles.Add(skinpart.Code); continue;
+						case "beard": newCulture.FacesBeards.Add(skinpart.Code); continue;
 					}
 				}
 				founder.Entity.World.PlaySoundAt(new AssetLocation("game:sounds/effect/writing"), founder.Entity);
 			}
 			cultureList.Add(newCulture);
 			SaveCulture();
+			if (autoJoin) {
+				WriteToDisk();
+			}
 		}
 
 		public void DeleteKingdom(string kingdomGUID) {
-			if (kingdomGUID == GlobalCodes.commonerGUID || kingdomGUID == GlobalCodes.banditryGUID) { return; }
-			Kingdom kingdom = GetKingdom(kingdomGUID);
+			if (kingdomGUID == null || kingdomGUID == GlobalCodes.commonerGUID || kingdomGUID == GlobalCodes.banditryGUID || !KingdomExists(kingdomGUID)) { return; }
+			Kingdom kingdom = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID);
 			foreach (string member in GetOnlinesGUIDs(kingdom.KingdomGUID, null)) {
 				serverAPI.World.PlayerByUid(member)?.Entity.World.PlaySoundAt(new AssetLocation("game:sounds/effect/deepbell"), serverAPI.World.PlayerByUid(member)?.Entity);
 				UpdateSentries(serverAPI.World.PlayerByUid(member)?.Entity.ServerPos.XYZ);
@@ -1002,8 +988,9 @@ namespace VSKingdom {
 					entity.WatchedAttributes.SetString("kingdomGUID", GlobalCodes.commonerGUID);
 				}
 			}
-			kingdomList.Remove(kingdom);
+			kingdomList.RemoveAll(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID);
 			SaveKingdom();
+			WriteToDisk();
 		}
 
 		public void DeleteCulture(string cultureGUID) {
@@ -1013,26 +1000,27 @@ namespace VSKingdom {
 				serverAPI.World.PlayerByUid(member)?.Entity.World.PlaySoundAt(new AssetLocation("game:sounds/effect/deepbell"), serverAPI.World.PlayerByUid(member)?.Entity);
 			}
 			foreach (var entity in serverAPI.World.LoadedEntities.Values) {
-				if (!entity.HasBehavior<EntityBehaviorLoyalties>()) {
+				if (!entity.WatchedAttributes.HasAttribute("cultureGUID")) {
 					continue;
 				} else if (entity.WatchedAttributes.GetString("cultureGUID") == cultureGUID) {
 					entity.WatchedAttributes.SetString("cultureGUID", GlobalCodes.seraphimGUID);
 				}
 			}
 			foreach (var player in serverAPI.World.AllPlayers) {
-				if (player.WorldData.GetModdata("playerCultureGUID") != null) {
-					if (SerializerUtil.Deserialize<string>(player.WorldData.GetModdata("playerCultureGUID")) == cultureGUID) {
-						player.WorldData.SetModdata("playerCultureGUID", SerializerUtil.Serialize(GlobalCodes.seraphimGUID));
-					}
+				if (!player.Entity.WatchedAttributes.HasAttribute("cultureGUID")) {
+					continue;
+				} else if (player.Entity.WatchedAttributes.GetString("cultureGUID") == cultureGUID) {
+					player.Entity.WatchedAttributes.SetString("cultureGUID", GlobalCodes.seraphimGUID);
 				}
 			}
-			cultureList.Remove(culture);
+			cultureList.RemoveAll(cultureMatch => cultureMatch.CultureGUID == cultureGUID);
 			SaveCulture();
+			WriteToDisk();
 		}
 
 		public void SwitchKingdom(IServerPlayer caller, string kingdomGUID, string specificROLE = null) {
-			Kingdom oldKingdom = GetKingdom(caller.Entity.WatchedAttributes.GetString("kingdomGUID", GlobalCodes.commonerGUID));
-			Kingdom newKingdom = GetKingdom(kingdomGUID);
+			Kingdom oldKingdom = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == caller.Entity.WatchedAttributes.GetString("kingdomGUID", GlobalCodes.commonerGUID));
+			Kingdom newKingdom = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID);
 			oldKingdom.PlayersGUID.Remove(caller.PlayerUID);
 			oldKingdom.EntitiesALL.Remove(caller.Entity.EntityId);
 			oldKingdom.InvitesGUID.Remove(caller.PlayerUID);
@@ -1045,27 +1033,33 @@ namespace VSKingdom {
 					break;
 				}
 			}
+			if (kingdomGUID != GlobalCodes.commonerGUID && kingdomGUID != GlobalCodes.banditryGUID) {
+				newKingdom.PlayersGUID.Add(caller.PlayerUID);
+				newKingdom.PlayersINFO.Add(KingdomUtility.PlayerDetails(caller.PlayerUID, newKingdom.MembersROLE, specificROLE));
+				newKingdom.EntitiesALL.Add(caller.Entity.EntityId);
+			}
+			caller.Entity.WatchedAttributes.SetString("kingdomGUID", kingdomGUID);
 			if (oldKingdom.PlayersGUID.Count == 0 && kingdomGUID != GlobalCodes.commonerGUID && kingdomGUID != GlobalCodes.banditryGUID) {
 				DeleteKingdom(oldKingdom.KingdomGUID);
-			} else if (oldKingdom.LeadersGUID == caller.PlayerUID) {
+			} else if (oldKingdom.LeadersGUID == caller.PlayerUID && oldKingdom.PlayersGUID.Count > 0) {
 				/* TODO: Start Elections if Kingdom is REPUBLIC or assign by RANK! */
 				oldKingdom.LeadersGUID = KingdomUtility.MostSeniority(serverAPI, oldKingdom.KingdomGUID);
 			}
-			newKingdom.PlayersGUID.Add(caller.PlayerUID);
-			newKingdom.PlayersINFO.Add(KingdomUtility.PlayerDetails(caller.PlayerUID, newKingdom.MembersROLE, specificROLE));
-			newKingdom.EntitiesALL.Add(caller.Entity.EntityId);
-			caller.Entity.WatchedAttributes.SetString("kingdomGUID", kingdomGUID);
 			UpdateSentries(caller.Entity.ServerPos.XYZ);
 			SaveKingdom();
 		}
 
 		public void SwitchCulture(IServerPlayer caller, string cultureGUID) {
-			Culture oldCulture = GetCulture(caller.Entity.WatchedAttributes.GetString("cultureGUID"));
-			Culture newCulture = GetCulture(cultureGUID);
-			oldCulture.InviteGUID.Remove(caller.PlayerUID);
-			newCulture.InviteGUID.Remove(caller.PlayerUID);
+			Culture oldCulture = cultureList.Find(cultureMatch => cultureMatch.CultureGUID == caller.Entity.WatchedAttributes.GetString("cultureGUID", GlobalCodes.seraphimGUID));
+			Culture newCulture = cultureList.Find(cultureMatch => cultureMatch.CultureGUID == cultureGUID);
+			oldCulture.InvitesGUID.Remove(caller.PlayerUID);
+			newCulture.InvitesGUID.Remove(caller.PlayerUID);
+			oldCulture.PlayersGUID.Remove(caller.PlayerUID);
 			caller.Entity.WatchedAttributes.SetString("cultureGUID", cultureGUID);
 			caller.Entity.WatchedAttributes.SetString("cultureNAME", newCulture.CultureNAME);
+			if (cultureGUID != GlobalCodes.seraphimGUID && cultureGUID != GlobalCodes.clockwinGUID) {
+				newCulture.PlayersGUID.Add(caller.PlayerUID);
+			}
 			SaveCulture();
 		}
 
@@ -1149,7 +1143,7 @@ namespace VSKingdom {
 			kingdomTWO?.PeaceOffers.Remove(kingdomGUID1);
 			SaveKingdom();
 			foreach (var player in serverAPI.World.AllOnlinePlayers) {
-				serverAPI.SendMessage(player, 0, LangUtility.Set("command-message-treaty", kingdomONE.KingdomLONG, kingdomTWO.KingdomLONG), EnumChatType.Notification);
+				serverAPI.SendMessage(player, 0, LangUtility.SetL((player as IServerPlayer)?.LanguageCode, "command-message-treaty", kingdomONE.KingdomLONG, kingdomTWO.KingdomLONG), EnumChatType.Notification);
 				UpdateSentries(player.Entity.ServerPos.XYZ);
 			}
 			if (kingdomONE.LeadersGUID == null || kingdomTWO.LeadersGUID == null) { return; }
@@ -1211,7 +1205,7 @@ namespace VSKingdom {
 			string langCode = (serverAPI.World.PlayerByUid(playersGUID) as IServerPlayer)?.LanguageCode ?? "en";
 			List<string> invites = new List<string>();
 			foreach (Culture culture in cultureList) {
-				if (culture.InviteGUID.Contains(playersGUID)) {
+				if (culture.InvitesGUID.Contains(playersGUID)) {
 					invites.Add(culture.CultureNAME);
 				}
 			}
@@ -1288,29 +1282,29 @@ namespace VSKingdom {
 			switch (subcomm) {
 				case "append":
 					switch (subargs) {
-						case "mascs": culture.MascFNames.Add(changes.UcFirst()); break;
-						case "femms": culture.FemmFNames.Add(changes.UcFirst()); break;
-						case "names": culture.CommLNames.Add(changes.UcFirst()); break;
-						case "skins": culture.SkinColors.Add(changes); break;
-						case "pupil": culture.EyesColors.Add(changes); break;
-						case "hairs": culture.HairColors.Add(changes); break;
-						case "style": culture.HairStyles.Add(changes); break;
-						case "extra": culture.HairExtras.Add(changes); break;
-						case "beard": culture.FaceBeards.Add(changes); break;
+						case "mascs": culture.MFirstNames.Add(changes.UcFirst()); break;
+						case "femms": culture.FFirstNames.Add(changes.UcFirst()); break;
+						case "names": culture.FamilyNames.Add(changes.UcFirst()); break;
+						case "skins": culture.SkinColours.Add(changes); break;
+						case "pupil": culture.EyesColours.Add(changes); break;
+						case "hairs": culture.HairColours.Add(changes); break;
+						case "style": culture.HairsStyles.Add(changes); break;
+						case "extra": culture.HairsExtras.Add(changes); break;
+						case "beard": culture.FacesBeards.Add(changes); break;
 						default: return LangUtility.SetL(langCode, "command-help-update-culture-append", "culture");
 					}
 					break;
 				case "remove":
 					switch (subargs) {
-						case "mascs": culture.MascFNames.Remove(changes); break;
-						case "femms": culture.FemmFNames.Remove(changes); break;
-						case "names": culture.CommLNames.Remove(changes); break;
-						case "skins": culture.SkinColors.Remove(changes); break;
-						case "pupil": culture.EyesColors.Remove(changes); break;
-						case "hairs": culture.HairColors.Remove(changes); break;
-						case "style": culture.HairStyles.Remove(changes); break;
-						case "extra": culture.HairExtras.Remove(changes); break;
-						case "beard": culture.FaceBeards.Remove(changes); break;
+						case "mascs": culture.MFirstNames.Remove(changes); break;
+						case "femms": culture.FFirstNames.Remove(changes); break;
+						case "names": culture.FamilyNames.Remove(changes); break;
+						case "skins": culture.SkinColours.Remove(changes); break;
+						case "pupil": culture.EyesColours.Remove(changes); break;
+						case "hairs": culture.HairColours.Remove(changes); break;
+						case "style": culture.HairsStyles.Remove(changes); break;
+						case "extra": culture.HairsExtras.Remove(changes); break;
+						case "beard": culture.FacesBeards.Remove(changes); break;
 						default: return LangUtility.SetL(langCode, "command-help-update-culture-remove", "culture");
 					}
 					break;
@@ -1325,15 +1319,15 @@ namespace VSKingdom {
 				case "getall":
 					switch (subargs) {
 						case "basic": return CultureUtility.ListedAllData(serverAPI, cultureGUID);
-						case "mascs": return LangUtility.Msg(culture.MascFNames.ToArray());
-						case "femms": return LangUtility.Msg(culture.FemmFNames.ToArray());
-						case "names": return LangUtility.Msg(culture.CommLNames.ToArray());
-						case "skins": return LangUtility.Msg(culture.SkinColors.ToArray());
-						case "pupil": return LangUtility.Msg(culture.EyesColors.ToArray());
-						case "hairs": return LangUtility.Msg(culture.HairColors.ToArray());
-						case "style": return LangUtility.Msg(culture.HairStyles.ToArray());
-						case "extra": return LangUtility.Msg(culture.HairExtras.ToArray());
-						case "beard": return LangUtility.Msg(culture.FaceBeards.ToArray());
+						case "mascs": return LangUtility.Msg(culture.MFirstNames.ToArray());
+						case "femms": return LangUtility.Msg(culture.FFirstNames.ToArray());
+						case "names": return LangUtility.Msg(culture.FamilyNames.ToArray());
+						case "skins": return LangUtility.Msg(culture.SkinColours.ToArray());
+						case "pupil": return LangUtility.Msg(culture.EyesColours.ToArray());
+						case "hairs": return LangUtility.Msg(culture.HairColours.ToArray());
+						case "style": return LangUtility.Msg(culture.HairsStyles.ToArray());
+						case "extra": return LangUtility.Msg(culture.HairsExtras.ToArray());
+						case "beard": return LangUtility.Msg(culture.FacesBeards.ToArray());
 						default: return LangUtility.SetL(langCode, "command-help-update-culture-getall", "culture");
 					}
 				default: return $"{LangUtility.SetL(langCode, "command-failure-update", "culture")}\n{LangUtility.SetL(langCode, "command-help-update", "culture")}";
@@ -1408,79 +1402,86 @@ namespace VSKingdom {
 		}
 
 		private bool KingdomExists(string kingdomGUID = null, string kingdomNAME = null) {
-			bool lookingForGUID = kingdomGUID != null;
-			bool lookingForNAME = kingdomNAME != null;
-			foreach (var kingdom in kingdomList) {
-				if (lookingForGUID && kingdom.KingdomGUID == kingdomGUID) {
-					return true;
+			if (kingdomList.Count == 0) {
+				return false;
+			} else if (kingdomGUID != null && kingdomList.Count > 0) {
+				for (int k = 0; k < kingdomList.Count; k++) {
+					if (kingdomList[k].KingdomGUID == kingdomGUID) { return true; }
 				}
-				if (lookingForNAME && kingdom.KingdomNAME == kingdomNAME) {
-					return true;
+				return false;
+			} else if (kingdomNAME != null) {
+				kingdomNAME = kingdomNAME.ToLowerInvariant();
+				for (int k = 0; k < kingdomList.Count; k++) {
+					if (kingdomList[k].KingdomNAME.ToLowerInvariant() == kingdomNAME) { return true; }
 				}
+				return false;
 			}
 			return false;
 		}
 
 		private bool CultureExists(string cultureGUID = null, string cultureNAME = null) {
-			bool lookingForGUID = cultureGUID != null;
-			bool lookingForNAME = cultureNAME != null;
-			foreach (var culture in cultureList) {
-				if (lookingForGUID && culture.CultureGUID == cultureGUID) {
-					return true;
+			if (cultureList.Count == 0) {
+				return false;
+			} else if (cultureGUID != null && cultureList.Count > 0) {
+				for (int c = 0; c < cultureList.Count; c++) {
+					if (cultureList[c].CultureGUID == cultureGUID) { return true; }
 				}
-				if (lookingForNAME && culture.CultureNAME == cultureNAME) {
-					return true;
+				return false;
+			} else if (cultureNAME != null) {
+				cultureNAME = cultureNAME.ToLowerInvariant();
+				for (int c = 0; c < cultureList.Count; c++) {
+					if (cultureList[c].CultureNAME.ToLowerInvariant() == cultureNAME) { return true; }
 				}
+				return false;
 			}
 			return false;
 		}
 
-		private bool IsKingdom(string kingdomGUID, string kingdomNAME = null) {
-			foreach (Kingdom kingdom in kingdomList) {
-				if (kingdomGUID != null && kingdom.KingdomGUID == kingdomGUID) {
-					return true;
-				}
-				if (kingdomNAME != null && kingdom.KingdomNAME.ToLowerInvariant() == kingdomNAME.ToLowerInvariant()) {
-					return true;
-				}
+		private bool PartOfKingdom(string playerUID) {
+			string kingdomGUID = serverAPI.World.PlayerByUid(playerUID).Entity.WatchedAttributes.GetString("kingdomGUID", GlobalCodes.commonerGUID);
+			if (kingdomGUID == null || kingdomGUID == GlobalCodes.commonerGUID || kingdomGUID == GlobalCodes.banditryGUID || kingdomList.Count == 0) { return false; }
+			for (int k = 0; k < kingdomList.Count; k++) {
+				if (kingdomList[k].PlayersGUID.Contains(playerUID)) { return true; }
 			}
 			return false;
 		}
 
-		private bool InKingdom(string playerUID) {
-			foreach (Kingdom kingdom in kingdomList) {
-				if (kingdom.PlayersGUID.Contains(playerUID)) {
-					return true;
-				}
+		private bool PartOfCulture(string playerUID) {
+			string cultureGUID = serverAPI.World.PlayerByUid(playerUID).Entity.WatchedAttributes.GetString("cultureGUID", GlobalCodes.commonerGUID);
+			if (cultureGUID == null || cultureGUID == GlobalCodes.commonerGUID || cultureGUID == GlobalCodes.banditryGUID || cultureList.Count == 0) { return false; }
+			for (int c = 0; c < cultureList.Count; c++) {
+				if (cultureList[c].PlayersGUID.Contains(playerUID)) { return true; }
 			}
 			return false;
 		}
 
-		private bool NameTaken(string kingdomNAME) {
-			foreach (Kingdom kingdom in kingdomList) {
-				if (kingdom.KingdomNAME.ToLowerInvariant() == kingdomNAME.ToLowerInvariant()) {
-					return true;
+		private bool NameAvailable(string kingdomNAME = null, string cultureNAME = null) {
+			char[] badchars = { ' ', ';', ':', ',', '"', '\'', '/', '|', '\\', '-', '~', '`', '(', ')', '[', ']', '<', '>', '{', '}', '!', '@', '#', '$', '%', '^', '&', '*', '=', '+' };
+			string proposed = new string((kingdomNAME != null) ? kingdomNAME : cultureNAME).ToLowerInvariant().RemoveDiacritics().Replace(badchars, '_');
+			if (kingdomList.Count != 0 && kingdomNAME != null) {
+				for (int k = 0; (k < kingdomList.Count); k++) {
+					if (kingdomList[k].KingdomNAME.ToLowerInvariant().RemoveDiacritics().Replace(badchars, '_').TooClose('_', 3, 5, proposed)) { return false; }
+				}
+				return true;
+			}
+			if (cultureList.Count != 0 && cultureNAME != null) {
+				for (int k = 0; (k < cultureList.Count); k++) {
+					if (cultureList[k].CultureNAME.ToLowerInvariant().RemoveDiacritics().Replace(badchars, '_').TooClose('_', 3, 5, proposed)) { return false; }
 				}
 			}
-			return false;
+			return true;
 		}
 
-		private Kingdom GetKingdom(string kingdomGUID, string kingdomNAME = null) {
-			if (kingdomGUID != null) {
-				return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID);
-			}
+		private Kingdom GetKingdom(string kingdomNAME) {
 			if (kingdomNAME != null) {
-				return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomNAME == kingdomNAME);
+				return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomNAME.ToLowerInvariant().RemoveDiacritics() == kingdomNAME.ToLowerInvariant().RemoveDiacritics());
 			}
 			return null;
 		}
 
-		private Culture GetCulture(string cultureGUID, string cultureNAME = null) {
-			if (cultureGUID != null) {
-				return cultureList.Find(cultureMatch => cultureMatch.CultureGUID == cultureGUID);
-			}
+		private Culture GetCulture(string cultureNAME) {
 			if (cultureNAME != null) {
-				return cultureList.Find(cultureMatch => cultureMatch.CultureNAME == cultureNAME);
+				return cultureList.Find(cultureMatch => cultureMatch.CultureNAME.ToLowerInvariant().RemoveDiacritics() == cultureNAME.ToLowerInvariant().RemoveDiacritics());
 			}
 			return null;
 		}
@@ -1488,6 +1489,8 @@ namespace VSKingdom {
 		private IServerPlayer GetAPlayer(string playersNAME) {
 			return serverAPI.World.AllPlayers.ToList<IPlayer>().Find(playerMatch => playerMatch.PlayerName == playersNAME) as IServerPlayer ?? null;
 		}
+
+		private string serverLang { get => serverAPI.World.Config.GetString("ServerLanguage", "en"); }
 	}
 	[ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
 	public class PlayerUpdateToServer {

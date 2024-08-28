@@ -146,13 +146,13 @@ namespace VSKingdom {
 			SingleComposer.GetSwitch("ordersShifts").SetValue(GetOrderValue("orderShifts"));
 			SingleComposer.GetSwitch("ordersPatrol").SetValue(GetOrderValue("orderPatrol"));
 			
-			SingleComposer.GetSlider("rangesWander").SetValues((int)GetFloatValue("wanderRange"), 0, (int)entity.WatchedAttributes.GetDouble("postRange"), 1, "m");
-			SingleComposer.GetSlider("rangesFollow").SetValues((int)GetFloatValue("followRange"), 0, 64, 1, "m");
-			SingleComposer.GetSlider("rangesEngage").SetValues((int)GetFloatValue("engageRange"), 0, 96, 1, "m");
-			SingleComposer.GetSlider("rangesPursue").SetValues((int)GetFloatValue("pursueRange"), 0, 128, 1, "m");
+			SingleComposer.GetSlider("rangesWander").SetValues(Math.Clamp((int)GetFloatValue("wanderRange"), 0, 96), 0, (int)entity.WatchedAttributes.GetDouble("postRange"), 1, "m");
+			SingleComposer.GetSlider("rangesFollow").SetValues(Math.Clamp((int)GetFloatValue("followRange"), 0, 96), 0, 32, 1, "m");
+			SingleComposer.GetSlider("rangesEngage").SetValues(Math.Clamp((int)GetFloatValue("engageRange"), 0, 96), 0, 64, 1, "m");
+			SingleComposer.GetSlider("rangesPursue").SetValues(Math.Clamp((int)GetFloatValue("pursueRange"), 0, 96), 0, 96, 1, "m");
 			
-			SingleComposer.GetSlider("timeofShifts").SetValues((int)GetFloatValue("shiftStarts"), 0, (int)capi.World.Calendar.HoursPerDay, 1, "h");
-			SingleComposer.GetSlider("finishShifts").SetValues((int)GetFloatValue("shiftEnding"), 0, (int)capi.World.Calendar.HoursPerDay, 1, "h");
+			SingleComposer.GetSlider("timeofShifts").SetValues(Math.Clamp((int)GetFloatValue("shiftStarts"), 0, 96), 0, (int)capi.World.Calendar.HoursPerDay, 1, "h");
+			SingleComposer.GetSlider("finishShifts").SetValues(Math.Clamp((int)GetFloatValue("shiftEnding"), 0, 96), 0, (int)capi.World.Calendar.HoursPerDay, 1, "h");
 			SingleComposer.GetTextInput("patrolPoints").SetValue((string)GetVec3iValue("patrolVec3i"));
 		}
 

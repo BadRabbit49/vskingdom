@@ -91,9 +91,9 @@ public class ItemPeople : Item {
 
 			if (byCulture != null) {
 				_cultureName = byCulture.CultureNAME;
-				mascNames = byCulture.MascFNames.Count > 0 ? byCulture.MascFNames.ToArray() : mascNames;
-				femmNames = byCulture.FemmFNames.Count > 0 ? byCulture.FemmFNames.ToArray() : femmNames;
-				lastNames = byCulture.CommLNames.Count > 0 ? byCulture.CommLNames.ToArray() : lastNames;
+				mascNames = byCulture.MFirstNames.Count > 0 ? byCulture.MFirstNames.ToArray() : mascNames;
+				femmNames = byCulture.FFirstNames.Count > 0 ? byCulture.FFirstNames.ToArray() : femmNames;
+				lastNames = byCulture.FamilyNames.Count > 0 ? byCulture.FamilyNames.ToArray() : lastNames;
 			}
 
 			// Grab kingdom data from server file.
@@ -113,13 +113,13 @@ public class ItemPeople : Item {
 			if (byCulture != null && byCulture?.CultureGUID != GlobalCodes.seraphimGUID) {
 				// Editing the "skinConfig" tree here and changing it to what we want.
 				var entitySkinParts = entity.WatchedAttributes.GetOrAddTreeAttribute("skinConfig").GetOrAddTreeAttribute("appliedParts");
-				string[] skinColors = byCulture.SkinColors.ToArray<string>();
-				string[] eyesColors = byCulture.EyesColors.ToArray<string>();
-				string[] hairColors = byCulture.HairColors.ToArray<string>();
-				string[] hairStyles = byCulture.HairStyles.ToArray<string>();
-				string[] hairExtras = byCulture.HairExtras.ToArray<string>();
-				string[] faceStyles = byCulture.FaceStyles.ToArray<string>();
-				string[] faceBeards = byCulture.FaceBeards.ToArray<string>();
+				string[] skinColors = byCulture.SkinColours.ToArray<string>();
+				string[] eyesColors = byCulture.EyesColours.ToArray<string>();
+				string[] hairColors = byCulture.HairColours.ToArray<string>();
+				string[] hairStyles = byCulture.HairsStyles.ToArray<string>();
+				string[] hairExtras = byCulture.HairsExtras.ToArray<string>();
+				string[] faceStyles = byCulture.FacesStyles.ToArray<string>();
+				string[] faceBeards = byCulture.FacesBeards.ToArray<string>();
 				string[] underwears = new string[] { "breeches", "leotard", "twopiece" };
 				string[] expression = new string[] { "angry", "grin", "smirk", "kind", "upset", "neutral", "sad", "serious", "tired", "very-sad" };
 				entitySkinParts.SetString("baseskin", skinColors[api.World.Rand.Next(0, skinColors.Length - 1)]);
@@ -145,12 +145,18 @@ public class ItemPeople : Item {
 				if (api.World.ClassRegistry.GetBlockEntity(api.World.BlockAccessor.GetBlock(blockSel.Position).EntityClass) == typeof(BlockEntityPost)) {
 					_outpost = api.World.BlockAccessor.GetBlockEntity(blockSel.Position) as BlockEntityPost;
 					if (_outpost.IsCapacity(entity.EntityId)) {
-						_outpost.IgnitePost();
 						_outpostXyzd = blockSel.Position;
 						_outpostSize = _outpost.areasize;
+						if (_outpost.burnFuel > 0) {
+							_outpost.IgnitePost();
+						}
 					}
 				}
 			}
+
+			// Setup corpses stuff!
+			entity.WatchedAttributes.SetString("deathAnimation", "dies");
+			entity.WatchedAttributes.SetString("deathSkeletons", "humanoid1");
 
 			// Setup nametag stuff!
 			switch (entity.Code.EndVariant()) {
@@ -224,9 +230,9 @@ public class ItemPeople : Item {
 
 		for (int i = 0; i < GlobalCodes.dressCodes.Length; i++) {
 			string code = GlobalCodes.dressCodes[i] + "Spawn";
-			if (!properties.Attributes[code].Exists) { break; }
+			if (!properties.Attributes[code].Exists) { continue; }
 			try {
-				var item = byEntity.World.GetItem(new AssetLocation(MathUtility.GetRandom(properties.Attributes[code].AsArray<string>(null))));
+				var item = api.World.GetItem(new AssetLocation(MathUtility.GetRandom(properties.Attributes[code].AsArray<string>(null))));
 				ItemStack itemstack = new ItemStack(item, 1);
 				if (i == 18 && sentry.GearInventory[16].Itemstack.Item is ItemBow) {
 					itemstack = new ItemStack(item, MathUtility.GetRandom(item.MaxStackSize, 5));
@@ -237,7 +243,7 @@ public class ItemPeople : Item {
 				sentry.GearInvSlotModified(i);
 			} catch { }
 		}
-
+		
 		handHandling = EnumHandHandling.PreventDefaultAction;
 	}
 

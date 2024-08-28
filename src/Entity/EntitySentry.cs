@@ -158,7 +158,9 @@ namespace VSKingdom {
 
 		public override void OnInteract(EntityAgent byEntity, ItemSlot itemslot, Vec3d hitPosition, EnumInteractMode mode) {
 			base.OnInteract(byEntity, itemslot, hitPosition, mode);
-			if (mode != EnumInteractMode.Interact || byEntity is not EntityPlayer) { return; }
+			if (!(mode == EnumInteractMode.Attack && !itemslot.Empty && itemslot.Itemstack.Item is ItemPoultice) || mode != EnumInteractMode.Interact || byEntity is not EntityPlayer) {
+				return;
+			}
 			EntityPlayer player = byEntity as EntityPlayer;
 			EntitySentry entity = (ServerAPI?.World.GetEntityById(this.EntityId) as EntitySentry) ?? this;
 			string theirKingdom = player.WatchedAttributes.GetString("kingdomGUID");
@@ -318,10 +320,71 @@ namespace VSKingdom {
 			base.ToBytes(writer, forClient);
 		}
 
+		public override void Die(EnumDespawnReason reason = EnumDespawnReason.Death, DamageSource damageSourceForDeath = null) {
+			if (!Alive) {
+				return;
+			}
+			if (reason == EnumDespawnReason.Death) {
+				PlayEntitySound("death");
+			}
+			if (reason != 0) {
+				AllowDespawn = true;
+			}
+			Alive = false;
+			controls.WalkVector.Set(0.0, 0.0, 0.0);
+			controls.FlyVector.Set(0.0, 0.0, 0.0);
+			ClimbingOnFace = null;
+			if (reason == EnumDespawnReason.Death) {
+				Api.Event.TriggerEntityDeath(this, damageSourceForDeath);
+				ItemStack[] drops = GetDrops(World, Pos.AsBlockPos, null);
+				if (drops != null) {
+					for (int i = 0; i < drops.Length; i++) {
+						World.SpawnItemEntity(drops[i], SidedPos.XYZ.AddCopy(0.0, 0.25, 0.0));
+					}
+				}
+				if (Properties.Attributes["deathAnim"].Exists && Properties.Attributes["deathBone"].Exists) {
+					string[] deathAnims = Properties.Attributes["deathAnim"].AsArray<string>(null);
+					string[] deathBlock = Properties.Attributes["deathBone"].AsArray<string>(null);
+					if (deathAnims.Length == deathBlock.Length) {
+						int indexAt = World.Rand.Next(0, deathAnims.Length - 1);
+						WatchedAttributes.SetString("deathAnimation", deathAnims[indexAt]);
+						WatchedAttributes.SetString("deathSkeletons", deathBlock[indexAt]);
+					} else {
+						WatchedAttributes.SetString("deathAnimation", deathAnims[World.Rand.Next(0, deathAnims.Length - 1)]);
+						WatchedAttributes.SetString("deathSkeletons", deathBlock[World.Rand.Next(0, deathBlock.Length - 1)]);
+					}
+				}
+				AnimManager.ActiveAnimationsByAnimCode.Clear();
+				AnimManager.StartAnimation(new string(WatchedAttributes.GetString("deathAnimation", "die")));
+				if (reason == EnumDespawnReason.Death && damageSourceForDeath != null && World.Side == EnumAppSide.Server) {
+					WatchedAttributes.SetInt("deathReason", (int)damageSourceForDeath.Source);
+					WatchedAttributes.SetInt("deathDamageType", (int)damageSourceForDeath.Type);
+					Entity causeEntity = damageSourceForDeath.GetCauseEntity();
+					if (causeEntity != null) {
+						WatchedAttributes.SetString("deathByEntityLangCode", "prefixandcreature-" + causeEntity.Code.Path.Replace("-", ""));
+						WatchedAttributes.SetString("deathByEntity", causeEntity.Code.ToString());
+					}
+					if (causeEntity is EntityPlayer) {
+						WatchedAttributes.SetString("deathByPlayer", (causeEntity as EntityPlayer).Player?.PlayerName);
+					}
+					if (causeEntity is EntitySentry) {
+						WatchedAttributes.SetString("deathBySentry", (causeEntity as EntitySentry).WatchedAttributes.GetTreeAttribute("nametag")?.GetString("full"));
+					}
+				}
+				foreach (EntityBehavior behavior in SidedProperties.Behaviors) {
+					behavior.OnEntityDeath(damageSourceForDeath);
+				}
+			}
+			DespawnReason = new EntityDespawnData {
+				Reason = reason,
+				DamageSourceForDeath = damageSourceForDeath
+			};
+		}
+
 		public override void Revive() {
 			this.Alive = true;
 			ReceiveDamage(new DamageSource { SourceEntity = this, CauseEntity = this, Source = EnumDamageSource.Revive, Type = EnumDamageType.Heal }, 9999f);
-			AnimManager.StopAnimation("dies");
+			AnimManager.StopAnimation(new string(WatchedAttributes.GetString("deathAnimation")));
 			IsOnFire = false;
 			foreach (EntityBehavior behavior in SidedProperties.Behaviors) {
 				behavior.OnEntityRevive();

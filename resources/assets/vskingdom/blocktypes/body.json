@@ -4,7 +4,7 @@
 	"entityclass": "BlockEntityBody",
 	"behaviors": [ { "name": "UnstableFalling" } ],
 	"attributes": { },
-	"variantgroups": [ { "code": "type", "states": [ "humanoid1", "humanoid2" ] } ],
+	"variantgroups": [ { "code": "type", "states": [ "humanoid1", "humanoid2", "humanoid3", "humanoid4", "humanoid5", "humanoid6", "humanoid7" ] } ],
 	"shapeByType": {
 		"body-humanoid2": {
 			"base": "game:block/bone/carcass/{type}",
@@ -31,7 +31,11 @@
 			]
 		}
 	},
-	"textures": { "bonesrotten": { "base": "game:block/creature/bone" } },
+	"textures": {
+		"bonesrotten": { "base": "game:block/creature/bonehumanoid" },
+		"insideskull": { "base": "game:block/creature/insideskull" },
+		"skullhumaniod": { "base": "game:block/creature/skullhumaniod" }
+	},
 	"creativeinventory": { "general": [ "*" ] },
 	"heldTpIdleAnimation": "holdunderarm",
 	"randomDrawOffset": true,

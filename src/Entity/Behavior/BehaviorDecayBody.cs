@@ -18,7 +18,6 @@ namespace VSKingdom {
 		protected bool DiedInABattle;
 		protected double HoursDecayTime { get; set; }
 		protected double TotalHoursDead { get => decayTree.GetDouble("totalHoursDead"); set => decayTree.SetDouble("totalHoursDead", value); }
-		protected string[] SkeletonBodies { get; set; }
 		
 		public override string PropertyName() {
 			return "SoldierDecayBody";
@@ -32,7 +31,6 @@ namespace VSKingdom {
 			(entity as EntityAgent).AllowDespawn = false;
 			this.typeAttributes = typeAttributes;
 			HoursDecayTime = typeAttributes["hoursToDecay"].AsFloat(96);
-			SkeletonBodies = typeAttributes["skeletonBody"].AsArray(new string[] { "humanoid1", "humanoid2" });
 			decayTree = entity.WatchedAttributes.GetTreeAttribute("decay");
 			if (decayTree is null) {
 				entity.WatchedAttributes.SetAttribute("decay", decayTree = new TreeAttribute());
@@ -109,8 +107,7 @@ namespace VSKingdom {
 			double d = entity.ServerPos.Dimension;
 
 			BlockPos bonePos = new BlockPos((int)x, (int)y, (int)z, (int)d);
-			Random rnd = new Random();
-			Block skeletonBlock = entity.World.GetBlock(new AssetLocation(LangUtility.Get("body-" + SkeletonBodies[rnd.Next(0, SkeletonBodies.Length)])));
+			Block skeletonBlock = entity.World.GetBlock(new AssetLocation(LangUtility.Get("body-" + entity.WatchedAttributes.GetString("deathSkeletons", "humanoid1"))));
 			Block exblock = blockAccessor.GetBlock(bonePos);
 			bool placedBlock = false;
 			// Ensure the blocks here are replaceable like grass or something.

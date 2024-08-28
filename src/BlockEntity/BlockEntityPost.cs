@@ -65,6 +65,8 @@ namespace VSKingdom {
 		}
 
 		public override void OnBlockBroken(IPlayer byPlayer = null) {
+			base.OnBlockBroken(byPlayer);
+			ToggleAmbientSounds(false);
 			if (byPlayer.PlayerUID != ownerUID) {
 				switch (Block.LastCodePart()) {
 					case "good": Api.World.BlockAccessor.ExchangeBlock(Api.World.GetBlock(Block.CodeWithVariant("level", "hurt")).Id, Pos); return;
@@ -75,16 +77,14 @@ namespace VSKingdom {
 			if (Api is ICoreServerAPI sapi) {
 				sapi.ModLoader.GetModSystem<POIRegistry>()?.RemovePOI(this);
 			}
-			ToggleAmbientSounds(false);
-			base.OnBlockBroken(byPlayer);
 		}
 
 		public override void OnBlockRemoved() {
+			base.OnBlockRemoved();
+			ToggleAmbientSounds(false);
 			if (Api is ICoreServerAPI sapi) {
 				sapi.ModLoader.GetModSystem<POIRegistry>()?.RemovePOI(this);
 			}
-			ToggleAmbientSounds(false);
-			base.OnBlockRemoved();
 		}
 
 		public override void GetBlockInfo(IPlayer forPlayer, StringBuilder dsc) {
@@ -113,27 +113,23 @@ namespace VSKingdom {
 
 		public override void FromTreeAttributes(ITreeAttribute tree, IWorldAccessor worldAccessForResolve) {
 			base.FromTreeAttributes(tree, worldAccessForResolve);
-			doRedraw = tree.GetBool("doRedraw");
-			cPrvBurn = tree.GetBool("cPrvBurn");
 			respawns = tree.GetInt("respawns");
 			burnFuel = tree.GetLong("burnFuel");
 			ownerUID = tree.GetString("ownerUID");
 			entGUIDS = GetListFromString(tree.GetString("entities"));
-			if (Api.Side == EnumAppSide.Client) {
+			if (Api?.Side == EnumAppSide.Client) {
 				UpdateRenderer();
 				if (cPrvBurn != fireLive || doRedraw) {
 					ToggleAmbientSounds(fireLive);
 					cPrvBurn = fireLive;
-					doRedraw = false;
 					MarkDirty(true);
+					doRedraw = false;
 				}
 			}
 		}
 
 		public override void ToTreeAttributes(ITreeAttribute tree) {
 			// Retrieve inventory values.
-			tree.SetBool("doRedraw", doRedraw);
-			tree.SetBool("cPrvBurn", cPrvBurn);
 			tree.SetInt("respawns", respawns);
 			tree.SetLong("burnFuel", burnFuel);
 			tree.SetString("ownerUID", ownerUID);
@@ -144,16 +140,13 @@ namespace VSKingdom {
 		public override void OnReceivedServerPacket(int packetid, byte[] data) {
 			base.OnReceivedServerPacket(packetid, data);
 			if (packetid == 7000) {
-				TreeAttribute update = SerializerUtil.Deserialize<TreeAttribute>(data);
-				FromTreeAttributes(update, Api.World);
+				FromTreeAttributes(SerializerUtil.Deserialize<TreeAttribute>(data), Api.World);
 			}
 		}
 
 		public virtual void UpdateTreeFromServer(IPlayer player) {
 			if (Api.Side == EnumAppSide.Client) { return; }
 			TreeAttribute tree = new TreeAttribute();
-			tree.SetBool("doRedraw", doRedraw);
-			tree.SetBool("cPrvBurn", cPrvBurn);
 			tree.SetInt("respawns", respawns);
 			tree.SetLong("burnFuel", burnFuel);
 			tree.SetString("ownerUID", ownerUID);
@@ -170,22 +163,22 @@ namespace VSKingdom {
 		}
 
 		public void OnOffsetTick(float dt) {
-			if (Api is ICoreServerAPI sapi) {
-				if (fireLive) {
-					// Go down by 60 seconds each time.
-					burnFuel -= (long)(Api.World.Calendar.SpeedOfTime);
-					if (burnFuel < 0) {
-						burnFuel = 0;
-						Extinguish();
-					}
+			if (Api is ICoreServerAPI sapi && fireLive) {
+				MarkDirty();
+				// Go down by 60 seconds each time.
+				burnFuel -= (long)(Api.World.Calendar.SpeedOfTime);
+				if (burnFuel < 0) {
+					burnFuel = 0;
+					Extinguish();
 				}
-				if (!fireLive) { return; }
-				if (entGUIDS == null || entGUIDS.Count == 0) { return; }
+				if (entGUIDS == null || entGUIDS.Count == 0) {
+					return;
+				}
 				EntitySentry bestUsed = null;
 				EntitySentry[] sentryList = new EntitySentry[entGUIDS.Count];
 				int squaredArea = areasize * areasize;
 				for (int i = 0; i < entGUIDS.Count; i++) {
-					EntitySentry sentry = (sapi?.World.GetEntityById(entityList[i]) as EntitySentry) ?? null;
+					EntitySentry sentry = (sapi.World.GetEntityById(entityList[i]) as EntitySentry) ?? null;
 					sentryList[i] = sentry;
 					if (sentry == null) {
 						entGUIDS.Remove(entityList[i]);
@@ -197,16 +190,22 @@ namespace VSKingdom {
 						sentry.ReceiveDamage(new DamageSource() { Source = EnumDamageSource.Internal, Type = healPass > 0 ? EnumDamageType.Heal : EnumDamageType.Poison }, Math.Abs(healPass));
 					}
 				}
-				if (bestUsed == null) { return; }
+				if (bestUsed == null) {
+					return;
+				}
 				string[] enemiesList = bestUsed.cachedData.enemiesLIST;
 				string[] outlawsList = bestUsed.cachedData.outlawsLIST;
 				bool hasEnemies = !(enemiesList != null && enemiesList?.Length > 0);
 				bool hasOutlaws = !(outlawsList != null || outlawsList?.Length > 0);
 				bool soundAlarm = false;
-				if (!hasEnemies && !hasOutlaws) { return; }
+				if (!hasEnemies && !hasOutlaws) {
+					return;
+				}
 				List<Entity> entities = Api.World.GetEntitiesAround(Pos.ToVec3d(), (float)areasize, (float)areasize).ToList();
 				List<Entity> hostiles = new List<Entity>();
-				if (entities == null || entities.Count == 0) { return; }
+				if (entities == null || entities.Count == 0) {
+					return;
+				}
 				for (int i = 0; i < entities.Count; i++) {
 					if (entGUIDS.Contains(entities[i].EntityId) || !entities[i].Alive) {
 						continue;
@@ -218,7 +217,9 @@ namespace VSKingdom {
 						hostiles.Add(entities[i]);
 					}
 				}
-				if (!soundAlarm || hostiles.Count == 0) { return; }
+				if (!soundAlarm || hostiles.Count == 0) {
+					return;
+				}
 				for (int i = 0; i < sentryList.Length; i++) {
 					if (sentryList[i] != null && !sentryList[i].ruleOrder[1] && !sentryList[i].ruleOrder[5] && sentryList[i].ServerPos.XYZ.SquareDistanceTo(Pos.ToVec3d()) > squaredArea) {
 						int target = Api.World.Rand.Next(0, (hostiles.Count - 1));
@@ -254,9 +255,8 @@ namespace VSKingdom {
 				if (level == null) {
 					level = Block.Variant["level"];
 				}
-				Api.Logger.Notification("Block code was: " + Block.Code);
-				Api.Logger.Notification("Brand new code: " + $"vskingdom:post-{metal}-{fuels}-{state}-{level}");
 				Api.World.BlockAccessor.ExchangeBlock(Api.World.GetBlock(new AssetLocation($"vskingdom:post-{metal}-{fuels}-{state}-{level}")).Id, Pos);
+				doRedraw = true;
 				MarkDirty(true);
 				return true;
 			} catch {
@@ -264,6 +264,19 @@ namespace VSKingdom {
 				Api.Logger.Error("Brand new code: " + $"vskingdom:post-{metal}-{fuels}-{state}-{level}");
 			}
 			return false;
+		}
+
+		public void AddFuelsTo(IItemStack stack) {
+			IGameCalendar calendar = Api.World.Calendar;
+			// Special case for temporal gear! Resets all respawns and lasts an entire month!
+			if (stack.Item is ItemTemporalGear) {
+				respawns = maxpawns;
+				burnFuel = burnTime;
+			} else {
+				CombustibleProperties fuelProperties = stack.Collectible.CombustibleProps;
+				burnFuel += (long)(Math.Clamp(fuelProperties.BurnDuration, 0, burnTime));
+			}
+			MarkDirty(true);
 		}
 
 		public bool AddRepairs(int amount) {
@@ -287,6 +300,7 @@ namespace VSKingdom {
 				return false;
 			} else {
 				respawns += amount;
+				doRedraw = true;
 				MarkDirty(true);
 				return true;
 			}
@@ -294,21 +308,22 @@ namespace VSKingdom {
 
 		public bool UseRespawn(int amount) {
 			respawns -= amount;
+			bool result = false;
 			// Change the block if at a quarter health and kill the block if no more respawns left.
 			if (Block.Variant["level"] == "good" && respawns <= (maxpawns / 4)) {
 				SetVariant(null, null, null, "hurt");
-				return true;
+				result = true;
 			} else if (Block.Variant["level"] == "hurt" && respawns <= 0) {
 				SetVariant(null, null, "done", "dead");
-				return true;
+				result = true;
 			} else if (Block.Variant["level"] == "dead" || respawns <= 0) {
 				respawns = 0;
-				MarkDirty(true);
-				return false;
+				result = false;
 			} else {
-				MarkDirty(true);
-				return true;
+				result = true;
 			}
+			MarkDirty(true);
+			return result;
 		}
 
 		public void ChangeFuel(string fuel) {
@@ -321,7 +336,6 @@ namespace VSKingdom {
 				string fuel = burnFuel <= 0 ? "null" : null;
 				cPrvBurn = false;
 				SetVariant(null, null, "done", fuel);
-				MarkDirty(true);
 			}
 		}
 
@@ -329,21 +343,7 @@ namespace VSKingdom {
 			if (Block.Variant["state"] != "live") {
 				cPrvBurn = true;
 				SetVariant(null, null, "live", null);
-				MarkDirty(true);
 			}
-		}
-
-		public void AddFuelsTo(IItemStack stack) {
-			IGameCalendar calendar = Api.World.Calendar;
-			// Special case for temporal gear! Resets all respawns and lasts an entire month!
-			if (stack.Item is ItemTemporalGear) {
-				respawns = maxpawns;
-				burnFuel = burnTime;
-			} else {
-				CombustibleProperties fuelProperties = stack.Collectible.CombustibleProps;
-				burnFuel += (long)(Math.Clamp(fuelProperties.BurnDuration, 0, burnTime));
-			}
-			MarkDirty(true);
 		}
 
 		public float GetHeatStrength(IWorldAccessor world, BlockPos heatSourcePos, BlockPos heatReceiverPos) {
@@ -354,14 +354,6 @@ namespace VSKingdom {
 			if (renderer is null) { return; }
 			renderer.contentStackRenderer?.Dispose();
 			renderer.contentStackRenderer = null;
-		}
-
-		private void OnSlotModifid(int slotid) {
-			Block = Api.World.BlockAccessor.GetBlock(Pos);
-			UpdateRenderer();
-			MarkDirty(Api.Side == EnumAppSide.Server);
-			doRedraw = true;
-			Api.World.BlockAccessor.GetChunkAtBlockPos(Pos)?.MarkModified();
 		}
 
 		private static string GetStringFromList(List<long> input) {

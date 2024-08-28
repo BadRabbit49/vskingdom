@@ -7,6 +7,7 @@ using Vintagestory.API.Datastructures;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.GameContent;
+using System.Numerics;
 
 namespace VSKingdom {
 	public class AiTaskSentryRanged : AiTaskBaseTargetable {
@@ -196,7 +197,7 @@ namespace VSKingdom {
 			// Start animations if not already doing so.
 			if (!animsStarted) {
 				animsStarted = true;
-				searchTask.StopMovement();
+				searchTask.StopMovements();
 				entity.AnimManager.StartAnimation(drawBowsMeta.Init());
 				if (drawingsound != null) {
 					entity.World.PlaySoundAt(drawingsound, entity, null, false);
@@ -227,6 +228,9 @@ namespace VSKingdom {
 			entity.RightHandItemSlot?.Itemstack?.Attributes?.SetInt("renderVariant", 0);
 			entity.RightHandItemSlot?.MarkDirty();
 			entity.AnimManager.StopAnimation(new string(entity.cachedData.drawAnims));
+			if (targetEntity == null || !targetEntity.Alive) {
+				searchTask.StopMovements();
+			}
 		}
 		
 		public override void OnEntityHurt(DamageSource source, float damage) {

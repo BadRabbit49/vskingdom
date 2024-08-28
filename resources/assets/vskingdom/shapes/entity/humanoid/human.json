@@ -3506,8 +3506,8 @@
 			]
 		},
 		{
-			"name": "Die1",
-			"code": "die1",
+			"name": "Dies1",
+			"code": "dies1",
 			"quantityframes": 30,
 			"onActivityStopped": "Stop",
 			"onAnimationEnd": "Hold",
@@ -3626,8 +3626,8 @@
 			]
 		},
 		{
-			"name": "Die2",
-			"code": "die2",
+			"name": "Dies2",
+			"code": "dies2",
 			"quantityframes": 30,
 			"onActivityStopped": "Stop",
 			"onAnimationEnd": "Hold",

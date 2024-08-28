@@ -158,7 +158,7 @@ namespace VSKingdom {
 
 		public override void OnInteract(EntityAgent byEntity, ItemSlot itemslot, Vec3d hitPosition, EnumInteractMode mode) {
 			base.OnInteract(byEntity, itemslot, hitPosition, mode);
-			if (!(mode == EnumInteractMode.Attack && !itemslot.Empty && itemslot.Itemstack.Item is ItemPoultice) || mode != EnumInteractMode.Interact || byEntity is not EntityPlayer) {
+			if ((mode != EnumInteractMode.Interact && !(mode == EnumInteractMode.Attack && !itemslot.Empty && itemslot.Itemstack.Item is ItemPoultice)) || byEntity is not EntityPlayer) {
 				return;
 			}
 			EntityPlayer player = byEntity as EntityPlayer;
@@ -167,8 +167,10 @@ namespace VSKingdom {
 			string kingdomGuid = WatchedAttributes.GetString("kingdomGUID");
 			string cultureGuid = WatchedAttributes.GetString("cultureGUID");
 			string leadersGuid = WatchedAttributes.GetString("leadersGUID");
+			bool IsTheLeader = leadersGuid != null && leadersGuid == player.PlayerUID;
+			bool LootingBody = !Alive && World.Config.GetAsBool("AllowLooting");
 			// Remind them to join their leaders kingdom if they aren't already in it.
-			if (leadersGuid != null && leadersGuid == player.PlayerUID && Api.Side == EnumAppSide.Client) {
+			if (IsTheLeader && Api.Side == EnumAppSide.Client) {
 				// This works! //
 				SentryUpdateToServer update = new SentryUpdateToServer();
 				update.entityUID = EntityId;
@@ -177,7 +179,7 @@ namespace VSKingdom {
 				update.leadersGUID = leadersGuid;
 				ClientAPI.Network.GetChannel("sentrynetwork").SendPacket(update);
 			}
-			if (leadersGuid != null && leadersGuid == player.PlayerUID && player.Controls.Sneak && itemslot.Empty) {
+			if ((IsTheLeader || LootingBody) && player.Controls.Sneak && itemslot.Empty) {
 				ToggleInventoryDialog(player.Player);
 				return;
 			}

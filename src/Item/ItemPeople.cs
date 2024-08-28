@@ -147,9 +147,7 @@ public class ItemPeople : Item {
 					if (_outpost.IsCapacity(entity.EntityId)) {
 						_outpostXyzd = blockSel.Position;
 						_outpostSize = _outpost.areasize;
-						if (_outpost.burnFuel > 0) {
-							_outpost.IgnitePost();
-						}
+						_outpost.IgnitePost();
 					}
 				}
 			}

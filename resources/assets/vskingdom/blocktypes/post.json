@@ -3,7 +3,21 @@
 	"class": "BlockPost",
 	"entityClass": "BlockEntityPost",
 	"attributes": {
-		"handbook": { "includeByType": { "*-null-none-good": true, "*": false } }
+		"handbook": {
+			"includeByType": {
+				"post-lead-null-none-good": true,
+				"post-copper-null-none-good": true,
+				"post-tinbronze-null-none-good": true,
+				"post-bismuthbronze-null-none-good": true,
+				"post-blackbronze-null-none-good": true,
+				"post-brass-null-none-good": true,
+				"post-silver-null-none-good": true,
+				"post-gold-null-none-good": true,
+				"post-iron-null-none-good": true,
+				"post-meteoriciron-null-none-good": true,
+				"post-steel-null-none-good": true
+			}
+		}
 	},
 	"behaviorsByType": {
 		"*": [ { "name": "Container" }, { "name": "Ignitable" } ],

@@ -255,6 +255,9 @@ namespace VSKingdom {
 				if (level == null) {
 					level = Block.Variant["level"];
 				}
+				if (state == "live" && level == "dead") {
+					state = "done";
+				}
 				Api.World.BlockAccessor.ExchangeBlock(Api.World.GetBlock(new AssetLocation($"vskingdom:post-{metal}-{fuels}-{state}-{level}")).Id, Pos);
 				doRedraw = true;
 				MarkDirty(true);
@@ -335,12 +338,12 @@ namespace VSKingdom {
 			if (Block.Variant["state"] == "live") {
 				string fuel = burnFuel <= 0 ? "null" : null;
 				cPrvBurn = false;
-				SetVariant(null, null, "done", fuel);
+				SetVariant(null, fuel, "done", null);
 			}
 		}
 
 		public void IgnitePost() {
-			if (Block.Variant["state"] != "live") {
+			if (Block.Variant["state"] != "live" && burnFuel > 0) {
 				cPrvBurn = true;
 				SetVariant(null, null, "live", null);
 			}

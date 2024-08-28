@@ -3,7 +3,11 @@
 	"class": "BlockPost",
 	"entityClass": "BlockEntityPost",
 	"attributes": {
-		"handbook": { "includeByType": { "*-null-none-good": true, "*": false } }
+		"handbook": {
+			"includeByType": {
+				"post-electrum-temp-none-good": true
+			}
+		}
 	},
 	"behaviorsByType": {
 		"*": [ { "name": "Container" }, { "name": "Ignitable" } ],

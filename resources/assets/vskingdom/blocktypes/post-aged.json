@@ -3,7 +3,12 @@
 	"class": "BlockPost",
 	"entityClass": "BlockEntityPost",
 	"attributes": {
-		"handbook": { "includeByType": { "*-null-none-good": true, "*": false } }
+		"handbook": {
+			"includeByType": {
+				"post-oxidizedcopper-null-none-good": true,
+				"post-rust-null-none-good": true
+			}
+		}
 	},
 	"behaviorsByType": {
 		"*": [ { "name": "Container" }, { "name": "Ignitable" } ],

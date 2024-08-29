@@ -191,9 +191,6 @@ namespace VSKingdom {
 		}
 
 		public void StopMovements() {
-			pathTraverser.CurrentTarget.X = entity.ServerPos.X;
-			pathTraverser.CurrentTarget.Y = entity.ServerPos.Y;
-			pathTraverser.CurrentTarget.Z = entity.ServerPos.Z;
 			pathTraverser.Retarget();
 			pathTraverser.Stop();
 			StopAnimation();

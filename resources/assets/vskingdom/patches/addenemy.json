@@ -1,0 +1,23 @@
+﻿[
+	{
+		"file": "vskingdom:entities/archer.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "direwolf-*", "golem-*", "hellboar-*", "geodecrab", "ostrich-*", "cockatrice-*", "faunling-*", "scorpion" ]
+	},
+	{
+		"file": "vskingdom:entities/knight.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "direwolf-*", "golem-*", "hellboar-*", "geodecrab", "ostrich-*", "cockatrice-*", "faunling-*", "scorpion" ]
+	},
+	{
+		"file": "vskingdom:entities/bandit.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "direwolf-*", "golem-*", "hellboar-*", "geodecrab", "ostrich-*", "cockatrice-*", "faunling-*", "scorpion" ]
+	}
+]

@@ -409,6 +409,9 @@ namespace VSKingdom {
 			WatchedAttributes.MarkPathDirty("inventory");
 			// If on server-side, not client, send the packetid on the channel.
 			if (Api is ICoreServerAPI sapi) {
+				if (!Alive && gearInv.Empty && HasBehavior<EntityBehaviorDecayBody>()) {
+					GetBehavior<EntityBehaviorDecayBody>()?.DecayNow(this);
+				}
 				sapi.Network.BroadcastEntityPacket(EntityId, 1504, SerializerUtil.ToBytes((w) => tree.ToBytes(w)));
 				UpdateStats();
 			}

@@ -1,6 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Collections.Generic;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Config;
@@ -134,7 +134,8 @@ namespace VSKingdom {
 		}
 
 		public override bool ContinueExecute(float dt) {
-			if (targetEntity == null || cancelAttack || !targetEntity.Alive) {
+			if (cancelAttack || targetEntity == null || !targetEntity.Alive) {
+				searchTask.ResetsTargets();
 				return false;
 			}
 			EntityPos serverPos1 = entity.ServerPos;
@@ -157,11 +158,9 @@ namespace VSKingdom {
 			if (usingAShield) {
 				bool closeToTarget = entity.ServerPos.SquareDistanceTo(targetEntity.ServerPos) < 16f;
 				bool targetsRanged = false;
-				if (targetEntity is EntityHumanoid humanoidEnt) {
-					if (!humanoidEnt.RightHandItemSlot.Empty) {
-						Item targetWeapon = humanoidEnt.RightHandItemSlot.Itemstack.Item;
-						targetsRanged = (targetWeapon is ItemBow || targetWeapon is ItemSling);
-					}
+				if (targetEntity is EntityHumanoid humanoidEnt && !humanoidEnt.RightHandItemSlot.Empty) {
+					Item targetWeapon = humanoidEnt.RightHandItemSlot.Itemstack.Item;
+					targetsRanged = (targetWeapon is ItemBow || targetWeapon is ItemSling);
 				}
 				bool shouldShield = (closeToTarget && !targetsRanged) || (!closeToTarget && targetsRanged);
 				bool animationsOn = entity.AnimManager.IsAnimationActive(shieldAnim[shieldedHand]);
@@ -192,6 +191,7 @@ namespace VSKingdom {
 		public override void FinishExecute(bool cancelled) {
 			cooldownUntilMs = entity.World.ElapsedMilliseconds + mincooldown + entity.World.Rand.Next(maxcooldown - mincooldown);
 			if (targetEntity == null || !targetEntity.Alive || !IsTargetableEntity(targetEntity, (float)targetEntity.ServerPos.DistanceTo(entity.ServerPos))) {
+				searchTask.ResetsTargets();
 				searchTask.StopMovements();
 			}
 			if (currAnim != null) {
@@ -247,6 +247,7 @@ namespace VSKingdom {
 			}, damage * GlobalConstants.CreatureDamageModifier);
 			// Only jump back if they killing blow was not dealt.
 			if (alive && !targetEntity.Alive) {
+				searchTask.ResetsTargets();
 				searchTask.StopMovements();
 				cancelAttack = true;
 				return false;

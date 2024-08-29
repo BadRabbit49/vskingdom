@@ -15,6 +15,7 @@ using Vintagestory.GameContent;
 namespace VSKingdom {
 	public class VSKingdom : ModSystem {
 		Harmony harmony = new Harmony("badrabbit49.vskingdom");
+
 		public ICoreClientAPI clientAPI;
 		public ICoreServerAPI serverAPI;
 
@@ -261,7 +262,7 @@ namespace VSKingdom {
 			}
 			UpdateSentries(player.Entity.ServerPos.XYZ);
 		}
-		
+
 		private void PlayerLeaveGame(IServerPlayer player) {
 			SaveAllData();
 		}
@@ -368,6 +369,7 @@ namespace VSKingdom {
 			var bestPlayer = serverAPI.World.NearestPlayer(position.X, position.Y, position.Z) as IServerPlayer;
 			if (bestPlayer == null) { return; }
 			foreach (var sentry in nearbyEnts) {
+				sentry.GetBehavior<EntityBehaviorTaskAI>().TaskManager.GetTask<AiTaskSentrySearch>().ResetsTargets();
 				OnSentryUpdated(bestPlayer, new SentryUpdateToServer() {
 					entityUID = sentry.EntityId,
 					kingdomGUID = sentry.WatchedAttributes.GetString("kingdomGUID"),
@@ -754,7 +756,7 @@ namespace VSKingdom {
 			}
 			return TextCommandResult.Error(LangUtility.GetL(langCode, "command-help-kingdom"));
 		}
-		
+
 		private TextCommandResult OnCulturesCommand(TextCommandCallingArgs args) {
 			string fullargs = (string)args[1];
 			string callerID = args.Caller.Player.PlayerUID;
@@ -1089,7 +1091,7 @@ namespace VSKingdom {
 			SaveKingdom();
 			return true;
 		}
-		
+
 		public bool SetMemberRole(string kingdomGUID, string playersGUID, string membersROLE) {
 			Kingdom thisKingdom = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID);
 			string[] testRole = thisKingdom.MembersROLE.Replace("/T", "").Replace("/F", "").Split(':');
@@ -1117,7 +1119,7 @@ namespace VSKingdom {
 			}
 			return roleSet;
 		}
-		
+
 		public void SetWarKingdom(string kingdomGUID1, string kingdomGUID2) {
 			Kingdom kingdomONE = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID1);
 			Kingdom kingdomTWO = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID2);

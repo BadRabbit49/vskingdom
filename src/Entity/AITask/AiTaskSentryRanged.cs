@@ -7,7 +7,6 @@ using Vintagestory.API.Datastructures;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.GameContent;
-using System.Numerics;
 
 namespace VSKingdom {
 	public class AiTaskSentryRanged : AiTaskBaseTargetable {
@@ -229,6 +228,7 @@ namespace VSKingdom {
 			entity.RightHandItemSlot?.MarkDirty();
 			entity.AnimManager.StopAnimation(new string(entity.cachedData.drawAnims));
 			if (targetEntity == null || !targetEntity.Alive) {
+				searchTask.ResetsTargets();
 				searchTask.StopMovements();
 			}
 		}

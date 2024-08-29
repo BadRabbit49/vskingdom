@@ -58,7 +58,6 @@ namespace VSKingdom {
 			}
 		}
 
-
 		public override bool CanContinueExecute() {
 			return pathTraverser.Ready && entity.ruleOrder[1];
 		}

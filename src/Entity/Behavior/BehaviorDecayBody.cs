@@ -1,5 +1,4 @@
 ﻿using System;
-using Vintagestory.API.Server;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Datastructures;
@@ -9,8 +8,7 @@ using Vintagestory.GameContent;
 
 namespace VSKingdom {
 	public class EntityBehaviorDecayBody : EntityBehavior {
-		public EntityBehaviorDecayBody(Entity entity) : base(entity) { this.ServerAPI = entity.Api as ICoreServerAPI; }
-		protected ICoreServerAPI ServerAPI;
+		public EntityBehaviorDecayBody(Entity entity) : base(entity) { }
 		protected ITreeAttribute decayTree;
 		protected JsonObject typeAttributes;
 		protected bool DiedNaturally;

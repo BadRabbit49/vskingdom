@@ -56,7 +56,7 @@ namespace VSKingdom {
 			}
 			maxSquareDis = maxSquareDis = entity.cachedData.postRange * entity.cachedData.postRange;
 			if (entity.ruleOrder[6] || entity.ServerPos.SquareDistanceTo(entity.cachedData.postBlock) > maxSquareDis) {
-				curTargetPos = entity.cachedData.postBlock.Clone();
+				curTargetPos = entity.cachedData.postBlock.Clone().Offset(rand.Next(-1, 1), 0, rand.Next(-1, 1));
 			} else if (entity.InLava || ((entity.Swimming || entity.FeetInLiquid) && entity.World.Rand.NextDouble() < 0.04f)) {
 				curTargetPos = LeaveTheWatersTarget();
 			} else {

@@ -165,9 +165,8 @@ namespace VSKingdom {
 			cooldownUntilMs = entity.World.ElapsedMilliseconds + mincooldown + entity.World.Rand.Next(maxcooldown - mincooldown);
 			lastFinishedAtMs = entity.World.ElapsedMilliseconds;
 			if (targetEntity == null || !targetEntity.Alive) {
+				ResetsTargets();
 				StopMovements();
-				targetEntity = null;
-				curTargetPos = null;
 			}
 		}
 
@@ -185,27 +184,33 @@ namespace VSKingdom {
 			curTargetPos = target?.ServerPos.XYZ ?? curTargetPos;
 		}
 
-		public void StopMovements() {
+		public void ResetsTargets() {
 			cancelSearch = true;
+			targetEntity = null;
+			curTargetPos = null;
+		}
+
+		public void StopMovements() {
 			pathTraverser.CurrentTarget.X = entity.ServerPos.X;
 			pathTraverser.CurrentTarget.Y = entity.ServerPos.Y;
 			pathTraverser.CurrentTarget.Z = entity.ServerPos.Z;
+			pathTraverser.Retarget();
 			pathTraverser.Stop();
 			StopAnimation();
 		}
 
 		private void DoDirect() {
 			// Just go forward towards the target!
-			if (cancelSearch) { return; }
+			if (cancelSearch || targetEntity == null) { return; }
 			int searchDepth = (world.Rand.NextDouble() < 0.05) ? 10000 : 3500;
 			attackPattern = EnumAttackPattern.DirectAttack;
 			MoveAnimation();
-			pathTraverser.NavigateTo_Async(curTargetPos, curMoveSpeed, TargetDist(), OnGoals, OnStuck, DoSieged, searchDepth, 1);
+			pathTraverser.NavigateTo_Async(curTargetPos.OffsetCopy(rand.Next(-1, 1), 0, rand.Next(-1, 1)), curMoveSpeed, TargetDist(), OnGoals, OnStuck, DoSieged, searchDepth, 1);
 		}
 
 		private void DoSieged() {
 			// Unable to perform direct attack pattern, trying sieged!
-			if (cancelSearch) { return; }
+			if (cancelSearch || targetEntity == null) { return; }
 			attackPattern = EnumAttackPattern.BesiegeTarget;
 			MoveAnimation();
 			pathTraverser.NavigateTo_Async(curTargetPos, curMoveSpeed, TargetDist(), OnGoals, OnStuck, DoCircle, 3500, 3);
@@ -213,7 +218,7 @@ namespace VSKingdom {
 
 		private void DoCircle() {
 			// Unable to perform sieged attack pattern, trying circle!
-			if (cancelSearch) { return; }
+			if (cancelSearch || targetEntity == null) { return; }
 			if (curTargetPos.DistanceTo(entity.ServerPos.XYZ) > seekingRange) {
 				Retreats();
 				return;
@@ -280,7 +285,7 @@ namespace VSKingdom {
 
 		private void OnGoals() {
 			if (attackPattern != 0 && attackPattern != EnumAttackPattern.BesiegeTarget) { return; }
-			if (cancelSearch) { return; }
+			if (cancelSearch || targetEntity == null) { return; }
 			if (lastGoalReachedPos != null && lastGoalReachedPos.SquareDistanceTo(entity.ServerPos) < 0.005f) {
 				if (futilityCounters == null) {
 					futilityCounters = new Dictionary<long, int>();

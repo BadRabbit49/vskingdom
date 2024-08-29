@@ -12,9 +12,20 @@
 	{
 		"ingredientPattern": "N_N,NFN,_P_",
 		"ingredients": {
-			"N": { "type": "item", "code": "game:metalnailsandstrips-*", "name": "metal", "allowedVariants": [ "lead", "copper", "brass" ], "quantity": 2 },
+			"N": { "type": "item", "code": "game:metalnailsandstrips-*", "name": "metal", "allowedVariants": [ "copper" ], "quantity": 2 },
 			"F": { "type": "item", "code": "game:firestarter", "quantity": 1 },
-			"P": { "type": "item", "code": "game:metalplate-*", "name": "metal", "allowedVariants": [ "lead", "copper" ], "quantity": 1 }
+			"P": { "type": "item", "code": "game:metalplate-*", "name": "metal", "allowedVariants": [ "copper" ], "quantity": 1 }
+		},
+		"width": 3,
+		"height": 3,
+		"output": { "type": "block", "code": "vskingdom:post-{metal}-null-none-good" }
+	},
+	{
+		"ingredientPattern": "I_I,ITI,_P_",
+		"ingredients": {
+			"I": { "type": "item", "code": "game:ingot-*", "name": "metal", "allowedVariants": [ "lead", "brass" ], "quantity": 1 },
+			"T": { "type": "item", "code": "game:firestarter", "quantity": 1 },
+			"P": { "type": "item", "code": "game:metalplate-*", "name": "metal", "allowedVariants": [ "lead", "brass" ], "quantity": 1 }
 		},
 		"width": 3,
 		"height": 3,

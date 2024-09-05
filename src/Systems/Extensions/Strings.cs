@@ -1,7 +1,7 @@
 ﻿using System;
 
 namespace VSKingdom {
-	public static class StringExtensions {
+	internal static class StringExtension {
 		public static string Replace(this string str, char[] sep, string val) {
 			string[] tmp = str.Split(sep, StringSplitOptions.RemoveEmptyEntries);
 			return String.Join(val, tmp);

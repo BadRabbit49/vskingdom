@@ -47,7 +47,6 @@ namespace VSKingdom {
 		public string duckAnims { get; set; } = "duck";
 		public string swimAnims { get; set; } = "swim";
 		public string jumpAnims { get; set; } = "jump";
-		public string diesAnims { get; set; } = "dies";
 		public string drawAnims { get; set; } = "draw";
 		public string fireAnims { get; set; } = "fire";
 		public string loadAnims { get; set; } = "load";
@@ -80,12 +79,11 @@ namespace VSKingdom {
 			duckAnims = codes[3];
 			swimAnims = codes[4];
 			jumpAnims = codes[5];
-			diesAnims = codes[6];
-			drawAnims = codes[7];
-			fireAnims = codes[8];
-			loadAnims = codes[9];
-			bashAnims = codes[10];
-			stabAnims = codes[11];
+			drawAnims = codes[6];
+			fireAnims = codes[7];
+			loadAnims = codes[8];
+			bashAnims = codes[9];
+			stabAnims = codes[10];
 		}
 
 		public void UpdateEnemies(string[] codes) {

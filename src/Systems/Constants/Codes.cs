@@ -11,5 +11,6 @@
 		public static readonly string[] cultureCommands = { "create", "delete", "update", "invite", "accept", "reject", "remove", "become" };
 		public static readonly string[] rewriteCommands = { "player" };
 		public static readonly string[] allowedWeaponry = { "bow", "sling", "arquebus", "pistol", "musket", "carbine" };
+		public static readonly string[] compatibleRange = { "maltiezfirearms", "maltiezcrossbows" };
 	}
 }

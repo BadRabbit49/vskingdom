@@ -90,8 +90,13 @@ namespace VSKingdom {
 		}
 
 		public override bool ContinueExecute(float dt) {
-			if (cancelSearch || targetEntity == null || !targetEntity.Alive) {
+			if (targetEntity == null) {
 				cancelSearch = true;
+			}
+			if (!targetEntity.Alive) {
+				cancelSearch = true;
+			}
+			if (cancelSearch) {
 				return false;
 			}
 			if (currentFollowTime == 0f && world.Rand.NextDouble() < 0.25) {
@@ -191,7 +196,6 @@ namespace VSKingdom {
 		}
 
 		public void StopMovements() {
-			pathTraverser.Retarget();
 			pathTraverser.Stop();
 			StopAnimation();
 		}

@@ -117,8 +117,7 @@ namespace VSKingdom {
 		}
 
 		private bool IsAcceptable(ItemSlot sourceSlot) {
-			var thisItem = sourceSlot?.Itemstack?.Item;
-			return thisItem is ItemArrow || thisItem is ItemStone || (thisItem?.Code?.Path?.Contains("bread") ?? sourceSlot?.Itemstack?.Collectible?.Attributes["projectile"]?.Exists ?? false);
+			return sourceSlot.Itemstack.Class == EnumItemClass.Item && (sourceSlot?.Itemstack?.Item is ItemArrow || sourceSlot?.Itemstack?.Item is ItemStone || sourceSlot.Itemstack.Item.Attributes["projectile"].Exists);
 		}
 	}
 

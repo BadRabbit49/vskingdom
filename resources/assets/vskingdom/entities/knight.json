@@ -327,7 +327,7 @@
 						"code": "SentryAttack",
 						"priority": 2.0,
 						"entityCodes": [ "player", "archer-*", "knight-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "looter-*", "bandit-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
-						"animations": [ "hit", "spearstabs", "swordswing", "swordsmash", "swordslash", "swordstabs" ],
+						"animations": [ "hit" ],
 						"damageTier": 3,
 						"isBandit": false
 					},

@@ -145,6 +145,7 @@ public class ItemPeople : Item {
 				if (api.World.ClassRegistry.GetBlockEntity(api.World.BlockAccessor.GetBlock(blockSel.Position).EntityClass) == typeof(BlockEntityPost)) {
 					_outpost = api.World.BlockAccessor.GetBlockEntity(blockSel.Position) as BlockEntityPost;
 					if (_outpost.IsCapacity(entity.EntityId)) {
+						(api as ICoreServerAPI)?.Network.BroadcastBlockEntityPacket(_outpost.Pos.X, _outpost.Pos.Y, _outpost.Pos.Z, 7001, SerializerUtil.Serialize<long>(entity.EntityId));
 						_outpostXyzd = blockSel.Position;
 						_outpostSize = _outpost.areasize;
 						_outpost.IgnitePost();
@@ -211,7 +212,6 @@ public class ItemPeople : Item {
 				duckAnims = properties.Attributes["duckAnims"].AsString("duck").ToLower(),
 				swimAnims = properties.Attributes["swimAnims"].AsString("swim").ToLower(),
 				jumpAnims = properties.Attributes["jumpAnims"].AsString("jump").ToLower(),
-				diesAnims = properties.Attributes["diesAnims"].AsString("dies").ToLower(),
 				postBlock = _outpostXyzd.ToVec3d(),
 				kingdomGUID = _kingdomGuid,
 				cultureGUID = _cultureGuid,

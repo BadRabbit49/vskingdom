@@ -75,7 +75,6 @@ namespace VSKingdom {
 					duckAnims = Properties.Attributes["duckAnims"].AsString("duck").ToLower(),
 					swimAnims = Properties.Attributes["swimAnims"].AsString("swim").ToLower(),
 					jumpAnims = Properties.Attributes["jumpAnims"].AsString("jump").ToLower(),
-					diesAnims = Properties.Attributes["diesAnims"].AsString("dies").ToLower(),
 					postBlock = WatchedAttributes.GetBlockPos("postBlock").ToVec3d(),
 					kingdomGUID = WatchedAttributes.GetString("kingdomGUID"),
 					cultureGUID = WatchedAttributes.GetString("cultureGUID"),
@@ -263,9 +262,6 @@ namespace VSKingdom {
 		public override void OnReceivedClientPacket(IServerPlayer player, int packetid, byte[] data) {
 			base.OnReceivedClientPacket(player, packetid, data);
 			switch (packetid) {
-				case 1502:
-					UpdateInfos(data);
-					return;
 				case 1505:
 					player.InventoryManager.OpenInventory(GearInventory);
 					return;
@@ -278,14 +274,8 @@ namespace VSKingdom {
 		public override void OnReceivedServerPacket(int packetid, byte[] data) {
 			base.OnReceivedServerPacket(packetid, data);
 			switch (packetid) {
-				case 1501:
-					UpdateStats();
-					return;
 				case 1502:
 					UpdateInfos(data);
-					return;
-				case 1503:
-					UpdateTasks();
 					return;
 				case 1504:
 					UpdateTrees(data);
@@ -312,7 +302,9 @@ namespace VSKingdom {
 
 		public override void FromBytes(BinaryReader reader, bool forClient) {
 			base.FromBytes(reader, forClient);
-			if (gearInv is null) { gearInv = new InventorySentry(Code.Path, "gearInv-" + EntityId, null); }
+			if (gearInv is null) {
+				gearInv = new InventorySentry(Code.Path, "gearInv-" + EntityId, null);
+			}
 			gearInv.FromTreeAttributes(GetInventoryTree());
 		}
 
@@ -366,11 +358,19 @@ namespace VSKingdom {
 						WatchedAttributes.SetString("deathByEntityLangCode", "prefixandcreature-" + causeEntity.Code.Path.Replace("-", ""));
 						WatchedAttributes.SetString("deathByEntity", causeEntity.Code.ToString());
 					}
-					if (causeEntity is EntityPlayer) {
-						WatchedAttributes.SetString("deathByPlayer", (causeEntity as EntityPlayer).Player?.PlayerName);
+					if (causeEntity is EntityPlayer player) {
+						if (!player.GearInventory[8].Empty) {
+							WatchedAttributes.SetString("deathByPlayer", "Masked assailant...");
+						} else {
+							WatchedAttributes.SetString("deathByPlayer", (causeEntity as EntityPlayer).Player?.PlayerName);
+						}
 					}
-					if (causeEntity is EntitySentry) {
-						WatchedAttributes.SetString("deathBySentry", (causeEntity as EntitySentry).WatchedAttributes.GetTreeAttribute("nametag")?.GetString("full"));
+					if (causeEntity is EntitySentry sentry) {
+						if (!sentry.GearInventory[8].Empty) {
+							WatchedAttributes.SetString("deathBySentry", "Masked assailant...");
+						} else {
+							WatchedAttributes.SetString("deathBySentry", (causeEntity as EntitySentry).WatchedAttributes.GetTreeAttribute("nametag")?.GetString("full"));
+						}
 					}
 				}
 				foreach (EntityBehavior behavior in SidedProperties.Behaviors) {
@@ -409,16 +409,18 @@ namespace VSKingdom {
 			WatchedAttributes.MarkPathDirty("inventory");
 			// If on server-side, not client, send the packetid on the channel.
 			if (Api is ICoreServerAPI sapi) {
-				if (!Alive && gearInv.Empty && HasBehavior<EntityBehaviorDecayBody>()) {
-					GetBehavior<EntityBehaviorDecayBody>()?.DecayNow(this);
-				}
 				sapi.Network.BroadcastEntityPacket(EntityId, 1504, SerializerUtil.ToBytes((w) => tree.ToBytes(w)));
 				UpdateStats();
 			}
 		}
 
 		public virtual void ToggleInventoryDialog(IPlayer player) {
-			if (Api.Side != EnumAppSide.Client) { return; }
+			if (Api.Side != EnumAppSide.Client) {
+				if (!Alive && gearInv.Empty && HasBehavior<EntityBehaviorDecayBody>()) {
+					GetBehavior<EntityBehaviorDecayBody>()?.DecayNow(this);
+				}
+				return;
+			}
 			if (InventoryDialog is null) {
 				InventoryDialog = new InvSentryDialog(gearInv, this, ClientAPI);
 				InventoryDialog.OnClosed += OnInventoryDialogClosed;
@@ -434,7 +436,7 @@ namespace VSKingdom {
 			ClientAPI.World.Player.InventoryManager.CloseInventory(GearInventory);
 			ClientAPI.Network.SendEntityPacket(EntityId, 1506);
 			InventoryDialog?.Dispose();
-			InventoryDialog = null;	
+			InventoryDialog = null;
 		}
 
 		public virtual void ReadInventoryFromAttributes() {
@@ -473,7 +475,8 @@ namespace VSKingdom {
 				// Update animations to match equipped items!
 				string weapon = RightHandItemSlot.Itemstack?.Item?.FirstCodePart() ?? "";
 				if (GlobalCodes.allowedWeaponry.Contains(weapon)) {
-					string[] weaponCodes = ItemsProperties.WeaponAnimations.Find(match => match.itemCode == weapon).allCodes;
+					var weaponClass = ItemsProperties.WeaponAnimations.Find(match => match.itemCode == weapon);
+					string[] weaponCodes = weaponClass.allCodes;
 					cachedData.UpdateAnimate(weaponCodes);
 				}
 			} catch (NullReferenceException e) {
@@ -483,7 +486,6 @@ namespace VSKingdom {
 
 		public virtual void UpdateInfos(byte[] data) {
 			SentryUpdateToEntity update = SerializerUtil.Deserialize<SentryUpdateToEntity>(data);
-			if (update == null) { return; }
 			WatchedAttributes.SetString("kingdomGUID", new string(update.kingdomGUID));
 			WatchedAttributes.SetString("cultureGUID", new string(update.cultureGUID));
 			WatchedAttributes.SetString("leadersGUID", new string(update.leadersGUID));
@@ -494,7 +496,6 @@ namespace VSKingdom {
 		}
 
 		public virtual void UpdateTasks() {
-			if (Api.Side == EnumAppSide.Client) { return; }
 			ruleOrder = new bool[7] {
 				WatchedAttributes.GetBool("orderWander"),
 				WatchedAttributes.GetBool("orderFollow"),

@@ -1,10 +1,11 @@
 {
 	"type": "code",
-	"modid": "vskingdom",
 	"name": "VS Kingdom",
-	"side": "universal",
+	"modid": "vskingdom",
+	"version": "1.6.9",
 	"authors": [ "BadRabbit49" ],
-	"description": "Adds commandable soldiers and archers to guard against threats, protect your land, equip with weapons and armor, and lead into battle.",
-	"version": "1.6.7",
-	"dependencies": { "game": "1.19.8" }
+	"description": "Adds Kingdoms, Cultures, and Soldiers that attack and guard against threats, be they players or otherwise!",
+	"website": "",
+	"side": "universal",
+  "dependencies": { "game": "1.19.8" }
 }

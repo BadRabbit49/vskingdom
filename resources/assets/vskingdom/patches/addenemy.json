@@ -1,23 +1,234 @@
 ﻿[
+	// VS Village //
+	{
+		"file": "vskingdom:entities/bandit.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "vsvillage" } ],
+		"value": [ "humanoid-villager-*" ]
+	},
+	// Outlaw Mod //
 	{
 		"file": "vskingdom:entities/archer.json",
 		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
 		"op": "addmerge",
-		"dependsOn": [ { "modid": "feverstonewilds" } ],
-		"value": [ "direwolf-*", "golem-*", "hellboar-*", "geodecrab", "ostrich-*", "cockatrice-*", "faunling-*", "scorpion" ]
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": [ "bandit-*", "deserter-*", "poacher-*", "looter", "hound-hunting", "hound-feral" ]
 	},
 	{
 		"file": "vskingdom:entities/knight.json",
 		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
 		"op": "addmerge",
-		"dependsOn": [ { "modid": "feverstonewilds" } ],
-		"value": [ "direwolf-*", "golem-*", "hellboar-*", "geodecrab", "ostrich-*", "cockatrice-*", "faunling-*", "scorpion" ]
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": [ "bandit-*", "deserter-*", "poacher-*", "looter", "hound-hunting", "hound-feral" ]
 	},
 	{
 		"file": "vskingdom:entities/bandit.json",
 		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": [ "deserter-*", "poacher-*", "looter", "hound-hunting", "hound-feral" ]
+	},
+	// Feverstone Wilds //
+	{
+		"file": "vskingdom:entities/archer.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "feverstonewilds" } ],
-		"value": [ "direwolf-*", "golem-*", "hellboar-*", "geodecrab", "ostrich-*", "cockatrice-*", "faunling-*", "scorpion" ]
+		"value": [ "direwolf-*", "golem-*", "hellboar-*", "ostrich-*", "cockatrice-*", "faunling-*", "scorpion" ]
+	},
+	{
+		"file": "vskingdom:entities/knight.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "direwolf-*", "golem-*", "hellboar-*", "ostrich-*", "cockatrice-*", "faunling-*", "scorpion" ]
+	},
+	{
+		"file": "vskingdom:entities/bandit.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "direwolf-*", "golem-*", "hellboar-*", "ostrich-*", "cockatrice-*", "faunling-*", "scorpion", "geodecrab" ]
+	},
+	// Fantasy Creatures //
+	{
+		"file": "vskingdom:entities/archer.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "fantasycreatures" } ],
+		"value": [ "ork-*", "skeleton-*", "skeletonblkgrd-*", "slime-*", "surface_skeleton-*", "surfacegoblin-*", "treant-*", "dragon-*", "cavegoblin-*", "ent-shepherd-*" ]
+	},
+	{
+		"file": "vskingdom:entities/knight.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "fantasycreatures" } ],
+		"value": [ "ork-*", "skeleton-*", "skeletonblkgrd-*", "slime-*", "surface_skeleton-*", "surfacegoblin-*", "treant-*", "dragon-*", "cavegoblin-*", "ent-shepherd-*" ]
+	},
+	{
+		"file": "vskingdom:entities/bandit.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "fantasycreatures" } ],
+		"value": [ "ork-*", "skeleton-*", "skeletonblkgrd-*", "slime-*", "surface_skeleton-*", "surfacegoblin-*", "treant-*", "dragon-*", "cavegoblin-*", "ent-shepherd-*" ]
+	},
+	// Rust & Rot //
+	{
+		"file": "vskingdom:entities/archer.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "rustandrot" } ],
+		"value": [ "golem-*", "itinerant-*", "roamer-*", "rotbeast-*", "rotwalker-*", "parasitic-flies", "rotpillar", "miasma" ]
+	},
+	{
+		"file": "vskingdom:entities/knight.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "rustandrot" } ],
+		"value": [ "golem-*", "itinerant-*", "roamer-*", "rotbeast-*", "rotwalker-*", "parasitic-flies", "rotpillar", "miasma" ]
+	},
+	{
+		"file": "vskingdom:entities/bandit.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "rustandrot" } ],
+		"value": [ "golem-*", "itinerant-*", "roamer-*", "rotbeast-*", "rotwalker-*", "parasitic-flies", "rotpillar", "miasma" ]
+	},
+	// Fauna Stone Age //
+	{
+		"file": "vskingdom:entities/archer.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "pantherinae" } ],
+		"value": [ "pantherinae-*" ]
+	},
+	{
+		"file": "vskingdom:entities/knight.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "pantherinae" } ],
+		"value": [ "pantherinae-*" ]
+	},
+	{
+		"file": "vskingdom:entities/bandit.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "pantherinae" } ],
+		"value": [ "pantherinae-*" ]
+	},
+	{
+		"file": "vskingdom:entities/archer.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "caninae" } ],
+		"value": [ "caninae-cerdocyonina-*", "caninae-urocyonini-adult-male-urocyon", "caninae-urocyonini-adult-female-urocyon", "caninae-vulpini-adult-*" ]
+	},
+	{
+		"file": "vskingdom:entities/knight.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "caninae" } ],
+		"value": [ "caninae-*" ]
+	},
+	{
+		"file": "vskingdom:entities/bandit.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "caninae" } ],
+		"value": [ "caninae-cerdocyonina-*", "caninae-urocyonini-adult-male-urocyon", "caninae-urocyonini-adult-female-urocyon", "caninae-vulpini-adult-*" ]
+	},
+	{
+		"file": "vskingdom:entities/archer.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "machairodontinae" } ],
+		"value": [ "machairodontinae-adult-*" ]
+	},
+	{
+		"file": "vskingdom:entities/knight.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "machairodontinae" } ],
+		"value": [ "machairodontinae-*" ]
+	},
+	{
+		"file": "vskingdom:entities/bandit.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "machairodontinae" } ],
+		"value": [  "machairodontinae-adult-*" ]
+	},
+	// Untamed Wilds Ursidae //
+	{
+		"file": "vskingdom:entities/archer.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "untamedwildsursidae" } ],
+		"value": [ "ursidae-adult-*" ]
+	},
+	{
+		"file": "vskingdom:entities/knight.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "untamedwildsursidae" } ],
+		"value": [ "ursidae-*" ]
+	},
+	{
+		"file": "vskingdom:entities/bandit.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "untamedwildsursidae" } ],
+		"value": [ "ursidae-*" ]
+	},
+	// Silent Hill Story //
+	{
+		"file": "vskingdom:entities/archer.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "shnurse" } ],
+		"value": [ "shme-*" ]
+	},
+	{
+		"file": "vskingdom:entities/knight.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "shnurse" } ],
+		"value": [ "shme-*" ]
+	},
+	{
+		"file": "vskingdom:entities/bandit.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "shnurse" } ],
+		"value": [ "shme-*" ]
 	}
 ]

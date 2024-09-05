@@ -18,6 +18,7 @@ namespace VSKingdom {
 		public BlockEntityPost() { }
 		public bool doRedraw;
 		public bool cPrvBurn;
+		public long listener;
 		public string ownerUID;
 		public Int32 postTier;
 		public Int32 respawns;
@@ -47,10 +48,13 @@ namespace VSKingdom {
 		public override void Initialize(ICoreAPI api) {
 			base.Initialize(api);
 			postTier = GlobalDicts.metalTiers.GetValueSafe(Block.Variant["metal"]);
-			if (api is ICoreServerAPI sapi) {
-				RegisterGameTickListener(OnOffsetTick, offsetMs);
-				sapi.ModLoader.GetModSystem<POIRegistry>().AddPOI(this);
+			if (api is ICoreClientAPI capi) {
+				// TODO: IMPLEMENT BUILT IN RENDERER FROM FORGE BLOCK.
+				// capi.Event.RegisterRenderer(renderer = new ForgeContentsRenderer(Pos, capi), EnumRenderStage.Opaque, "forge");
+				// renderer.SetContents(contents, fuelLevel, burning, true);
+				this.listener = RegisterGameTickListener(OnOffsetTick, offsetMs);
 			}
+			api.ModLoader.GetModSystem<POIRegistry>().AddPOI(this);
 		}
 
 		public override void OnBlockPlaced(ItemStack byItemStack = null) {
@@ -74,19 +78,15 @@ namespace VSKingdom {
 					case "dead": break;
 				}
 			}
-			if (Api is ICoreServerAPI sapi) {
-				sapi.ModLoader.GetModSystem<POIRegistry>()?.RemovePOI(this);
-			}
+			Api.ModLoader.GetModSystem<POIRegistry>()?.RemovePOI(this);
 		}
 
 		public override void OnBlockRemoved() {
 			base.OnBlockRemoved();
 			ToggleAmbientSounds(false);
-			if (Api is ICoreServerAPI sapi) {
-				sapi.ModLoader.GetModSystem<POIRegistry>()?.RemovePOI(this);
-			}
+			Api.ModLoader.GetModSystem<POIRegistry>()?.RemovePOI(this);
 		}
-
+		
 		public override void GetBlockInfo(IPlayer forPlayer, StringBuilder dsc) {
 			if (ownerUID == null) {
 				base.GetBlockInfo(forPlayer, dsc);
@@ -139,13 +139,13 @@ namespace VSKingdom {
 		
 		public override void OnReceivedServerPacket(int packetid, byte[] data) {
 			base.OnReceivedServerPacket(packetid, data);
-			if (packetid == 7000) {
-				FromTreeAttributes(SerializerUtil.Deserialize<TreeAttribute>(data), Api.World);
+			switch (packetid) {
+				case 7000: FromTreeAttributes(SerializerUtil.Deserialize<TreeAttribute>(data), Api.World); return;
+				case 7001: IsCapacity(SerializerUtil.Deserialize<long>(data)); return;
 			}
 		}
 
 		public virtual void UpdateTreeFromServer(IPlayer player) {
-			if (Api.Side == EnumAppSide.Client) { return; }
 			TreeAttribute tree = new TreeAttribute();
 			tree.SetInt("respawns", respawns);
 			tree.SetLong("burnFuel", burnFuel);
@@ -163,71 +163,69 @@ namespace VSKingdom {
 		}
 
 		public void OnOffsetTick(float dt) {
-			if (Api is ICoreServerAPI sapi && fireLive) {
-				MarkDirty();
-				// Go down by 60 seconds each time.
-				burnFuel -= (long)(Api.World.Calendar.SpeedOfTime);
-				if (burnFuel < 0) {
-					burnFuel = 0;
-					Extinguish();
+			MarkDirty();
+			// Go down by 60 seconds each time.
+			burnFuel -= (long)(Api.World.Calendar.SpeedOfTime);
+			if (burnFuel < 0) {
+				burnFuel = 0;
+				Extinguish();
+			}
+			if (entGUIDS == null || entGUIDS.Count == 0) {
+				return;
+			}
+			EntitySentry bestUsed = null;
+			EntitySentry[] sentryList = new EntitySentry[entGUIDS.Count];
+			int squaredArea = areasize * areasize;
+			for (int i = 0; i < entGUIDS.Count; i++) {
+				EntitySentry sentry = (Api.World.GetEntityById(entityList[i]) as EntitySentry) ?? null;
+				sentryList[i] = sentry;
+				if (sentry == null) {
+					entGUIDS.Remove(entityList[i]);
+					continue;
+				} else if (bestUsed == null) {
+					bestUsed = sentry;
 				}
-				if (entGUIDS == null || entGUIDS.Count == 0) {
-					return;
+				if (sentry.ServerPos.SquareDistanceTo(Pos.ToVec3d()) <= squaredArea) {
+					sentry.ReceiveDamage(new DamageSource() { Source = EnumDamageSource.Internal, Type = healPass > 0 ? EnumDamageType.Heal : EnumDamageType.Poison }, Math.Abs(healPass));
 				}
-				EntitySentry bestUsed = null;
-				EntitySentry[] sentryList = new EntitySentry[entGUIDS.Count];
-				int squaredArea = areasize * areasize;
-				for (int i = 0; i < entGUIDS.Count; i++) {
-					EntitySentry sentry = (sapi.World.GetEntityById(entityList[i]) as EntitySentry) ?? null;
-					sentryList[i] = sentry;
-					if (sentry == null) {
-						entGUIDS.Remove(entityList[i]);
-						continue;
-					} else if (bestUsed == null) {
-						bestUsed = sentry;
-					}
-					if (sentry.ServerPos.SquareDistanceTo(Pos.ToVec3d()) <= squaredArea) {
-						sentry.ReceiveDamage(new DamageSource() { Source = EnumDamageSource.Internal, Type = healPass > 0 ? EnumDamageType.Heal : EnumDamageType.Poison }, Math.Abs(healPass));
-					}
+			}
+			if (bestUsed == null) {
+				return;
+			}
+			string[] enemiesList = bestUsed.cachedData.enemiesLIST;
+			string[] outlawsList = bestUsed.cachedData.outlawsLIST;
+			bool hasEnemies = !(enemiesList != null && enemiesList?.Length > 0);
+			bool hasOutlaws = !(outlawsList != null || outlawsList?.Length > 0);
+			bool soundAlarm = false;
+			if (!hasEnemies && !hasOutlaws) {
+				return;
+			}
+			List<Entity> entities = Api.World.GetEntitiesAround(Pos.ToVec3d(), (float)areasize, (float)areasize).ToList();
+			List<Entity> hostiles = new List<Entity>();
+			if (entities == null || entities.Count == 0) {
+				return;
+			}
+			for (int i = 0; i < entities.Count; i++) {
+				if (entGUIDS.Contains(entities[i].EntityId) || !entities[i].Alive) {
+					continue;
+				} else if (hasEnemies && entities[i].WatchedAttributes.HasAttribute("kingdomGUID") && enemiesList.Contains(entities[i].WatchedAttributes.GetString("kingdomGUID"))) {
+					soundAlarm = true;
+					hostiles.Add(entities[i]);
+				} else if (hasOutlaws && entities[i] is EntityPlayer player && outlawsList.Contains(player.PlayerUID)) {
+					soundAlarm = true;
+					hostiles.Add(entities[i]);
 				}
-				if (bestUsed == null) {
-					return;
-				}
-				string[] enemiesList = bestUsed.cachedData.enemiesLIST;
-				string[] outlawsList = bestUsed.cachedData.outlawsLIST;
-				bool hasEnemies = !(enemiesList != null && enemiesList?.Length > 0);
-				bool hasOutlaws = !(outlawsList != null || outlawsList?.Length > 0);
-				bool soundAlarm = false;
-				if (!hasEnemies && !hasOutlaws) {
-					return;
-				}
-				List<Entity> entities = Api.World.GetEntitiesAround(Pos.ToVec3d(), (float)areasize, (float)areasize).ToList();
-				List<Entity> hostiles = new List<Entity>();
-				if (entities == null || entities.Count == 0) {
-					return;
-				}
-				for (int i = 0; i < entities.Count; i++) {
-					if (entGUIDS.Contains(entities[i].EntityId) || !entities[i].Alive) {
-						continue;
-					} else if (hasEnemies && entities[i].WatchedAttributes.HasAttribute("kingdomGUID") && enemiesList.Contains(entities[i].WatchedAttributes.GetString("kingdomGUID"))) {
-						soundAlarm = true;
-						hostiles.Add(entities[i]);
-					} else if (hasOutlaws && entities[i] is EntityPlayer player && outlawsList.Contains(player.PlayerUID)) {
-						soundAlarm = true;
-						hostiles.Add(entities[i]);
-					}
-				}
-				if (!soundAlarm || hostiles.Count == 0) {
-					return;
-				}
-				for (int i = 0; i < sentryList.Length; i++) {
-					if (sentryList[i] != null && !sentryList[i].ruleOrder[1] && !sentryList[i].ruleOrder[5] && sentryList[i].ServerPos.XYZ.SquareDistanceTo(Pos.ToVec3d()) > squaredArea) {
-						int target = Api.World.Rand.Next(0, (hostiles.Count - 1));
-						var taskManager = sentryList[i].GetBehavior<EntityBehaviorTaskAI>().TaskManager;
-						taskManager.GetTask<AiTaskSentryAttack>()?.OnAllyAttacked(hostiles[target]);
-						taskManager.GetTask<AiTaskSentryRanged>()?.OnAllyAttacked(hostiles[target]);
-						sentryList[i].ruleOrder[7] = true;
-					}
+			}
+			if (!soundAlarm || hostiles.Count == 0) {
+				return;
+			}
+			for (int i = 0; i < sentryList.Length; i++) {
+				if (sentryList[i] != null && !sentryList[i].ruleOrder[1] && !sentryList[i].ruleOrder[5] && sentryList[i].ServerPos.XYZ.SquareDistanceTo(Pos.ToVec3d()) > squaredArea) {
+					int target = Api.World.Rand.Next(0, (hostiles.Count - 1));
+					var taskManager = sentryList[i].GetBehavior<EntityBehaviorTaskAI>().TaskManager;
+					taskManager.GetTask<AiTaskSentryAttack>()?.OnAllyAttacked(hostiles[target]);
+					taskManager.GetTask<AiTaskSentryRanged>()?.OnAllyAttacked(hostiles[target]);
+					sentryList[i].ruleOrder[7] = true;
 				}
 			}
 		}

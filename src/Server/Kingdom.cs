@@ -29,6 +29,5 @@ namespace VSKingdom {
 		public HashSet<string> FriendsGUID { get; set; } = new HashSet<string>();
 		public HashSet<string> EnemiesGUID { get; set; } = new HashSet<string>();
 		public HashSet<string> PeaceOffers { get; set; } = new HashSet<string>();
-		public HashSet<long> EntitiesALL { get; set; } = new HashSet<long>();
 	}
 }

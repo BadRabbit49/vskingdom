@@ -1,20 +1,20 @@
 [
 	{
-		"file": "game:entities/humanoid/player",
+		"file": "game:entities/humanoid/player.json",
 		"path": "/server/behaviors/-",
 		"op": "add",
 		"value": { "code": "KingdomLoyalties" }
 	},
 	{
-		"file": "game:entities/humanoid/player",
-		"path": "/client/behaviors/-",
-		"op": "add",
-		"value": { "showtagonlywhentargeted": true }
+		"file": "game:entities/humanoid/player.json",
+		"path": "/server/behaviors/1",
+		"op": "replace",
+		"value": { "code": "nametag", "showtagonlywhentargeted": true }
 	},
 	{
-		"file": "game:entities/humanoid/player",
-		"path": "/server/behaviors/-",
-		"op": "add",
-		"value": { "showtagonlywhentargeted": true }
+		"file": "game:entities/humanoid/player.json",
+		"path": "/server/behaviors/1",
+		"op": "replace",
+		"value": { "code": "nametag", "showtagonlywhentargeted": true }
 	}
 ]

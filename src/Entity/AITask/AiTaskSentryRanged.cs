@@ -29,6 +29,7 @@ namespace VSKingdom {
 		protected float minTurnAnglePerSec;
 		protected float maxTurnAnglePerSec;
 		protected float curTurnAnglePerSec;
+		protected string rangedDomain;
 		protected AnimationMetaData drawBowsMeta;
 		protected AnimationMetaData fireBowsMeta;
 		protected AnimationMetaData loadBowsMeta;
@@ -98,6 +99,7 @@ namespace VSKingdom {
 			cancelAttack = false;
 			renderSwitch = false;
 			releasedShot = false;
+			rangedDomain = entity.AmmoItemSlot.Itemstack.Item.Code.Domain;
 			drawBowsMeta = new AnimationMetaData() {
 				Code = new string(entity.cachedData.drawAnims),
 				Animation = new string(entity.cachedData.drawAnims),
@@ -215,7 +217,7 @@ namespace VSKingdom {
 			if (accum > releasesAtMs / 1000f && !releasedShot && !EntityInTheWay() && HasRanged()) {
 				releasedShot = FireProjectile();
 				// Don't play anything when the hittingSound is incorrectly set.
-				if (hittingsound != null) {
+				if (hittingsound != null && releasedShot) {
 					entity.World.PlaySoundAt(hittingsound, entity, null, false);
 				}
 			}
@@ -261,16 +263,27 @@ namespace VSKingdom {
 		}
 
 		private bool FireProjectile() {
+			bool infiniteAmmo = entity.Api.World.Config.GetAsBool("InfiniteAmmo");
 			EntityProjectile projectile = (EntityProjectile)entity.World.ClassRegistry.CreateEntity(projectileType);
 			projectile.FiredBy = entity;
-			projectile.Damage = entity.RightHandItemSlot.Itemstack.Collectible.Attributes["damage"].AsFloat() + entity.AmmoItemSlot.Itemstack.Collectible.Attributes["damage"].AsFloat();
+			float _weapDamage = entity.RightHandItemSlot.Itemstack.Collectible.Attributes["damage"].AsFloat();
+			float _ammoDamage = entity.AmmoItemSlot.Itemstack.Collectible.Attributes["damage"].AsFloat();
+			projectile.Damage = _weapDamage + _ammoDamage;
+			if (GlobalCodes.compatibleRange.Contains(rangedDomain)) {
+				projectile.Damage = ItemsProperties.AmmunitionDamages[entity.AmmoItemSlot.Itemstack.Item.Code.ToString()] * ItemsProperties.WeaponMultipliers[entity.RightHandItemSlot.Itemstack.Item.Code.ToString()];
+			}
+			if (projectile.Damage <= 0.1f) {
+				return false;
+			}
 			projectile.ProjectileStack = new ItemStack(entity.World.GetItem(ammoLocation));
-			projectile.DropOnImpactChance = entity.Api.World.Config.GetAsBool("InfiniteAmmo") ? 0 : 1f - (entity.AmmoItemSlot.Itemstack.ItemAttributes["breakChanceOnImpact"].AsFloat(0.5f));
+			projectile.DropOnImpactChance = infiniteAmmo ? 0 : 1f - (entity.AmmoItemSlot.Itemstack.ItemAttributes["breakChanceOnImpact"].AsFloat(0.5f));
 			projectile.World = entity.World;
+			// Adjust projectile position and velocity to be used.
 			Vec3d pos = entity.ServerPos.AheadCopy(0.5).XYZ.AddCopy(0, entity.LocalEyePos.Y, 0);
 			Vec3d aheadPos = targetEntity.ServerPos.XYZ.AddCopy(0, targetEntity.LocalEyePos.Y, 0);
 			double distf = Math.Pow(pos.SquareDistanceTo(aheadPos), 0.1);
-			Vec3d velocity = (aheadPos - pos + new Vec3d(0, pos.DistanceTo(aheadPos) / 16, 0)).Normalize() * GameMath.Clamp(distf - 1f, 0.1f, 1f);
+			double curve = pos.DistanceTo(aheadPos) / 16;
+			Vec3d velocity = (aheadPos - pos + new Vec3d(0, curve, 0)).Normalize() * GameMath.Clamp(distf - 1f, 0.1f, 1f);
 			// Set final projectile parameters, position, velocity, from point, and rotation.
 			projectile.ServerPos.SetPos(entity.ServerPos.AheadCopy(0.5).XYZ.Add(0, entity.LocalEyePos.Y, 0));
 			projectile.ServerPos.Motion.Set(velocity);
@@ -279,7 +292,7 @@ namespace VSKingdom {
 			// Spawn and fire the entity with given parameters.
 			entity.RightHandItemSlot.Itemstack.Attributes.SetInt("renderVariant", 0);
 			entity.World.SpawnEntity(projectile);
-			if (!entity.Api.World.Config.GetAsBool("InfiniteAmmo")) {
+			if (!infiniteAmmo) {
 				entity.GearInventory[18]?.TakeOut(1);
 				entity.GearInventory[18]?.MarkDirty();
 			}
@@ -302,6 +315,13 @@ namespace VSKingdom {
 		private bool HasRanged() {
 			if (entity.GearInventory[18].Empty || entity.RightHandItemSlot.Empty) {
 				return false;
+			}
+			if (entity.RightHandItemSlot?.Itemstack.Item.Tool == EnumTool.Bow) {
+				string _weapCode = entity.RightHandItemSlot.Itemstack.Item.Code.FirstCodePart();
+				string _ammoCode = entity.GearInventory[18].Itemstack.Collectible.Code.FirstCodePart();
+				if (ItemsProperties.WeaponAmmunition.ContainsKey(_weapCode)) {
+					return ItemsProperties.WeaponAmmunition[_weapCode].Contains(_ammoCode);
+				}
 			}
 			if (entity.RightHandItemSlot?.Itemstack.Item is ItemBow) {
 				return entity.GearInventory[18].Itemstack.Item is ItemArrow || entity.GearInventory[18].Itemstack.Collectible.Code.PathStartsWith("arrow-");

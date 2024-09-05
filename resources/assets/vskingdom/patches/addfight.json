@@ -1,0 +1,1509 @@
+﻿[
+	// Vintage Story //
+	{
+		"file": "game:entities/land/bear.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodesByType/*",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/bear.json",
+		"path": "/server/behaviors/9/aitasks/1/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/bear.json",
+		"path": "/server/behaviors/9/aitasks/2/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/bear.json",
+		"path": "/server/behaviors/9/aitasks/3/entityCodesByType/*",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/bear.json",
+		"path": "/server/behaviors/9/aitasks/4/entityCodesByType/*-panda",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/bear.json",
+		"path": "/server/behaviors/9/aitasks/4/entityCodesByType/*-sun",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/bear.json",
+		"path": "/server/behaviors/9/aitasks/5/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/bell.json",
+		"path": "/server/behaviors/6/aitasks/0/onNearbyEntityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/bell.json",
+		"path": "/server/behaviors/6/aitasks/2/stopOnNearbyEntityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/drifter.json",
+		"path": "/server/behaviors/8/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/drifter.json",
+		"path": "/server/behaviors/8/aitasks/1/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/drifter.json",
+		"path": "/server/behaviors/8/aitasks/2/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/drifter.json",
+		"path": "/server/behaviors/8/aitasks/3/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/drifter.json",
+		"path": "/server/behaviors/8/aitasks/4/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/eidolon-immobilized.json",
+		"path": "/server/behaviors/5/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/eidolon-immobilized.json",
+		"path": "/server/behaviors/5/aitasks/1/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/eidolon-immobilized.json",
+		"path": "/server/behaviors/5/aitasks/2/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/eidolon-immobilized.json",
+		"path": "/server/behaviors/5/aitasks/3/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/hyena-male.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/hyena-male.json",
+		"path": "/server/behaviors/9/aitasks/1/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/hyena-male.json",
+		"path": "/server/behaviors/9/aitasks/2/stopOnNearbyEntityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/hyena-male.json",
+		"path": "/server/behaviors/9/aitasks/3/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/hyena-male.json",
+		"path": "/server/behaviors/9/aitasks/7/stopOnNearbyEntityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/hyena-female.json",
+		"path": "/server/behaviors/10/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/hyena-female.json",
+		"path": "/server/behaviors/10/aitasks/1/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/hyena-female.json",
+		"path": "/server/behaviors/10/aitasks/2/stopOnNearbyEntityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/hyena-female.json",
+		"path": "/server/behaviors/10/aitasks/3/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/hyena-female.json",
+		"path": "/server/behaviors/10/aitasks/8/stopOnNearbyEntityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/pig-wild-male.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/pig-wild-male.json",
+		"path": "/server/behaviors/9/aitasks/1/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/pig-wild-male.json",
+		"path": "/server/behaviors/9/aitasks/2/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/wolf-male.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/wolf-male.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/wolf-male.json",
+		"path": "/server/behaviors/9/aitasks/1/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/wolf-male.json",
+		"path": "/server/behaviors/9/aitasks/2/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/wolf-male.json",
+		"path": "/server/behaviors/9/aitasks/3/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/wolf-male.json",
+		"path": "/server/behaviors/9/aitasks/4/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/wolf-male.json",
+		"path": "/server/behaviors/9/aitasks/6/stopOnNearbyEntityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/wolf-male.json",
+		"path": "/server/behaviors/9/aitasks/11/stopOnNearbyEntityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/wolf-female.json",
+		"path": "/server/behaviors/10/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/wolf-female.json",
+		"path": "/server/behaviors/10/aitasks/1/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/wolf-female.json",
+		"path": "/server/behaviors/10/aitasks/2/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/wolf-female.json",
+		"path": "/server/behaviors/10/aitasks/3/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/wolf-female.json",
+		"path": "/server/behaviors/10/aitasks/4/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/wolf-female.json",
+		"path": "/server/behaviors/10/aitasks/7/stopOnNearbyEntityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/wolf-female.json",
+		"path": "/server/behaviors/10/aitasks/12/stopOnNearbyEntityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/locust.json",
+		"path": "/server/behaviors/7/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "game:entities/land/locust.json",
+		"path": "/server/behaviors/7/aitasks/2/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+	},
+	// VS Village //
+	{
+		"file": "vsvillage:entities/villager.json",
+		"path": "/server/behaviors/6/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "vsvillage" } ],
+		"value": [ "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "vsvillage:entities/villager.json",
+		"path": "/server/behaviors/6/aitasks/1/entityCodesByType/*-soldier",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "vsvillage" } ],
+		"value": [ "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "vsvillage:entities/villager.json",
+		"path": "/server/behaviors/6/aitasks/2/entityCodesByType/*",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "vsvillage" } ],
+		"value": [ "vskingdom:bandit-*" ]
+	},
+	// Outlaw Mod //
+	{
+		"file": "outlawmod:entities/mobs/bandit-axe.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/bandit-axe.json",
+		"path": "/server/behaviors/9/aitasks/1/entitySourcesOfFear",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": [
+			{ "code": "archer-*", "fearWeight": 0.1 },
+			{ "code": "knight-*", "fearWeight": 0.1 }
+		]
+	},
+	{
+		"file": "outlawmod:entities/mobs/bandit-axe.json",
+		"path": "/server/behaviors/9/aitasks/2/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/bandit-axe.json",
+		"path": "/server/behaviors/9/aitasks/3/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/bandit-axe.json",
+		"path": "/server/behaviors/9/aitasks/4/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/bandit-knife.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/bandit-knife.json",
+		"path": "/server/behaviors/9/aitasks/1/entitySourcesOfFear",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": [
+			{ "code": "archer-*", "fearWeight": 0.1 },
+			{ "code": "knight-*", "fearWeight": 0.1 }
+		]
+	},
+	{
+		"file": "outlawmod:entities/mobs/bandit-knife.json",
+		"path": "/server/behaviors/9/aitasks/2/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/bandit-knife.json",
+		"path": "/server/behaviors/9/aitasks/4/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/bandit-knife.json",
+		"path": "/server/behaviors/9/aitasks/5/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/bandit-spear.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/bandit-spear.json",
+		"path": "/server/behaviors/9/aitasks/1/entitySourcesOfFear",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": [
+			{ "code": "archer-*", "fearWeight": 0.1 },
+			{ "code": "knight-*", "fearWeight": 0.1 }
+		]
+	},
+	{
+		"file": "outlawmod:entities/mobs/bandit-spear.json",
+		"path": "/server/behaviors/9/aitasks/2/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/bandit-spear.json",
+		"path": "/server/behaviors/9/aitasks/3/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/bandit-spear.json",
+		"path": "/server/behaviors/9/aitasks/4/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/deserter-archer.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/deserter-archer.json",
+		"path": "/server/behaviors/9/aitasks/1/entitySourcesOfFear",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": [
+			{ "code": "archer-*", "fearWeight": 0.1 },
+			{ "code": "knight-*", "fearWeight": 0.1 }
+		]
+	},
+	{
+		"file": "outlawmod:entities/mobs/deserter-archer.json",
+		"path": "/server/behaviors/9/aitasks/2/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/deserter-archer.json",
+		"path": "/server/behaviors/9/aitasks/3/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/deserter-archer.json",
+		"path": "/server/behaviors/9/aitasks/4/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/deserter-bannerman.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/deserter-bannerman.json",
+		"path": "/server/behaviors/9/aitasks/1/entitySourcesOfFear",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": [
+			{ "code": "archer-*", "fearWeight": 0.1 },
+			{ "code": "knight-*", "fearWeight": 0.1 }
+		]
+	},
+	{
+		"file": "outlawmod:entities/mobs/deserter-bannerman.json",
+		"path": "/server/behaviors/9/aitasks/2/entitySourcesOfFear",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": [
+			{ "code": "archer-*", "fearWeight": 0.1 },
+			{ "code": "knight-*", "fearWeight": 0.1 }
+		]
+	},
+	{
+		"file": "outlawmod:entities/mobs/deserter-bannerman.json",
+		"path": "/server/behaviors/9/aitasks/4/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/deserter-bannerman.json",
+		"path": "/server/behaviors/9/aitasks/5/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/deserter-footman.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/deserter-footman.json",
+		"path": "/server/behaviors/9/aitasks/1/entitySourcesOfFear",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": [
+			{ "code": "archer-*", "fearWeight": 0.1 },
+			{ "code": "knight-*", "fearWeight": 0.1 }
+		]
+	},
+	{
+		"file": "outlawmod:entities/mobs/deserter-footman.json",
+		"path": "/server/behaviors/9/aitasks/2/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/deserter-footman.json",
+		"path": "/server/behaviors/9/aitasks/3/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/deserter-footman.json",
+		"path": "/server/behaviors/9/aitasks/4/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/deserter-footman.json",
+		"path": "/server/behaviors/9/aitasks/5/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/hound-feral.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/hound-feral.json",
+		"path": "/server/behaviors/9/aitasks/1/entitySourcesOfFear",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": [
+			{ "code": "archer-*", "fearWeight": 0.1 },
+			{ "code": "knight-*", "fearWeight": 0.1 }
+		]
+	},
+	{
+		"file": "outlawmod:entities/mobs/hound-feral.json",
+		"path": "/server/behaviors/9/aitasks/3/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/hound-feral.json",
+		"path": "/server/behaviors/9/aitasks/4/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/hound-feral.json",
+		"path": "/server/behaviors/9/aitasks/5/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/hound-hunting.json",
+		"path": "/server/behaviors/9/aitasks/1/entitySourcesOfFear",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": [
+			{ "code": "archer-*", "fearWeight": 0.1 },
+			{ "code": "knight-*", "fearWeight": 0.1 }
+		]
+	},
+	{
+		"file": "outlawmod:entities/mobs/hound-hunting.json",
+		"path": "/server/behaviors/9/aitasks/3/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/hound-hunting.json",
+		"path": "/server/behaviors/9/aitasks/4/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/looter.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/looter.json",
+		"path": "/server/behaviors/9/aitasks/1/entitySourcesOfFear",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": [
+			{ "code": "archer-*", "fearWeight": 0.1 },
+			{ "code": "knight-*", "fearWeight": 0.1 }
+		]
+	},
+	{
+		"file": "outlawmod:entities/mobs/looter.json",
+		"path": "/server/behaviors/9/aitasks/3/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/looter.json",
+		"path": "/server/behaviors/9/aitasks/4/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/looter.json",
+		"path": "/server/behaviors/9/aitasks/5/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/looter.json",
+		"path": "/server/behaviors/9/aitasks/6/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/poacher-archer.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/poacher-archer.json",
+		"path": "/server/behaviors/9/aitasks/1/entitySourcesOfFear",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": [
+			{ "code": "archer-masc", "fearWeight": 1.0 },
+			{ "code": "archer-femm", "fearWeight": 1.0 },
+			{ "code": "knight-masc", "fearWeight": 1.0 },
+			{ "code": "knight-femm", "fearWeight": 1.0 }
+		]
+	},
+	{
+		"file": "outlawmod:entities/mobs/poacher-archer.json",
+		"path": "/server/behaviors/9/aitasks/2/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/poacher-archer.json",
+		"path": "/server/behaviors/9/aitasks/3/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/poacher-archer.json",
+		"path": "/server/behaviors/9/aitasks/4/entitySourcesOfFear",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": [
+			{ "code": "archer-masc", "fearWeight": 1.0 },
+			{ "code": "archer-femm", "fearWeight": 1.0 },
+			{ "code": "knight-masc", "fearWeight": 1.0 },
+			{ "code": "knight-femm", "fearWeight": 1.0 }
+		]
+	},
+	{
+		"file": "outlawmod:entities/mobs/poacher-archer.json",
+		"path": "/server/behaviors/9/aitasks/5/entitySourcesOfFear",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": [
+			{ "code": "archer-masc", "fearWeight": 1.0 },
+			{ "code": "archer-femm", "fearWeight": 1.0 },
+			{ "code": "knight-masc", "fearWeight": 1.0 },
+			{ "code": "knight-femm", "fearWeight": 1.0 }
+		]
+	},
+	{
+		"file": "outlawmod:entities/mobs/poacher-archer.json",
+		"path": "/server/behaviors/9/aitasks/6/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/poacher-spear.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/poacher-spear.json",
+		"path": "/server/behaviors/9/aitasks/1/entitySourcesOfFear",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": [
+			{ "code": "archer-masc", "fearWeight": 1.0 },
+			{ "code": "archer-femm", "fearWeight": 1.0 },
+			{ "code": "knight-masc", "fearWeight": 1.0 },
+			{ "code": "knight-femm", "fearWeight": 1.0 }
+		]
+	},
+	{
+		"file": "outlawmod:entities/mobs/poacher-spear.json",
+		"path": "/server/behaviors/9/aitasks/2/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/poacher-spear.json",
+		"path": "/server/behaviors/9/aitasks/3/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/poacher-spear.json",
+		"path": "/server/behaviors/9/aitasks/4/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/poacher-spear.json",
+		"path": "/server/behaviors/9/aitasks/5/entitySourcesOfFear",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": [
+			{ "code": "archer-masc", "fearWeight": 1.0 },
+			{ "code": "archer-femm", "fearWeight": 1.0 },
+			{ "code": "knight-masc", "fearWeight": 1.0 },
+			{ "code": "knight-femm", "fearWeight": 1.0 }
+		]
+	},
+	{
+		"file": "outlawmod:entities/mobs/poacher-spear.json",
+		"path": "/server/behaviors/9/aitasks/6/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/yeoman-archer.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/yeoman-archer.json",
+		"path": "/server/behaviors/9/aitasks/1/entitySourcesOfFear",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": [
+			{ "code": "archer-masc", "fearWeight": 0.1 },
+			{ "code": "archer-femm", "fearWeight": 0.1 },
+			{ "code": "knight-masc", "fearWeight": 0.5 },
+			{ "code": "knight-femm", "fearWeight": 0.5 }
+		]
+	},
+	{
+		"file": "outlawmod:entities/mobs/yeoman-archer.json",
+		"path": "/server/behaviors/9/aitasks/2/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/yeoman-archer.json",
+		"path": "/server/behaviors/9/aitasks/3/entitySourcesOfFear",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": [
+			{ "code": "archer-masc", "fearWeight": 1.0 },
+			{ "code": "archer-femm", "fearWeight": 1.0 },
+			{ "code": "knight-masc", "fearWeight": 1.0 },
+			{ "code": "knight-femm", "fearWeight": 1.0 }
+		]
+	},
+	{
+		"file": "outlawmod:entities/mobs/yeoman-archer.json",
+		"path": "/server/behaviors/9/aitasks/4/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	{
+		"file": "outlawmod:entities/mobs/yeoman-archer.json",
+		"path": "/server/behaviors/9/aitasks/6/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*" ]
+	},
+	// Feverstone Wilds //
+	{
+		"file": "feverstonewilds:entities/land/bison.json",
+		"path": "/server/behaviors/14/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "feverstonewilds:entities/land/cockatrice.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "feverstonewilds:entities/land/direwolf.json",
+		"path": "/server/behaviors/11/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "feverstonewilds:entities/land/faunling.json",
+		"path": "/server/behaviors/10/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "feverstonewilds:entities/land/faunling.json",
+		"path": "/server/behaviors/10/aitasks/2/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "feverstonewilds:entities/land/faunling.json",
+		"path": "/server/behaviors/10/aitasks/3/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "feverstonewilds:entities/land/foal.json",
+		"path": "/server/behaviors/14/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "feverstonewilds:entities/land/geodecrab.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "feverstonewilds:entities/land/golem.json",
+		"path": "/server/behaviors/8/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "feverstonewilds:entities/land/golem.json",
+		"path": "/server/behaviors/8/aitasks/1/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "feverstonewilds:entities/land/golem.json",
+		"path": "/server/behaviors/8/aitasks/2/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "feverstonewilds:entities/land/hellboar.json",
+		"path": "/server/behaviors/10/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "feverstonewilds:entities/land/hellboar.json",
+		"path": "/server/behaviors/10/aitasks/1/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "feverstonewilds:entities/land/hellboar.json",
+		"path": "/server/behaviors/10/aitasks/2/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "feverstonewilds:entities/land/hellboar.json",
+		"path": "/server/behaviors/10/aitasks/4/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "feverstonewilds:entities/land/horse.json",
+		"path": "/server/behaviors/14/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "feverstonewilds:entities/land/horse.json",
+		"path": "/server/behaviors/14/aitasks/1/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "feverstonewilds:entities/land/ostrich.json",
+		"path": "/server/behaviors/10/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "feverstonewilds:entities/land/ostrich.json",
+		"path": "/server/behaviors/10/aitasks/1/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "feverstonewilds:entities/land/ostrich.json",
+		"path": "/server/behaviors/10/aitasks/2/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "feverstonewilds:entities/land/scorpion.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "feverstonewilds:entities/land/scorpion.json",
+		"path": "/server/behaviors/9/aitasks/1/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "feverstonewilds:entities/land/scorpion.json",
+		"path": "/server/behaviors/9/aitasks/2/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "feverstonewilds:entities/land/spider.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "feverstonewilds:entities/land/spider.json",
+		"path": "/server/behaviors/9/aitasks/1/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "feverstonewilds:entities/water/sharks.json",
+		"path": "/server/behaviors/8/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "feverstonewilds:entities/water/sharks.json",
+		"path": "/server/behaviors/8/aitasks/1/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "feverstonewilds:entities/water/sharks.json",
+		"path": "/server/behaviors/8/aitasks/2/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "feverstonewilds:entities/water/sharks.json",
+		"path": "/server/behaviors/8/aitasks/3/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "feverstonewilds:entities/water/sharks.json",
+		"path": "/server/behaviors/8/aitasks/4/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "feverstonewilds:entities/water/discus.json",
+		"path": "/server/behaviors/8/aitasks/1/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "feverstonewilds:entities/water/eel.json",
+		"path": "/server/behaviors/8/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "feverstonewilds:entities/water/eel.json",
+		"path": "/server/behaviors/8/aitasks/1/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "feverstonewilds:entities/water/eel.json",
+		"path": "/server/behaviors/8/aitasks/3/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	// Fantasy Creatures //
+	{
+		"file": "fantasycreatures:entities/land/cavegoblin.json",
+		"path": "/server/behaviors/7/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "fantasycreatures" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "fantasycreatures:entities/land/cavegoblin.json",
+		"path": "/server/behaviors/7/aitasks/1/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "fantasycreatures" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "fantasycreatures:entities/land/cavegoblin.json",
+		"path": "/server/behaviors/7/aitasks/2/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "fantasycreatures" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "fantasycreatures:entities/land/cavegoblin.json",
+		"path": "/server/behaviors/7/aitasks/3/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "fantasycreatures" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "fantasycreatures:entities/land/dragon.json",
+		"path": "/server/behaviors/8/aitasksByType/dragon-*/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "fantasycreatures" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "fantasycreatures:entities/land/dragon.json",
+		"path": "/server/behaviors/8/aitasksByType/dragon-*/1/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "fantasycreatures" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "fantasycreatures:entities/land/dragon.json",
+		"path": "/server/behaviors/8/aitasksByType/dragon-*/2/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "fantasycreatures" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "fantasycreatures:entities/land/dragon.json",
+		"path": "/server/behaviors/8/aitasksByType/dragon-*/4/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "fantasycreatures" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "fantasycreatures:entities/land/dragon.json",
+		"path": "/server/behaviors/8/aitasksByType/dragon-*/5/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "fantasycreatures" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "fantasycreatures:entities/land/dragon-flying.json",
+		"path": "/server/behaviors/4/aitasksByType/dragon-flying-*/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "fantasycreatures" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "fantasycreatures:entities/land/ork.json",
+		"path": "/server/behaviors/7/aitasksByType/ork-*/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "fantasycreatures" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "fantasycreatures:entities/land/ork.json",
+		"path": "/server/behaviors/7/aitasksByType/ork-*/1/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "fantasycreatures" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "fantasycreatures:entities/land/ork.json",
+		"path": "/server/behaviors/7/aitasksByType/ork-*/2/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "fantasycreatures" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "fantasycreatures:entities/land/skeleton.json",
+		"path": "/server/behaviors/6/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "fantasycreatures" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "fantasycreatures:entities/land/skeleton.json",
+		"path": "/server/behaviors/6/aitasks/1/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "fantasycreatures" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "fantasycreatures:entities/land/skeleton.json",
+		"path": "/server/behaviors/6/aitasks/2/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "fantasycreatures" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "fantasycreatures:entities/land/skeleton.json",
+		"path": "/server/behaviors/6/aitasks/4/stopOnNearbyEntityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "fantasycreatures" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+
+
+	{
+		"file": "fantasycreatures:entities/land/skeletonblkgrd.json",
+		"path": "/server/behaviors/6/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "fantasycreatures" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "fantasycreatures:entities/land/skeletonblkgrd.json",
+		"path": "/server/behaviors/6/aitasks/1/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "fantasycreatures" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "fantasycreatures:entities/land/skeletonblkgrd.json",
+		"path": "/server/behaviors/6/aitasks/3/stopOnNearbyEntityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "fantasycreatures" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+
+
+	{
+		"file": "fantasycreatures:entities/land/skeleton-deserter.json",
+		"path": "/server/behaviors/6/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "fantasycreatures" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "fantasycreatures:entities/land/skeleton-deserter.json",
+		"path": "/server/behaviors/6/aitasks/1/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "fantasycreatures" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "fantasycreatures:entities/land/skeleton-deserter.json",
+		"path": "/server/behaviors/6/aitasks/2/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "fantasycreatures" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "fantasycreatures:entities/land/skeleton-deserter.json",
+		"path": "/server/behaviors/6/aitasks/4/stopOnNearbyEntityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "fantasycreatures" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "fantasycreatures:entities/land/surface_skeleton.json",
+		"path": "/server/behaviors/6/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "fantasycreatures" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "fantasycreatures:entities/land/surface_skeleton.json",
+		"path": "/server/behaviors/6/aitasks/1/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "fantasycreatures" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "fantasycreatures:entities/land/surface_skeleton.json",
+		"path": "/server/behaviors/6/aitasks/2/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "fantasycreatures" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "fantasycreatures:entities/land/surface_skeleton.json",
+		"path": "/server/behaviors/6/aitasks/4/stopOnNearbyEntityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "fantasycreatures" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	// Something in the Water //
+	{
+		"file": "somethinginthewater:entities/water/bigshark.json",
+		"path": "/server/behaviors/8/aitasks/1/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "somethinginthewater" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "somethinginthewater:entities/water/bigshark.json",
+		"path": "/server/behaviors/8/aitasks/2/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "somethinginthewater" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "somethinginthewater:entities/water/bigshark.json",
+		"path": "/server/behaviors/8/aitasks/3/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "somethinginthewater" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "somethinginthewater:entities/water/bigshark.json",
+		"path": "/server/behaviors/8/aitasks/6/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "somethinginthewater" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "somethinginthewater:entities/water/shark.json",
+		"path": "/server/behaviors/8/aitasks/1/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "somethinginthewater" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "somethinginthewater:entities/water/shark.json",
+		"path": "/server/behaviors/8/aitasks/2/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "somethinginthewater" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	},
+	{
+		"file": "somethinginthewater:entities/water/shark.json",
+		"path": "/server/behaviors/8/aitasks/5/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "somethinginthewater" } ],
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+	}
+]

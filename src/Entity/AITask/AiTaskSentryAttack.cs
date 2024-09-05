@@ -28,10 +28,11 @@ namespace VSKingdom {
 		protected float maximumRange = 20f;
 		protected float minimumRange = 0.5f;
 		protected float curTurnAngle;
-		protected string lastAnim;
-		protected string currAnim;
+		protected string lastAnimCode;
+		protected string currAnimCode;
 		protected string[] shieldAnim;
 		protected string[] animations;
+		protected HashSet<long> allyCaches = new HashSet<long>();
 		protected AiTaskSentrySearch searchTask => entity.GetBehavior<EntityBehaviorTaskAI>().TaskManager.GetTask<AiTaskSentrySearch>();
 		
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
@@ -77,6 +78,9 @@ namespace VSKingdom {
 			if (ent == null || ent == entity || !ent.Alive) {
 				return false;
 			}
+			if (allyCaches.Contains(ent.EntityId)) {
+				return false;
+			}
 			if (ent is EntityProjectile projectile && projectile.FiredBy is not null) {
 				targetEntity = projectile.FiredBy;
 			}
@@ -84,10 +88,31 @@ namespace VSKingdom {
 				if (banditPilled) {
 					return ent is EntityPlayer || (ent is EntitySentry sentry && sentry.cachedData.kingdomGUID != GlobalCodes.banditryGUID);
 				}
+				if (ent.WatchedAttributes.HasAttribute("leadersGUID") && entity.cachedData.leadersGUID == ent.WatchedAttributes.GetString("leadersGUID")) {
+					allyCaches.Add(ent.EntityId);
+					return false;
+				}
 				if (ent is EntitySentry sent) {
-					return entity.cachedData.enemiesLIST.Contains(sent.cachedData.kingdomGUID) || sent.cachedData.kingdomGUID == GlobalCodes.banditryGUID;
+					return entity.cachedData.enemiesLIST.Contains(sent.cachedData.kingdomGUID) || entity.cachedData.outlawsLIST.Contains(sent.cachedData.leadersGUID) || sent.cachedData.kingdomGUID == GlobalCodes.banditryGUID;
 				}
 				return entity.cachedData.enemiesLIST.Contains(ent.WatchedAttributes.GetString("kingdomGUID"));
+			}
+			if (ent.WatchedAttributes.HasAttribute("domesticationstatus")) {
+				if (!ent.WatchedAttributes.GetTreeAttribute("domesticationstatus")?.HasAttribute("owner") ?? false) {
+					return true;
+				}
+				string ownerGUID = ent.WatchedAttributes.GetTreeAttribute("domesticationstatus")?.GetString("owner");
+				if (ownerGUID != null && !ent.WatchedAttributes.HasAttribute("leadersGUID")) {
+					ent.WatchedAttributes.SetString("leadersGUID", ownerGUID);
+				}
+				if (entity.WatchedAttributes.GetString("leadersGUID") == ownerGUID) {
+					allyCaches.Add(ent.EntityId);
+					return false;
+				}
+				if (entity.cachedData.outlawsLIST.Contains(ownerGUID)) {
+					return true;
+				}
+				return false;
 			}
 			if (ignoreEntityCode || IsTargetEntity(ent.Code.Path)) {
 				return CanSense(ent, range);
@@ -96,21 +121,16 @@ namespace VSKingdom {
 		}
 
 		public override void StartExecute() {
-			// Don't execute anything if there isn't a targetEntity.
-			if (targetEntity == null) {
-				cancelAttack = true;
-				return;
-			}
 			// Record last animMeta so we can stop it if we need to.
-			lastAnim = currAnim;
+			lastAnimCode = currAnimCode;
 			// Initialize a random attack animation and sounds!
 			if (entity.RightHandItemSlot.Empty) {
-				currAnim = animations[0];
+				currAnimCode = animations[0];
 			} else {
-				if (entity.RightHandItemSlot.Itemstack.Item.Code.PathStartsWith("spear-")) {
-					currAnim = animations[1];
+				if (entity.RightHandItemSlot.Itemstack.Item is ItemSpear) {
+					currAnimCode = animations[1];
 				} else {
-					currAnim = animations[entity.World.Rand.Next(0, animations.Length - 1)];
+					currAnimCode = animations[entity.World.Rand.Next(1, animations.Length - 1)];
 				}
 				switch (entity.World.Rand.Next(1, 2)) {
 					case 1: sound = new AssetLocation("game:sounds/player/strike1"); break;
@@ -134,7 +154,13 @@ namespace VSKingdom {
 		}
 
 		public override bool ContinueExecute(float dt) {
-			if (cancelAttack || targetEntity == null || !targetEntity.Alive) {
+			if (targetEntity == null) {
+				cancelAttack = true;
+			}
+			if (!targetEntity.Alive) {
+				cancelAttack = true;
+			}
+			if (cancelAttack) {
 				searchTask.ResetsTargets();
 				return false;
 			}
@@ -148,9 +174,9 @@ namespace VSKingdom {
 				flag = Math.Abs(num) < maximumRange * (MathF.PI / 180f);
 			}
 			if (!attackFinish) {
-				attackFinish = currAnim != null && !entity.AnimManager.IsAnimationActive(currAnim);
+				attackFinish = currAnimCode != null && !entity.AnimManager.IsAnimationActive(currAnimCode);
 			}
-			animsRunning = lastAnim != null ? entity.AnimManager.GetAnimationState(lastAnim).Running : false;
+			animsRunning = lastAnimCode != null ? entity.AnimManager.GetAnimationState(lastAnimCode).Running : false;
 			if (!animsRunning && attackFinish && flag) {
 				attackFinish = false;
 				animsRunning = AttackTarget();
@@ -158,7 +184,7 @@ namespace VSKingdom {
 			if (usingAShield) {
 				bool closeToTarget = entity.ServerPos.SquareDistanceTo(targetEntity.ServerPos) < 16f;
 				bool targetsRanged = false;
-				if (targetEntity is EntityHumanoid humanoidEnt && !humanoidEnt.RightHandItemSlot.Empty) {
+				if (targetEntity != null && targetEntity is EntityHumanoid humanoidEnt && !humanoidEnt.RightHandItemSlot.Empty) {
 					Item targetWeapon = humanoidEnt.RightHandItemSlot.Itemstack.Item;
 					targetsRanged = (targetWeapon is ItemBow || targetWeapon is ItemSling);
 				}
@@ -194,8 +220,8 @@ namespace VSKingdom {
 				searchTask.ResetsTargets();
 				searchTask.StopMovements();
 			}
-			if (currAnim != null) {
-				entity.AnimManager.StopAnimation(currAnim);
+			if (currAnimCode != null) {
+				entity.AnimManager.StopAnimation(currAnimCode);
 			}
 			entity.AnimManager.StopAnimation(shieldAnim[0]);
 			entity.AnimManager.StopAnimation(shieldAnim[1]);
@@ -233,8 +259,8 @@ namespace VSKingdom {
 			if (!hasDirectContact(targetEntity, entity.cachedData.weapRange, entity.cachedData.weapRange)) {
 				return false;
 			}
-			entity.AnimManager.StopAnimation(lastAnim);
-			entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = currAnim, Code = currAnim }.Init());
+			entity.AnimManager.StopAnimation(lastAnimCode);
+			entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = currAnimCode, Code = currAnimCode }.Init());
 			entity.World.PlaySoundAt(sound, entity, null, true, soundRange);
 			float damage = entity.RightHandItemSlot?.Itemstack?.Item?.AttackPower ?? 1f;
 			bool alive = targetEntity.Alive;

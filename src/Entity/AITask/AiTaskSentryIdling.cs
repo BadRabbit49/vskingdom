@@ -13,6 +13,7 @@ namespace VSKingdom {
 		#pragma warning restore CS0108
 		protected bool cancelIdling = false;
 		protected bool isInEntRange = false;
+		protected bool arrowSharing = false;
 		protected int minduration;
 		protected int maxduration;
 		protected long idleUntilMs;
@@ -85,6 +86,7 @@ namespace VSKingdom {
 
 		public override void StartExecute() {
 			cancelIdling = false;
+			arrowSharing = !entity.AmmoItemSlot.Empty && entity.AmmoItemSlot.StackSize > 10;
 			if (maxduration < 0) {
 				idleUntilMs = -1L;
 			} else {
@@ -129,7 +131,6 @@ namespace VSKingdom {
 			);
 		}
 
-
 		public override bool ContinueExecute(float dt) {
 			if (rand.NextDouble() < 0.3) {
 				long elapsedMilliseconds = entity.World.ElapsedMilliseconds;
@@ -151,9 +152,25 @@ namespace VSKingdom {
 		}
 
 		public override void FinishExecute(bool cancelled) {
-			cooldownUntilMs = entity.World.ElapsedMilliseconds + mincooldown + entity.World.Rand.Next(maxcooldown - mincooldown);
+			cooldownUntilMs = entity.World.ElapsedMilliseconds + mincooldown + entity.World.Rand.Next(maxcooldown - mincooldown);			
 			if (currAnims != null && currAnims != "idle") {
 				entity.AnimManager.StopAnimation(currAnims);
+			}
+			if (arrowSharing) {
+				string thisKingdom = entity.WatchedAttributes.GetString("kingdomGUID");
+				var sentsAround = world.GetEntitiesAround(entity.ServerPos.XYZ, 8f, 4f, match => match is EntitySentry);
+				for (int i = 0; i < sentsAround.Length; i++) {
+					try {
+						if (sentsAround[i].WatchedAttributes.GetString("kingdomGUID") != thisKingdom || sentsAround[i].Properties.Attributes["baseClass"].AsString() != "range" || !MathUtility.CanSeeEnt(entity, sentsAround[i])) {
+							continue;
+						}
+						EntitySentry sentry = sentsAround[i] as EntitySentry;
+						if (sentry.AmmoItemSlot.Empty || (sentry.AmmoItemSlot.Itemstack.Item.Code == entity.AmmoItemSlot.Itemstack.Item.Code && sentry.AmmoItemSlot.StackSize < (entity.AmmoItemSlot.StackSize / 2))) {
+							entity.AmmoItemSlot.TryPutInto(world, sentry.AmmoItemSlot, 4);
+							entity.AmmoItemSlot.MarkDirty();
+						}
+					} catch { }
+				}
 			}
 		}
 

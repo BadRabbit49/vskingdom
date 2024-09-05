@@ -417,7 +417,7 @@ namespace VSKingdom {
 		private void OnSentryUpdated(IServerPlayer player, SentryUpdateToServer sentryUpdate) {
 			// NEEDS TO BE DONE ON THE SERVER SIDE HERE!
 			SentryUpdateToEntity update = new SentryUpdateToEntity();
-			if (sentryUpdate.kingdomGUID.Length > 0 && sentryUpdate.kingdomGUID != null) {
+			if (sentryUpdate.kingdomGUID != null && sentryUpdate.kingdomGUID.Length > 0) {
 				var kingdom = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == sentryUpdate.kingdomGUID);
 				update.kingdomGUID = new string(kingdom.KingdomGUID);
 				update.kingdomNAME = new string(kingdom.KingdomNAME);
@@ -430,12 +430,12 @@ namespace VSKingdom {
 				sentry.cachedData.UpdateFriends(kingdom.FriendsGUID.ToArray());
 				sentry.cachedData.UpdateOutlaws(kingdom.OutlawsGUID.ToArray());
 			}
-			if (sentryUpdate.cultureGUID.Length > 0 && sentryUpdate.cultureGUID != null) {
+			if (sentryUpdate.cultureGUID != null && sentryUpdate.cultureGUID.Length > 0) {
 				var culture = cultureList.Find(cultureMatch => cultureMatch.CultureGUID == sentryUpdate.cultureGUID);
 				update.cultureGUID = new string(culture.CultureGUID);
 				update.cultureNAME = new string(culture.CultureNAME);
 			}
-			if (sentryUpdate.leadersGUID.Length > 0 && sentryUpdate.leadersGUID != null) {
+			if (sentryUpdate.leadersGUID != null && sentryUpdate.leadersGUID.Length > 0) {
 				var leaders = serverAPI.World.PlayerByUid(sentryUpdate?.leadersGUID) ?? null;
 				update.leadersGUID = new string(leaders.PlayerUID);
 				update.leadersNAME = new string(leaders.PlayerName);
@@ -906,7 +906,6 @@ namespace VSKingdom {
 				newKingdom.LeadersGUID = founderGUID;
 				newKingdom.PlayersGUID.Add(founderGUID);
 				newKingdom.PlayersINFO.Add(KingdomUtility.PlayerDetails(founderGUID, newKingdom.MembersROLE, KingdomUtility.GetLeaderRole(newKingdom.MembersROLE)));
-				newKingdom.EntitiesALL.Add(founder.Entity.EntityId);
 				founder.Entity.World.PlaySoundAt(new AssetLocation("game:sounds/effect/cashregister"), founder.Entity);
 			}
 			kingdomList.Add(newKingdom);
@@ -1024,7 +1023,6 @@ namespace VSKingdom {
 			Kingdom oldKingdom = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == caller.Entity.WatchedAttributes.GetString("kingdomGUID", GlobalCodes.commonerGUID));
 			Kingdom newKingdom = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID);
 			oldKingdom.PlayersGUID.Remove(caller.PlayerUID);
-			oldKingdom.EntitiesALL.Remove(caller.Entity.EntityId);
 			oldKingdom.InvitesGUID.Remove(caller.PlayerUID);
 			oldKingdom.RequestGUID.Remove(caller.PlayerUID);
 			newKingdom.InvitesGUID.Remove(caller.PlayerUID);
@@ -1038,7 +1036,6 @@ namespace VSKingdom {
 			if (kingdomGUID != GlobalCodes.commonerGUID && kingdomGUID != GlobalCodes.banditryGUID) {
 				newKingdom.PlayersGUID.Add(caller.PlayerUID);
 				newKingdom.PlayersINFO.Add(KingdomUtility.PlayerDetails(caller.PlayerUID, newKingdom.MembersROLE, specificROLE));
-				newKingdom.EntitiesALL.Add(caller.Entity.EntityId);
 			}
 			caller.Entity.WatchedAttributes.SetString("kingdomGUID", kingdomGUID);
 			if (oldKingdom.PlayersGUID.Count == 0 && kingdomGUID != GlobalCodes.commonerGUID && kingdomGUID != GlobalCodes.banditryGUID) {
@@ -1543,13 +1540,12 @@ namespace VSKingdom {
 		public string duckAnim = "duck";
 		public string swimAnim = "swim";
 		public string jumpAnim = "jump";
-		public string diesAnim = "dies";
 		public string drawAnim = "draw";
 		public string fireAnim = "fire";
 		public string loadAnim = "load";
 		public string bashAnim = "bash";
 		public string stabAnim = "bash";
-		public string[] allCodes => new string[12] { idleAnim, walkAnim, moveAnim, duckAnim, swimAnim, jumpAnim, diesAnim, drawAnim, fireAnim, loadAnim, bashAnim, stabAnim };
+		public string[] allCodes => new string[11] { idleAnim, walkAnim, moveAnim, duckAnim, swimAnim, jumpAnim, drawAnim, fireAnim, loadAnim, bashAnim, stabAnim };
 	}
 	[ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
 	public class ClassPrivileges {

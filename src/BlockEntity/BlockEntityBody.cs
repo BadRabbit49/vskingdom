@@ -2,6 +2,8 @@
 using Vintagestory.API.Server;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Datastructures;
+using System.Collections.Generic;
+using HarmonyLib;
 
 namespace VSKingdom {
 	public class BlockEntityBody : BlockEntity {
@@ -18,7 +20,7 @@ namespace VSKingdom {
 				gearInv.LateInitialize(guidInv, api);
 			}
 		}
-
+		
 		public override void OnBlockBroken(IPlayer byPlayer = null) {
 			if (Api.World is IServerWorldAccessor) {
 				gearInv.DropAll(Pos.ToVec3d().Add(0.5, 0.5, 0.5));
@@ -28,20 +30,26 @@ namespace VSKingdom {
 
 		public override void ToTreeAttributes(ITreeAttribute tree) {
 			base.ToTreeAttributes(tree);
-			var attribute = tree.GetOrAddTreeAttribute("inventory");
+			var inventory = tree.GetOrAddTreeAttribute("inventory");
 			for (int i = 0; i < gearInv.Count; i++) {
-				attribute.SetItemstack($"IS_{i}", gearInv[i].Itemstack);
+				if (!gearInv[i].Empty) {
+					inventory.SetItemstack($"IS_{i}", gearInv[i].Itemstack);
+				}
 			}
 		}
 
 		public override void FromTreeAttributes(ITreeAttribute tree, IWorldAccessor worldAccessForResolve) {
 			base.FromTreeAttributes(tree, worldAccessForResolve);
-			var attribute = tree.GetOrAddTreeAttribute("inventory");
-			int slot = 0;
-			foreach (var item in attribute) {
-				gearInv[slot].Itemstack = attribute.GetItemstack(item.Key);
-				gearInv[slot].MarkDirty();
-				slot++;
+			var inventory = tree.GetOrAddTreeAttribute("inventory");
+			if (inventory.Count == 0) {
+				return;
+			}
+			List<(int, ItemStack)> itemList = new List<(int, ItemStack)>();
+			for (int i = 0; i < inventory.Count; i++) {
+				if (inventory.HasAttribute($"IS_{i}")) {
+					gearInv[i].Itemstack = inventory.GetItemstack($"IS_{i}");
+					gearInv[i].MarkDirty();
+				}
 			}
 		}
 	}

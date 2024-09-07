@@ -28,10 +28,10 @@ namespace VSKingdom {
 			base.AfterInitialized(onFirstSpawn);
 			if (onFirstSpawn && entity is EntityPlayer) {
 				if (kingdomGUID is null || !entity.WatchedAttributes.HasAttribute("kingdomGUID")) {
-					kingdomGUID = GlobalCodes.commonerGUID;
+					kingdomGUID = commonerGUID;
 				}
 				if (cultureGUID is null || !entity.WatchedAttributes.HasAttribute("cultureGUID")) {
-					cultureGUID = GlobalCodes.seraphimGUID;
+					cultureGUID = seraphimGUID;
 				}
 			}
 		}

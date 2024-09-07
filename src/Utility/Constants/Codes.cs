@@ -1,9 +1,12 @@
-﻿namespace VSKingdom {
+﻿namespace VSKingdom.Constants {
 	internal static class GlobalCodes {
-		public static readonly string commonerGUID = "00000000";
-		public static readonly string banditryGUID = "xxxxxxxx";
-		public static readonly string seraphimGUID = "00000000";
-		public static readonly string clockwinGUID = "cccccccc";
+		public const string king_GUID = "kingdomGUID";
+		public const string cult_GUID = "cultureGUID";
+		public const string lead_GUID = "leadersGUID";
+		public const string commonerGUID = "00000000";
+		public const string banditryGUID = "xxxxxxxx";
+		public const string seraphimGUID = "00000000";
+		public const string clockwinGUID = "cccccccc";
 		public static readonly string[] kingdomIDs = { "00000000", "xxxxxxxx" };
 		public static readonly string[] cultureIDs = { "00000000", "xxxxxxxx" };
 		public static readonly string[] dressCodes = { "head", "tops", "gear", "pant", "shoe", "hand", "neck", "icon", "mask", "belt", "arms", "coat", "helm", "body", "legs", "left", "weap", "back", "ammo", "heal" };

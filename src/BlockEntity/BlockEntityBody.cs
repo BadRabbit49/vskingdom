@@ -1,9 +1,8 @@
-﻿using Vintagestory.API.Common;
+﻿using System.Collections.Generic;
+using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Datastructures;
-using System.Collections.Generic;
-using HarmonyLib;
 
 namespace VSKingdom {
 	public class BlockEntityBody : BlockEntity {
@@ -20,7 +19,7 @@ namespace VSKingdom {
 				gearInv.LateInitialize(guidInv, api);
 			}
 		}
-		
+
 		public override void OnBlockBroken(IPlayer byPlayer = null) {
 			if (Api.World is IServerWorldAccessor) {
 				gearInv.DropAll(Pos.ToVec3d().Add(0.5, 0.5, 0.5));
@@ -60,7 +59,7 @@ namespace VSKingdom {
 		public override ItemStack[] GetDrops(IWorldAccessor world, BlockPos pos, IPlayer byPlayer, float dropQuantityMultiplier = 1) {
 			return null;
 		}
-		
+
 		public override BlockDropItemStack[] GetDropsForHandbook(ItemStack handbookStack, IPlayer forPlayer) {
 			return new BlockDropItemStack[0];
 		}

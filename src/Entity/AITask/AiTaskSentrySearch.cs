@@ -6,6 +6,7 @@ using Vintagestory.API.Common.Entities;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Datastructures;
 using Vintagestory.GameContent;
+using static VSKingdom.Utilities.GenericUtil;
 
 namespace VSKingdom {
 	public class AiTaskSentrySearch : AiTaskBaseTargetable {
@@ -71,7 +72,8 @@ namespace VSKingdom {
 			var navigateAction = DoSieged;
 			if (archerPilled) {
 				bool safeSpot = !NotSafe();
-				bool runfight = !safeSpot && world.Rand.NextDouble() < 0.5;
+				bool tooClose = targetEntity.ServerPos.SquareDistanceTo(entity.ServerPos) < 16f && CanSeeEnt(targetEntity, entity);
+				bool runfight = tooClose || (!safeSpot && world.Rand.NextDouble() < 0.5);
 				navigateAction = runfight ? Retreats : DoCircle;
 			} else {
 				navigateAction = DoDirect;

@@ -5,7 +5,7 @@ using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 using Vintagestory.API.Util;
 
-namespace VSKingdom {
+namespace VSKingdom.Extension {
 	internal static class CultureListExtension {
 		public static bool CultureExists(this List<Culture> cultureList, string cultureGUID) {
 			if (cultureList.Count == 0) {
@@ -21,8 +21,8 @@ namespace VSKingdom {
 		}
 
 		public static bool PartOfCulture(this List<Culture> cultureList, IPlayer player) {
-			string cultureGUID = player.Entity.WatchedAttributes.GetString("cultureGUID", GlobalCodes.commonerGUID);
-			if (cultureGUID == null || cultureGUID == GlobalCodes.commonerGUID || cultureGUID == GlobalCodes.banditryGUID || cultureList.Count == 0) {
+			string cultureGUID = player.Entity.WatchedAttributes.GetString("cultureGUID", commonerGUID);
+			if (cultureGUID == null || cultureGUID == commonerGUID || cultureGUID == banditryGUID || cultureList.Count == 0) {
 				return false;
 			}
 			for (int k = 0; k < cultureList.Count; k++) {

@@ -7,8 +7,8 @@ using Vintagestory.API.Util;
 using Vintagestory.GameContent;
 using static Vintagestory.API.Common.EntityAgent;
 
-namespace VSKingdom {
-	internal static class HealthUtility {
+namespace VSKingdom.Utilities {
+	internal static class DamagesUtil {
 		public static float handleDamaged(ICoreAPI api, EntityAgent ent, float dmg, DamageSource src) {
 			EnumDamageType type = src.Type;
 			// Reduce damage if ent holds a shield

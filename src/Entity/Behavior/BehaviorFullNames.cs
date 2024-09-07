@@ -2,6 +2,7 @@
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Datastructures;
+using static VSKingdom.Utilities.ReadingUtil;
 
 namespace VSKingdom {
 	public class EntityBehaviorFullNames : EntityBehavior {
@@ -54,11 +55,11 @@ namespace VSKingdom {
 				SetName(CommonName, FamilyName);
 			} else if (entity.Api.Side == EnumAppSide.Server) {
 				string[] commonNameList = new string[] { };
-				string[] familyNameList = LangUtility.Open(entity.Api.World.Config.GetAsString("BasicLastNames"));
+				string[] familyNameList = Open(entity.Api.World.Config.GetAsString("BasicLastNames"));
 				switch (entity.Code.EndVariant()) {
-					case "masc": commonNameList = LangUtility.Open(entity.Api.World.Config.GetAsString("BasicMascNames")); break;
-					case "femm": commonNameList = LangUtility.Open(entity.Api.World.Config.GetAsString("BasicFemmNames")); break;
-					default: commonNameList = LangUtility.Fuse(LangUtility.Open(entity.Api.World.Config.GetAsString("BasicMascNames")), LangUtility.Open(entity.Api.World.Config.GetAsString("BasicFemmNames"))); break;
+					case "masc": commonNameList = Open(entity.Api.World.Config.GetAsString("BasicMascNames")); break;
+					case "femm": commonNameList = Open(entity.Api.World.Config.GetAsString("BasicFemmNames")); break;
+					default: commonNameList = Fuse(Open(entity.Api.World.Config.GetAsString("BasicMascNames")), Open(entity.Api.World.Config.GetAsString("BasicFemmNames"))); break;
 				}
 				Random rnd = new Random();
 				SetName(commonNameList[rnd.Next(0, commonNameList.Length - 1)], familyNameList[rnd.Next(0, familyNameList.Length - 1)]);

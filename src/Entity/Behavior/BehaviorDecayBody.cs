@@ -5,6 +5,7 @@ using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
 using Vintagestory.GameContent;
+using static VSKingdom.Utilities.ReadingUtil;
 
 namespace VSKingdom {
 	public class EntityBehaviorDecayBody : EntityBehavior {
@@ -51,7 +52,7 @@ namespace VSKingdom {
 				return;
 			}
 			// If the entities were at war with eachother then loot will be dropped. Specifically their armor and what they had in their right hand slot.
-			if (killer.cachedData.enemiesLIST.Contains(victim.cachedData.kingdomGUID) || killer.cachedData.kingdomGUID == GlobalCodes.banditryGUID) {
+			if (killer.cachedData.enemiesLIST.Contains(victim.cachedData.kingdomGUID) || killer.cachedData.kingdomGUID == banditryGUID) {
 				// If the killer can, try looting the player corpse right away, take what is better.
 				for (int i = 12; i < 14; i++) {
 					try {
@@ -105,7 +106,7 @@ namespace VSKingdom {
 			double d = entity.ServerPos.Dimension;
 
 			BlockPos bonePos = new BlockPos((int)x, (int)y, (int)z, (int)d);
-			Block skeletonBlock = entity.World.GetBlock(new AssetLocation(LangUtility.Get("body-" + entity.WatchedAttributes.GetString("deathSkeletons", "humanoid1"))));
+			Block skeletonBlock = entity.World.GetBlock(new AssetLocation(Get("body-" + entity.WatchedAttributes.GetString("deathSkeletons", "humanoid1"))));
 			Block exblock = blockAccessor.GetBlock(bonePos);
 			bool placedBlock = false;
 			// Ensure the blocks here are replaceable like grass or something.

@@ -47,7 +47,7 @@ namespace VSKingdom {
 
 		public override void Initialize(ICoreAPI api) {
 			base.Initialize(api);
-			postTier = GlobalDicts.metalTiers.GetValueSafe(Block.Variant["metal"]);
+			postTier = metalTiers.GetValueSafe(Block.Variant["metal"]);
 			if (api is ICoreClientAPI capi) {
 				// TODO: IMPLEMENT BUILT IN RENDERER FROM FORGE BLOCK.
 				// capi.Event.RegisterRenderer(renderer = new ForgeContentsRenderer(Pos, capi), EnumRenderStage.Opaque, "forge");
@@ -86,7 +86,7 @@ namespace VSKingdom {
 			ToggleAmbientSounds(false);
 			Api.ModLoader.GetModSystem<POIRegistry>()?.RemovePOI(this);
 		}
-		
+	
 		public override void GetBlockInfo(IPlayer forPlayer, StringBuilder dsc) {
 			if (ownerUID == null) {
 				base.GetBlockInfo(forPlayer, dsc);
@@ -136,7 +136,7 @@ namespace VSKingdom {
 			tree.SetString("entities", GetStringFromList(entGUIDS));
 			base.ToTreeAttributes(tree);
 		}
-		
+	
 		public override void OnReceivedServerPacket(int packetid, byte[] data) {
 			base.OnReceivedServerPacket(packetid, data);
 			switch (packetid) {

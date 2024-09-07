@@ -29,7 +29,6 @@ namespace VSKingdom {
 		protected float minTurnAnglePerSec;
 		protected float maxTurnAnglePerSec;
 		protected float curTurnAnglePerSec;
-		protected string rangedDomain;
 		protected AnimationMetaData drawBowsMeta;
 		protected AnimationMetaData fireBowsMeta;
 		protected AnimationMetaData loadBowsMeta;
@@ -52,7 +51,7 @@ namespace VSKingdom {
 			if (cooldownUntilMs > entity.World.ElapsedMilliseconds) {
 				return false;
 			}
-			if (!HasRanged()) {
+			if (!entity.cachedData.weapReady) {
 				return false;
 			}
 			if (totalDurationMs + totalCooldownMs < entity.World.ElapsedMilliseconds) {
@@ -99,7 +98,6 @@ namespace VSKingdom {
 			cancelAttack = false;
 			renderSwitch = false;
 			releasedShot = false;
-			rangedDomain = entity.AmmoItemSlot.Itemstack.Item.Code.Domain;
 			drawBowsMeta = new AnimationMetaData() {
 				Code = new string(entity.cachedData.drawAnims),
 				Animation = new string(entity.cachedData.drawAnims),
@@ -157,11 +155,10 @@ namespace VSKingdom {
 				}
 			};
 			// Get and initialize the item's attributes to the weapon.
-			AssetLocation weaponCode = entity.RightHandItemSlot?.Itemstack?.Collectible?.Code;
-			string weaponName = new string(weaponCode?.Domain + ":" + weaponCode?.FirstCodePart());
-			drawingsound = ItemsProperties.WeaponDrawAudios.Get(weaponName);
-			List<AssetLocation> hitAudio = ItemsProperties.WeaponFireAudios.Get(weaponName);
-			hittingsound = hitAudio.Count > 1 ? hitAudio[rand.Next(0, hitAudio.Count - 1)] : hitAudio[0];
+			AssetLocation[] drawAudio = WeaponProperties[entity.cachedData.weapCodes].drawAudio;
+			drawingsound = drawAudio.Length > 1 ? drawAudio[rand.Next(0, drawAudio.Length - 1)] : drawAudio[0];
+			AssetLocation[] fireAudio = WeaponProperties[entity.cachedData.weapCodes].fireAudio;
+			hittingsound = fireAudio.Length > 1 ? fireAudio[rand.Next(0, fireAudio.Length - 1)] : fireAudio[0];
 			ammoLocation = entity.GearInventory[18]?.Itemstack?.Collectible?.Code;
 			// Start switching the renderVariant to change to aiming.
 			entity.RightHandItemSlot?.Itemstack?.Attributes?.SetInt("renderVariant", 1);
@@ -214,7 +211,7 @@ namespace VSKingdom {
 				renderSwitch = true;
 			}
 			// Do after aiming time is finished.
-			if (accum > releasesAtMs / 1000f && !releasedShot && !EntityInTheWay() && HasRanged()) {
+			if (accum > releasesAtMs / 1000f && !releasedShot && !EntityInTheWay() && entity.cachedData.weapReady) {
 				releasedShot = FireProjectile();
 				// Don't play anything when the hittingSound is incorrectly set.
 				if (hittingsound != null && releasedShot) {
@@ -264,26 +261,25 @@ namespace VSKingdom {
 
 		private bool FireProjectile() {
 			bool infiniteAmmo = entity.Api.World.Config.GetAsBool("InfiniteAmmo");
+			bool isModdedAmmo = entity.AmmoItemSlot.Itemstack.Item.Code.Domain != "game" && compatibleRange.Contains(entity.AmmoItemSlot.Itemstack.Item.Code.Domain);
 			EntityProjectile projectile = (EntityProjectile)entity.World.ClassRegistry.CreateEntity(projectileType);
 			projectile.FiredBy = entity;
-			float _weapDamage = entity.RightHandItemSlot.Itemstack.Collectible.Attributes["damage"].AsFloat();
-			float _ammoDamage = entity.AmmoItemSlot.Itemstack.Collectible.Attributes["damage"].AsFloat();
-			projectile.Damage = _weapDamage + _ammoDamage;
-			if (GlobalCodes.compatibleRange.Contains(rangedDomain)) {
-				projectile.Damage = ItemsProperties.AmmunitionDamages[entity.AmmoItemSlot.Itemstack.Item.Code.ToString()] * ItemsProperties.WeaponMultipliers[entity.RightHandItemSlot.Itemstack.Item.Code.ToString()];
-			}
-			if (projectile.Damage <= 0.1f) {
-				return false;
-			}
 			projectile.ProjectileStack = new ItemStack(entity.World.GetItem(ammoLocation));
 			projectile.DropOnImpactChance = infiniteAmmo ? 0 : 1f - (entity.AmmoItemSlot.Itemstack.ItemAttributes["breakChanceOnImpact"].AsFloat(0.5f));
 			projectile.World = entity.World;
+			// Get damage according to type of projectile.	
+			if (isModdedAmmo) {
+				projectile.Damage = AmmunitionDamages[entity.gearInv[18].Itemstack.Item.Code.ToString()] * WeaponMultipliers[entity.gearInv[16].Itemstack.Item.Code.ToString()];
+			} else {
+				projectile.Damage = entity.gearInv[18].Itemstack.Collectible.Attributes["damage"].AsFloat() + entity.gearInv[16].Itemstack.Collectible.Attributes["damage"].AsFloat();
+			}
 			// Adjust projectile position and velocity to be used.
 			Vec3d pos = entity.ServerPos.AheadCopy(0.5).XYZ.AddCopy(0, entity.LocalEyePos.Y, 0);
 			Vec3d aheadPos = targetEntity.ServerPos.XYZ.AddCopy(0, targetEntity.LocalEyePos.Y, 0);
 			double distf = Math.Pow(pos.SquareDistanceTo(aheadPos), 0.1);
 			double curve = pos.DistanceTo(aheadPos) / 16;
-			Vec3d velocity = (aheadPos - pos + new Vec3d(0, curve, 0)).Normalize() * GameMath.Clamp(distf - 1f, 0.1f, 1f);
+			double speed = isModdedAmmo ? WeaponProperties[entity.cachedData.weapCodes].ammoSpeed : GameMath.Clamp(distf - 1f, 0.1f, 1f);
+			Vec3d velocity = (aheadPos - pos + new Vec3d(0, curve, 0)).Normalize() * speed;
 			// Set final projectile parameters, position, velocity, from point, and rotation.
 			projectile.ServerPos.SetPos(entity.ServerPos.AheadCopy(0.5).XYZ.Add(0, entity.LocalEyePos.Y, 0));
 			projectile.ServerPos.Motion.Set(velocity);
@@ -295,6 +291,7 @@ namespace VSKingdom {
 			if (!infiniteAmmo) {
 				entity.GearInventory[18]?.TakeOut(1);
 				entity.GearInventory[18]?.MarkDirty();
+				entity.cachedData.UpdateReloads(entity.GearInventory);
 			}
 			return true;
 		}
@@ -304,32 +301,12 @@ namespace VSKingdom {
 				return entity.cachedData.kingdomGUID != target.WatchedAttributes.GetString("kingdomGUID");
 			}
 			if (target is EntitySentry sentry) {
-				return entity.cachedData.enemiesLIST.Contains(sentry.cachedData.kingdomGUID) || sentry.cachedData.kingdomGUID == GlobalCodes.banditryGUID;
+				return entity.cachedData.enemiesLIST.Contains(sentry.cachedData.kingdomGUID) || sentry.cachedData.kingdomGUID == banditryGUID;
 			}
 			if (target is EntityPlayer player) {
 				return entity.cachedData.outlawsLIST.Contains(player.PlayerUID) || entity.cachedData.enemiesLIST.Contains(player.WatchedAttributes.GetString("kingdomGUID"));
 			}
 			return entity.cachedData.enemiesLIST.Contains(target.WatchedAttributes.GetString("kingdomGUID"));
-		}
-
-		private bool HasRanged() {
-			if (entity.GearInventory[18].Empty || entity.RightHandItemSlot.Empty) {
-				return false;
-			}
-			if (entity.RightHandItemSlot?.Itemstack.Item.Tool == EnumTool.Bow) {
-				string _weapCode = entity.RightHandItemSlot.Itemstack.Item.Code.FirstCodePart();
-				string _ammoCode = entity.GearInventory[18].Itemstack.Collectible.Code.FirstCodePart();
-				if (ItemsProperties.WeaponAmmunition.ContainsKey(_weapCode)) {
-					return ItemsProperties.WeaponAmmunition[_weapCode].Contains(_ammoCode);
-				}
-			}
-			if (entity.RightHandItemSlot?.Itemstack.Item is ItemBow) {
-				return entity.GearInventory[18].Itemstack.Item is ItemArrow || entity.GearInventory[18].Itemstack.Collectible.Code.PathStartsWith("arrow-");
-			}
-			if (entity.RightHandItemSlot?.Itemstack.Item is ItemSling) {
-				return entity.GearInventory[18].Itemstack.Item is ItemStone || entity.GearInventory[18].Itemstack.Collectible.Code.PathStartsWith("thrownstone-");
-			}
-			return false;
 		}
 
 		private bool IsTargetEntity(string testPath) {
@@ -355,10 +332,11 @@ namespace VSKingdom {
 		private bool EntityInTheWay() {
 			EntitySelection entitySel = new EntitySelection();
 			BlockSelection blockSel = new BlockSelection();
+			EntityFilter eFilter = (e) => (e.IsInteractable || e.EntityId != entity.EntityId || e.EntityId != targetEntity.EntityId);
 			// Do a line Trace into the target, see if there are any entities in the way.
-			entity.World.RayTraceForSelection(entity.ServerPos.XYZ.AddCopy(entity.LocalEyePos), targetEntity?.ServerPos?.XYZ.AddCopy(targetEntity?.LocalEyePos), ref blockSel, ref entitySel);
+			entity.World.RayTraceForSelection(entity.ServerPos.XYZ.AddCopy(entity.LocalEyePos), targetEntity?.ServerPos?.XYZ.AddCopy(targetEntity?.LocalEyePos), ref blockSel, ref entitySel, null, eFilter);
 			// Make sure the target isn't obstructed by other entities, but if it IS then make sure it's okay to hit them.
-			if (entitySel?.Entity != null && entitySel?.Entity != targetEntity) {
+			if (entitySel?.Entity != null) {
 				return !IsTargetableEntity(entitySel?.Entity, (float)entity.ServerPos.DistanceTo(entitySel.Position));
 			}
 			return false;

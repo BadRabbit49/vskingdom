@@ -54,6 +54,7 @@ namespace VSKingdom {
 		}
 
 		private VSKingdomConfig LoadConfig(ICoreAPI api) {
+			//api.Assets.TryGet(AssetLocation.Create(defaultSettings)).ToObject<VSKingdomConfig>();
 			return api.LoadModConfig<VSKingdomConfig>("VSKingdomConfig.json");
 		}
 

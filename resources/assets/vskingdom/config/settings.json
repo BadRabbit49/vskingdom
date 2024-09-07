@@ -1,0 +1,20 @@
+﻿{
+  "Allowed_SentryTeamHurt": true,
+  "Allowed_SentryTripping": true,
+  "Allowed_SentryDrowning": true,
+  "Allowed_SentryTeleport": true,
+  "Allowed_SentryDropLoot": true,
+  "Allowed_PlayerDropLoot": true,
+  "Allowed_StartCivilWars": true,
+  "Limited_SentryResupply": true,
+  "Limited_SentryReviving": true,
+  "Nametag_PlayerNametags": true,
+  "Nametag_SentryNametags": true,
+  "Nametag_RenderDistance": 500,
+  "Culture_MinCreateLevel": -1,
+  "Culture_CreateCooldown": -1,
+  "Culture_MaxUserCreated": -1,
+  "Kingdom_MinCreateLevel": -1,
+  "Kingdom_CreateCooldown": -1,
+  "Kingdom_MaxUserCreated": -1
+}

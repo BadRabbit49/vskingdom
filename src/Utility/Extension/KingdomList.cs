@@ -5,23 +5,15 @@ using Vintagestory.API.Common;
 using Vintagestory.API.Server;
 using Vintagestory.API.Util;
 
-namespace VSKingdom {
+namespace VSKingdom.Extension {
 	internal static class KingdomListExtension {
 		public static bool KingdomExists(this List<Kingdom> kingdomList, string kingdomGUID) {
-			if (kingdomList.Count == 0 || kingdomGUID == null) {
-				return false;
-			}
-			for (int k = 0; k < kingdomList.Count; k++) {
-				if (kingdomList[k].KingdomGUID == kingdomGUID) {
-					return true;
-				}
-			}
-			return false;
+			return kingdomList.Exists(kingdomMatch => kingdomMatch.KingdomGUID == kingdomGUID);
 		}
 
 		public static bool PartOfKingdom(this List<Kingdom> kingdomList, IPlayer player) {
-			string kingdomGUID = player.Entity.WatchedAttributes.GetString("kingdomGUID", GlobalCodes.commonerGUID);
-			if (kingdomGUID == null || kingdomGUID == GlobalCodes.commonerGUID || kingdomGUID == GlobalCodes.banditryGUID || kingdomList.Count == 0) {
+			string kingdomGUID = player.Entity.WatchedAttributes.GetString("kingdomGUID", commonerGUID);
+			if (kingdomGUID == null || kingdomGUID == commonerGUID || kingdomGUID == banditryGUID || kingdomList.Count == 0) {
 				return false;
 			}
 			for (int k = 0; k < kingdomList.Count; k++) {

@@ -6,6 +6,7 @@ using Vintagestory.API.Client;
 using Vintagestory.API.Server;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
+using static VSKingdom.Utilities.ReadingUtil;
 
 namespace VSKingdom {
 	public class InvSentryDialog : GuiDialog {
@@ -115,26 +116,26 @@ namespace VSKingdom {
 					.AddItemSlotGrid(inventory, SendInvPacket, 1, new int[1] { InventorySentry.HealthItmSlotId }, healthitmSlotsBounds, "otherSlotsHeal")
 				.EndIf()
 				.AddIf(playerIsLeader)
-					.AddStaticText(LangUtility.GetL(langCodes, "entries-keyword-wander"), titleFont, goWanderStringBounds)
+					.AddStaticText(GetL(langCodes, "entries-keyword-wander"), titleFont, goWanderStringBounds)
 					.AddSlider(SlidersWander, goWanderSliderBounds, "rangesWander")
 					.AddSwitch(TogglesWander, goWanderSwitchBounds, "ordersWander")
-					.AddStaticText(LangUtility.GetL(langCodes, "entries-keyword-follow"), titleFont, goFollowStringBounds)
+					.AddStaticText(GetL(langCodes, "entries-keyword-follow"), titleFont, goFollowStringBounds)
 					.AddSlider(SlidersFollow, goFollowSliderBounds, "rangesFollow")
 					.AddSwitch(TogglesFollow, goFollowSwitchBounds, "ordersFollow")
-					.AddStaticText(LangUtility.GetL(langCodes, "entries-keyword-engage"), titleFont, goEngageStringBounds)
+					.AddStaticText(GetL(langCodes, "entries-keyword-engage"), titleFont, goEngageStringBounds)
 					.AddSlider(SlidersEngage, goEngageSliderBounds, "rangesEngage")
 					.AddSwitch(TogglesEngage, goEngageSwitchBounds, "ordersEngage")
-					.AddStaticText(LangUtility.GetL(langCodes, "entries-keyword-pursue"), titleFont, goPursueStringBounds)
+					.AddStaticText(GetL(langCodes, "entries-keyword-pursue"), titleFont, goPursueStringBounds)
 					.AddSlider(SlidersPursue, goPursueSliderBounds, "rangesPursue")
 					.AddSwitch(TogglesPursue, goPursueSwitchBounds, "ordersPursue")
-					.AddStaticText(LangUtility.GetL(langCodes, "entries-keyword-shifts"), titleFont, doShiftsStringBounds)
+					.AddStaticText(GetL(langCodes, "entries-keyword-shifts"), titleFont, doShiftsStringBounds)
 					.AddSlider(SlidersShifts, doShiftsSliderBounds, "timeofShifts")
 					.AddSlider(SlidersFinish, doFinishSliderBounds, "finishShifts")
 					.AddSwitch(TogglesShifts, doShiftsSwitchBounds, "ordersShifts")
-					.AddStaticText(LangUtility.GetL(langCodes, "entries-keyword-patrol"), titleFont, goPatrolStringBounds)
+					.AddStaticText(GetL(langCodes, "entries-keyword-patrol"), titleFont, goPatrolStringBounds)
 					.AddTextInput(goPatrolInputsBounds, InputsPatrols, typedFont, "patrolPoints")
 					.AddSwitch(TogglesPatrol, goPatrolSwitchBounds, "ordersPatrol")
-					.AddButton(LangUtility.GetL(langCodes, "entries-keyword-return"), TogglesReturn, returnToButtonBounds, textsFont, EnumButtonStyle.Small, "ordersReturn")
+					.AddButton(GetL(langCodes, "entries-keyword-return"), TogglesReturn, returnToButtonBounds, textsFont, EnumButtonStyle.Small, "ordersReturn")
 				.EndIf()
 			.EndChildElements()
 			.Compose();
@@ -226,7 +227,7 @@ namespace VSKingdom {
 					newOrders.returning = toggle;
 					break;
 			}
-			capi.ShowChatMessage(LangUtility.GetL(langCodes, $"gui-{orders.Replace("order", "command-").ToLower()}-{toggle.ToString().ToLower()}"));
+			capi.ShowChatMessage(GetL(langCodes, $"gui-{orders.Replace("order", "command-").ToLower()}-{toggle.ToString().ToLower()}"));
 			capi.Network.GetChannel("sentrynetwork").SendPacket<SentryOrdersToServer>(newOrders);
 			if (orders == "orderReturn") {
 				return TryClose();

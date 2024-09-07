@@ -86,14 +86,14 @@ namespace VSKingdom {
 			}
 			if (ent.WatchedAttributes.HasAttribute("kingdomGUID")) {
 				if (banditPilled) {
-					return ent is EntityPlayer || (ent is EntitySentry sentry && sentry.cachedData.kingdomGUID != GlobalCodes.banditryGUID);
+					return ent is EntityPlayer || (ent is EntitySentry sentry && sentry.cachedData.kingdomGUID != banditryGUID);
 				}
 				if (ent.WatchedAttributes.HasAttribute("leadersGUID") && entity.cachedData.leadersGUID == ent.WatchedAttributes.GetString("leadersGUID")) {
 					allyCaches.Add(ent.EntityId);
 					return false;
 				}
 				if (ent is EntitySentry sent) {
-					return entity.cachedData.enemiesLIST.Contains(sent.cachedData.kingdomGUID) || entity.cachedData.outlawsLIST.Contains(sent.cachedData.leadersGUID) || sent.cachedData.kingdomGUID == GlobalCodes.banditryGUID;
+					return entity.cachedData.enemiesLIST.Contains(sent.cachedData.kingdomGUID) || entity.cachedData.outlawsLIST.Contains(sent.cachedData.leadersGUID) || sent.cachedData.kingdomGUID == banditryGUID;
 				}
 				return entity.cachedData.enemiesLIST.Contains(ent.WatchedAttributes.GetString("kingdomGUID"));
 			}

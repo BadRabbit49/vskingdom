@@ -4,10 +4,23 @@ using System.Text;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
+using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 
-namespace VSKingdom {
-	internal static class MathUtility {
+namespace VSKingdom.Utilities {
+	internal static class GenericUtil {
+		public static string GetKingdom(this SyncedTreeAttribute tree) {
+			return tree.GetString(king_GUID);
+		}
+
+		public static string GetCulture(this SyncedTreeAttribute tree) {
+			return tree.GetString(cult_GUID);
+		}
+
+		public static string GetLeaders(this SyncedTreeAttribute tree) {
+			return tree.GetString(lead_GUID);
+		}
+
 		public static double GetLookAtPitch(this Vec3d from, Vec3d toPos) {
 			double dx = (from.X - toPos.X);
 			double dz = (from.Z - toPos.Z);
@@ -19,37 +32,13 @@ namespace VSKingdom {
 			return (Math.Atan(dy) * 180 / Math.PI);
 		}
 
-		public static IPlayer GetClosest(Vec3d pos, IPlayer[] players) {
-			IPlayer closest = players[0];
-			double bestDist = pos.SquareDistanceTo(players[0].Entity.ServerPos);
-			for (int i = 0; i < players.Length; i++) {
-				if (pos.SquareDistanceTo(players[i].Entity.ServerPos) < bestDist) {
-					closest = players[i];
-					bestDist = pos.SquareDistanceTo(players[i].Entity.ServerPos);
-				}
-			}
-			return closest;
-		}
-		
-		public static Entity GetClosest(Vec3d pos, Entity[] entities) {
-			Entity closest = entities[0];
-			double bestDist = pos.SquareDistanceTo(entities[0].ServerPos);
-			for (int i = 0; i < entities.Length; i++) {
-				if (pos.SquareDistanceTo(entities[i].ServerPos) < bestDist) {
-					closest = entities[i];
-					bestDist = pos.SquareDistanceTo(entities[i].ServerPos);
-				}
-			}
-			return closest;
-		}
-
 		public static bool CanSeeEnt(Entity entity1, Entity entity2) {
 			EntitySelection entitySel = new EntitySelection();
 			BlockSelection blockSel = new BlockSelection();
 			BlockFilter bFilter = (pos, block) => (block == null || block.RenderPass != EnumChunkRenderPass.Transparent);
-			EntityFilter efilter = (e) => (e.IsInteractable || e.EntityId != entity1.EntityId);
+			EntityFilter eFilter = (e) => (e.IsInteractable || e.EntityId != entity1.EntityId);
 			// Do a line Trace into the target, see if there are any entities in the way.
-			entity1.World.RayTraceForSelection(entity1.ServerPos.XYZ.AddCopy(entity1.LocalEyePos), entity2.ServerPos.XYZ.AddCopy(entity2.LocalEyePos), ref blockSel, ref entitySel, bFilter);
+			entity1.World.RayTraceForSelection(entity1.ServerPos.XYZ.AddCopy(entity1.LocalEyePos), entity2.ServerPos.XYZ.AddCopy(entity2.LocalEyePos), ref blockSel, ref entitySel, bFilter, eFilter);
 			if (blockSel.Block != null) {
 				return !blockSel.Block.SideIsSolid(blockSel.Position, blockSel.Face.Index);
 			}

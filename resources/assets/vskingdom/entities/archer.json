@@ -7,8 +7,8 @@
 	"deadHitboxSize": {"x": 0.75, "y": 0.5},
 	"eyeHeight": 1.7,
 	"attributes": {
-		"moveSpeed": 0.030,
-		"walkSpeed": 0.015,
+		"moveSpeed": 0.040,
+		"walkSpeed": 0.020,
 		"baseClass": "range",
 		"gearSpawn": [ "game:clothes-upperbody-tattered-linen-shirt" ],
 		"pantSpawn": [ "game:clothes-lowerbody-commoner-trousers", "game:clothes-lowerbody-survivor" ],

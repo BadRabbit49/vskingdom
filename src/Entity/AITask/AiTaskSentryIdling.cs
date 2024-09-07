@@ -4,7 +4,17 @@ using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.GameContent;
-
+using static VSKingdom.Constants.GlobalCodes;
+using static VSKingdom.Constants.GlobalDicts;
+using static VSKingdom.Constants.GlobalEnums;
+using static VSKingdom.Constants.GlobalPaths;
+using static VSKingdom.Constants.GlobalProps;
+using static VSKingdom.Utilities.ColoursUtil;
+using static VSKingdom.Utilities.CultureUtil;
+using static VSKingdom.Utilities.DamagesUtil;
+using static VSKingdom.Utilities.GenericUtil;
+using static VSKingdom.Utilities.KingdomUtil;
+using static VSKingdom.Utilities.ReadingUtil;
 namespace VSKingdom {
 	public class AiTaskSentryIdling : AiTaskBase {
 		public AiTaskSentryIdling(EntitySentry entity) : base(entity) { this.entity = entity; }
@@ -161,7 +171,7 @@ namespace VSKingdom {
 				var sentsAround = world.GetEntitiesAround(entity.ServerPos.XYZ, 8f, 4f, match => match is EntitySentry);
 				for (int i = 0; i < sentsAround.Length; i++) {
 					try {
-						if (sentsAround[i].WatchedAttributes.GetString("kingdomGUID") != thisKingdom || sentsAround[i].Properties.Attributes["baseClass"].AsString() != "range" || !MathUtility.CanSeeEnt(entity, sentsAround[i])) {
+						if (sentsAround[i].WatchedAttributes.GetString("kingdomGUID") != thisKingdom || sentsAround[i].Properties.Attributes["baseClass"].AsString() != "range" || !CanSeeEnt(entity, sentsAround[i])) {
 							continue;
 						}
 						EntitySentry sentry = sentsAround[i] as EntitySentry;

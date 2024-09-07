@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace VSKingdom {
+namespace VSKingdom.Extension {
 	internal static class StringExtension {
 		public static string Replace(this string str, char[] sep, string val) {
 			string[] tmp = str.Split(sep, StringSplitOptions.RemoveEmptyEntries);

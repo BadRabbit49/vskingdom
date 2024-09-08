@@ -151,23 +151,6 @@ namespace VSKingdom {
 				CreateCulture(clockwinGUID, Lang.GetL(serverLang, "vskingdom:entries-keyword-clocks"), null, false);
 			}
 			WriteToDisk();
-			//Dictionary<string, Kingdom> baseKingdoms = serverAPI.Assets.TryGet(AssetLocation.Create(defaultKingdoms)).ToObject<Dictionary<string, Kingdom>>();
-			//Dictionary<string, Culture> baseCultures = serverAPI.Assets.TryGet(AssetLocation.Create(defaultCultures)).ToObject<Dictionary<string, Culture>>();
-			//string[] kingdomkeys = baseKingdoms.Keys.ToArray();
-			//string[] culturekeys = baseCultures.Keys.ToArray();
-			//for (int i = 0; i < baseKingdoms.Count; i++) {
-			//	if (!kingdomList.KingdomExists(kingdomkeys[i])) {
-			//		kingdomList.Add(baseKingdoms[kingdomkeys[i]]);
-			//	}
-			//}
-			//for (int i = 0; i < baseCultures.Count; i++) {
-			//	if (!cultureList.CultureExists(kingdomkeys[i])) {
-			//		cultureList.Add(baseCultures[culturekeys[i]]);
-			//	}
-			//}
-			//SaveKingdom();
-			//SaveCulture();
-			//WriteToDisk();
 		}
 
 		private void SaveKingdom() {

@@ -77,7 +77,7 @@ namespace VSKingdom {
 		}
 
 		public override bool IsTargetableEntity(Entity ent, float range, bool ignoreEntityCode = false) {
-			if (ent == null || ent == entity || !ent.Alive) {
+			if (ent is null || ent == entity || !ent.Alive) {
 				return false;
 			}
 			if (ent is EntityProjectile projectile && projectile.FiredBy != null) {
@@ -181,7 +181,9 @@ namespace VSKingdom {
 		}
 
 		public override bool ContinueExecute(float dt) {
-			if (cancelAttack || targetEntity == null || !targetEntity.Alive || entity.Swimming) {
+			if (cancelAttack || targetEntity is null || !targetEntity.Alive || entity.Swimming) {
+				cancelAttack = true;
+				searchTask.ResetsTargets();
 				return false;
 			}
 			// Calculate aiming at targetEntity!

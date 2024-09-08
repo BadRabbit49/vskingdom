@@ -161,15 +161,9 @@ namespace VSKingdom {
 
 				// Setup nametag stuff!
 				switch (entity.Code.EndVariant()) {
-					case "masc":
-						firstName = mascNames[api.World.Rand.Next(0, mascNames.Length - 1)];
-						break;
-					case "femm":
-						firstName = femmNames[api.World.Rand.Next(0, femmNames.Length - 1)];
-						break;
-					default:
-						firstName = mascNames[api.World.Rand.Next(0, mascNames.Length - 1)];
-						break;
+					case "masc": firstName = mascNames[api.World.Rand.Next(0, mascNames.Length - 1)]; break;
+					case "femm": firstName = femmNames[api.World.Rand.Next(0, femmNames.Length - 1)]; break;
+					default: firstName = mascNames[api.World.Rand.Next(0, mascNames.Length - 1)]; break;
 				}
 				famlyName = lastNames[api.World.Rand.Next(0, lastNames.Length - 1)];
 				ITreeAttribute nametagTree = new TreeAttribute();

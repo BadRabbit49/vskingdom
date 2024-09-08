@@ -10,14 +10,16 @@ namespace VSKingdom {
 		#pragma warning disable CS0108
 		public EntitySentry entity;
 		#pragma warning restore CS0108
-		protected bool stopMovement;
+		protected bool isAPassenger;
 		protected float groupsOffset;
 		protected float squaredRange;
 		protected float prvMoveSpeed;
 		protected float curMoveSpeed;
 		protected string curAnimation;
+		protected EntityBoatSeat boatSeatsEnt;
 		protected float followsRange { get => entity.WatchedAttributes.GetFloat("followRange", 2f); }
 		protected Vec3d curTargetPos { get => pathTraverser.CurrentTarget.Clone(); }
+		
 		
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);
@@ -31,7 +33,7 @@ namespace VSKingdom {
 			}
 			return base.ShouldExecute();
 		}
-		
+
 		public override void StartExecute() {
 			if (!targetEntity.WatchedAttributes.HasAttribute("followerEntityUids")) {
 				targetEntity.WatchedAttributes.SetAttribute("followerEntityUids", new LongArrayAttribute(new long[] { entity.EntityId }));
@@ -52,6 +54,7 @@ namespace VSKingdom {
 			bool go = pathTraverser.NavigateTo_Async(targetEntity.ServerPos.XYZ, prvMoveSpeed, groupsOffset, OnGoals, OnStuck, null, 1000, (int)groupsOffset);
 			targetOffset.Set(entity.World.Rand.NextDouble() * 2 - 1, 0, entity.World.Rand.NextDouble() * 2 - 1);
 			stuck = false;
+			isAPassenger = false;
 			// Overridden base method to avoid constant teleporting when stuck.
 			if (allowTeleport && entity.ServerPos.SquareDistanceTo(targetEntity.ServerPos.X + targetOffset.X, targetEntity.ServerPos.Y, targetEntity.ServerPos.Z + targetOffset.Z) > teleportAfterRange * teleportAfterRange) {
 				tryTeleport();
@@ -63,6 +66,18 @@ namespace VSKingdom {
 		}
 
 		public override bool ContinueExecute(float dt) {
+			if (targetEntity is null) {
+				return false;
+			}
+			if (isAPassenger) {
+				if (targetEntity.WatchedAttributes["mountedOn"] == null || boatSeatsEnt == null) {
+					isAPassenger = !entity.TryUnmount();
+					boatSeatsEnt = null;
+					return false;
+				}
+				entity.ServerPos = boatSeatsEnt.MountPosition;
+				return true;
+			}
 			double x = targetEntity.ServerPos.X + targetOffset.X;
 			double y = targetEntity.ServerPos.Y;
 			double z = targetEntity.ServerPos.Z + targetOffset.Z;
@@ -70,8 +85,22 @@ namespace VSKingdom {
 			pathTraverser.CurrentTarget.Y = y;
 			pathTraverser.CurrentTarget.Z = z;
 			float num = entity.ServerPos.SquareDistanceTo(x, y, z);
-			if (num < squaredRange) {
-				return false;
+			if (!isAPassenger && targetEntity.WatchedAttributes["mountedOn"] != null && entity.WatchedAttributes["mountedOn"] == null && targetEntity is EntityAgent player) {
+				if (player.MountedOn.MountSupplier != null && player.MountedOn.MountSupplier is EntityBoat boat && boat.Seats.Length > 1) {
+					foreach (var seat in boat.Seats) {
+						if (seat.Passenger is null && entity.TryMount(seat)) {
+							seat.Passenger = entity;
+							seat.PassengerEntityIdForInit = entity.EntityId;
+							boatSeatsEnt = seat;
+							StopAnimation();
+							curAnimation = new string(seat.SuggestedAnimation);
+							entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = curAnimation, Code = curAnimation, MulWithWalkSpeed = true, BlendMode = EnumAnimationBlendMode.Average, EaseInSpeed = 999f, EaseOutSpeed = 1f }.Init());
+							isAPassenger = true;
+							pathTraverser.Stop();
+							return true;
+						}
+					}
+				}
 			}
 			if (allowTeleport && num > teleportAfterRange * teleportAfterRange && entity.World.Rand.NextDouble() < 0.05) {
 				tryTeleport();

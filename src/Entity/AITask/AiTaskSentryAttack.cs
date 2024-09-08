@@ -154,13 +154,8 @@ namespace VSKingdom {
 		}
 
 		public override bool ContinueExecute(float dt) {
-			if (targetEntity == null) {
+			if (cancelAttack || targetEntity is null || !targetEntity.Alive || entity.Swimming) {
 				cancelAttack = true;
-			}
-			if (!targetEntity.Alive) {
-				cancelAttack = true;
-			}
-			if (cancelAttack) {
 				searchTask.ResetsTargets();
 				return false;
 			}
@@ -170,7 +165,7 @@ namespace VSKingdom {
 			if (turnToTarget) {
 				float num = GameMath.AngleRadDistance(entity.ServerPos.Yaw, (float)Math.Atan2(serverPos2.X - serverPos1.X, serverPos2.Z - serverPos1.Z));
 				entity.ServerPos.Yaw += GameMath.Clamp(num, (0f - curTurnAngle) * dt * GlobalConstants.OverallSpeedMultiplier, curTurnAngle * dt * GlobalConstants.OverallSpeedMultiplier);
-				entity.ServerPos.Yaw = entity.ServerPos.Yaw % (MathF.PI * 2f);
+				entity.ServerPos.Yaw %= (MathF.PI * 2f);
 				flag = Math.Abs(num) < maximumRange * (MathF.PI / 180f);
 			}
 			if (!attackFinish) {

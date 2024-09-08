@@ -10,6 +10,16 @@
 		"output": { "type": "item", "code": "vskingdom:people-archer-masc" }
 	},
 	{
+		"ingredientPattern": "LK",
+		"ingredients": {
+			"K": { "type": "item", "code": "game:gear-rusty", "quantity": 8 },
+			"L": { "type": "item", "code": "game:bread-*", "allowedVariants": [ "spelt-perfect", "rye-perfect", "flax-perfect", "rice-perfect", "cassava-perfect", "amaranth-perfect", "sunflower-perfect" ], "quantity": 3 }
+		},
+		"width": 2,
+		"height": 1,
+		"output": { "type": "item", "code": "vskingdom:people-archer-masc" }
+	},
+	{
 		"ingredientPattern": "M",
 		"ingredients": {
 			"M": { "type": "item", "code": "vskingdom:people-archer-masc", "quantity": 1 }
@@ -32,6 +42,36 @@
 	"ingredients": {
 		"K": { "type": "item", "code": "game:gear-temporal", "quantity": 1 },
 		"L": { "type": "item", "code": "game:redmeat-*", "allowedVariants": [ "cooked", "cure" ], "quantity": 3 }
+	},
+	"width": 2,
+	"height": 1,
+	"output": { "type": "item", "code": "vskingdom:people-knight-masc" }
+	},
+	{
+	"ingredientPattern": "LK",
+	"ingredients": {
+		"K": { "type": "item", "code": "game:gear-temporal", "quantity": 1 },
+		"L": { "type": "item", "code": "game:bushmeat-*", "allowedVariants": [ "cooked", "cure" ], "quantity": 6 }
+	},
+	"width": 2,
+	"height": 1,
+	"output": { "type": "item", "code": "vskingdom:people-knight-masc" }
+	},
+	{
+	"ingredientPattern": "LK",
+	"ingredients": {
+		"K": { "type": "item", "code": "game:gear-rusty", "quantity": 8 },
+		"L": { "type": "item", "code": "game:redmeat-*", "allowedVariants": [ "cooked", "cure" ], "quantity": 3 }
+	},
+	"width": 2,
+	"height": 1,
+	"output": { "type": "item", "code": "vskingdom:people-knight-masc" }
+	},
+	{
+	"ingredientPattern": "LK",
+	"ingredients": {
+		"K": { "type": "item", "code": "game:gear-rusty", "quantity": 8 },
+		"L": { "type": "item", "code": "game:bushmeat-*", "allowedVariants": [ "cooked", "cure" ], "quantity": 6 }
 	},
 	"width": 2,
 	"height": 1,

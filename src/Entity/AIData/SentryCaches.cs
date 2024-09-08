@@ -38,7 +38,7 @@ namespace VSKingdom {
 		public SentryDataCache() { }
 		public bool usesMelee { get; set; } = true;
 		public bool usesRange { get; set; } = false;
-		public bool weapReady { get; set; } = true;
+		public bool weapReady { get; set; } = false;
 		public float walkSpeed { get; set; } = 0.020f;
 		public float moveSpeed { get; set; } = 0.040f;
 		public float weapRange { get; set; } = 1.500f;

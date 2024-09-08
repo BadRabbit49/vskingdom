@@ -52,6 +52,13 @@ namespace VSKingdom {
 			if (api is ICoreServerAPI sapi) {
 				ServerAPI = sapi;
 				WatchedAttributes.RegisterModifiedListener("inventory", ReadInventoryFromAttributes);
+				WatchedAttributes.RegisterModifiedListener("mountedOn", updateMountedState);
+				if (WatchedAttributes["mountedOn"] != null) {
+					MountedOn = World.ClassRegistry.CreateMountable(WatchedAttributes["mountedOn"] as TreeAttribute);
+					if (MountedOn != null) {
+						TryMount(MountedOn);
+					}
+				}
 				GetBehavior<EntityBehaviorHealth>().onDamaged += (dmg, dmgSource) => handleDamaged(World.Api, this, dmg, dmgSource);
 				ReadInventoryFromAttributes();
 			}
@@ -159,20 +166,36 @@ namespace VSKingdom {
 
 		public override void OnInteract(EntityAgent byEntity, ItemSlot itemslot, Vec3d hitPosition, EnumInteractMode mode) {
 			base.OnInteract(byEntity, itemslot, hitPosition, mode);
-			if ((mode != EnumInteractMode.Interact && !(mode == EnumInteractMode.Attack && !itemslot.Empty && itemslot.Itemstack.Item is ItemPoultice)) || byEntity is not EntityPlayer) {
+			if (mode != EnumInteractMode.Interact && byEntity is not EntityPlayer) {
 				return;
 			}
 			EntityPlayer player = byEntity as EntityPlayer;
-			EntitySentry entity = (ServerAPI?.World.GetEntityById(this.EntityId) as EntitySentry) ?? this;
 			string theirKingdom = player.WatchedAttributes.GetString("kingdomGUID");
 			string kingdomGuid = WatchedAttributes.GetString("kingdomGUID");
 			string cultureGuid = WatchedAttributes.GetString("cultureGUID");
 			string leadersGuid = WatchedAttributes.GetString("leadersGUID");
 			bool IsTheLeader = leadersGuid != null && leadersGuid == player.PlayerUID;
 			bool LootingBody = !Alive && World.Config.GetAsBool("AllowLooting");
+			bool NoOrdersSet = Api.Side == EnumAppSide.Server && !ruleOrder[0] && !ruleOrder[1] && !ruleOrder[2] && !ruleOrder[3] && !ruleOrder[4] && !ruleOrder[5] && !ruleOrder[6];
+			if (IsTheLeader && NoOrdersSet && Alive && player.Controls.Sneak && gearInv.Empty && !itemslot.Empty && itemslot.Itemstack?.Item is ItemFirewood) {
+				string stackCode = $"{this.Code.Domain}:people-{this.Code.Path}";
+				if (byEntity.World.GetItem(new AssetLocation(stackCode)) == null) {
+					byEntity.World.Logger.Error("Could not get {0}", stackCode);
+					return;
+				}
+				ItemStack people = new ItemStack(byEntity.World.GetItem(new AssetLocation(stackCode)), 1);
+				if (!byEntity.TryGiveItemStack(people)) {
+					byEntity.World.SpawnItemEntity(people, ServerPos.XYZ);
+				}
+				if (HasBehavior<EntityBehaviorDecayBody>()) {
+					RemoveBehavior(GetBehavior<EntityBehaviorDecayBody>());
+				}
+				Die(EnumDespawnReason.Removed);
+				AllowDespawn = true;
+				return;
+			}
 			// Remind them to join their leaders kingdom if they aren't already in it.
 			if (IsTheLeader && Api.Side == EnumAppSide.Client) {
-				// This works! //
 				SentryUpdateToServer update = new SentryUpdateToServer();
 				update.entityUID = EntityId;
 				update.kingdomGUID = theirKingdom;
@@ -185,8 +208,8 @@ namespace VSKingdom {
 				return;
 			}
 			if (Alive && leadersGuid != null && leadersGuid == player.PlayerUID && Api.Side == EnumAppSide.Server) {
-				entity?.GetBehavior<EntityBehaviorTaskAI>().TaskManager?.GetTask<AiTaskSentryPatrol>()?.PauseExecute(player);
-				entity?.GetBehavior<EntityBehaviorTaskAI>().TaskManager?.GetTask<AiTaskSentryWander>()?.PauseExecute(player);
+				GetBehavior<EntityBehaviorTaskAI>().TaskManager?.GetTask<AiTaskSentryPatrol>()?.PauseExecute(player);
+				GetBehavior<EntityBehaviorTaskAI>().TaskManager?.GetTask<AiTaskSentryWander>()?.PauseExecute(player);
 			}
 			if (!itemslot.Empty && player.Controls.Sneak) {
 				// TRY TO REVIVE!
@@ -330,6 +353,7 @@ namespace VSKingdom {
 			controls.WalkVector.Set(0.0, 0.0, 0.0);
 			controls.FlyVector.Set(0.0, 0.0, 0.0);
 			ClimbingOnFace = null;
+			TryUnmount();
 			if (reason == EnumDespawnReason.Death) {
 				Api.Event.TriggerEntityDeath(this, damageSourceForDeath);
 				ItemStack[] drops = GetDrops(World, Pos.AsBlockPos, null);

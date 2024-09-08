@@ -57,6 +57,9 @@ namespace VSKingdom {
 		}
 
 		public override bool ShouldExecute() {
+			if (entity.ruleOrder[1] && entity.WatchedAttributes["mountedOn"] != null) {
+				return false;
+			}
 			return targetEntity != null && (targetEntity?.Alive ?? false);
 		}
 

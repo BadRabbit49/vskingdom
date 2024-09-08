@@ -18,15 +18,12 @@ using Vintagestory.API.Datastructures;
 using Vintagestory.GameContent;
 using static VSKingdom.Utilities.ColoursUtil;
 using static VSKingdom.Utilities.CultureUtil;
-using static VSKingdom.Utilities.DamagesUtil;
 using static VSKingdom.Utilities.GenericUtil;
 using static VSKingdom.Utilities.KingdomUtil;
 using static VSKingdom.Utilities.ReadingUtil;
 using static VSKingdom.Extension.KingdomListExtension;
 using static VSKingdom.Extension.CultureListExtension;
-using static VSKingdom.Extension.PlayerExtension;
 using static VSKingdom.Extension.ServerExtension;
-using VSKingdom.Constants;
 
 namespace VSKingdom {
 	public class VSKingdom : ModSystem {
@@ -154,6 +151,23 @@ namespace VSKingdom {
 				CreateCulture(clockwinGUID, Lang.GetL(serverLang, "vskingdom:entries-keyword-clocks"), null, false);
 			}
 			WriteToDisk();
+			//Dictionary<string, Kingdom> baseKingdoms = serverAPI.Assets.TryGet(AssetLocation.Create(defaultKingdoms)).ToObject<Dictionary<string, Kingdom>>();
+			//Dictionary<string, Culture> baseCultures = serverAPI.Assets.TryGet(AssetLocation.Create(defaultCultures)).ToObject<Dictionary<string, Culture>>();
+			//string[] kingdomkeys = baseKingdoms.Keys.ToArray();
+			//string[] culturekeys = baseCultures.Keys.ToArray();
+			//for (int i = 0; i < baseKingdoms.Count; i++) {
+			//	if (!kingdomList.KingdomExists(kingdomkeys[i])) {
+			//		kingdomList.Add(baseKingdoms[kingdomkeys[i]]);
+			//	}
+			//}
+			//for (int i = 0; i < baseCultures.Count; i++) {
+			//	if (!cultureList.CultureExists(kingdomkeys[i])) {
+			//		cultureList.Add(baseCultures[culturekeys[i]]);
+			//	}
+			//}
+			//SaveKingdom();
+			//SaveCulture();
+			//WriteToDisk();
 		}
 
 		private void SaveKingdom() {
@@ -178,6 +192,7 @@ namespace VSKingdom {
 			kingdomList = kingdomData.Kingdoms.Values.ToList();
 			cultureList = cultureData.Cultures.Values.ToList();
 			MakeAllData();
+			serverAPI.World.Config.SetBool("mapHideOtherPlayers", serverAPI.World.Config.GetBool("HideAllNames", true));
 		}
 
 		private void LoadBitData() {
@@ -429,8 +444,8 @@ namespace VSKingdom {
 		private void OnSentryUpdated(IServerPlayer player, SentryUpdateToServer sentryUpdate) {
 			// NEEDS TO BE DONE ON THE SERVER SIDE HERE!
 			SentryUpdateToEntity update = new SentryUpdateToEntity();
-			try {
-				if (sentryUpdate.kingdomGUID != null && sentryUpdate.kingdomGUID.Length > 0) {
+			if (sentryUpdate.kingdomGUID != null && sentryUpdate.kingdomGUID.Length > 0) {
+				try {
 					var kingdom = kingdomList.Find(kingdomMatch => kingdomMatch.KingdomGUID == sentryUpdate.kingdomGUID);
 					update.kingdomGUID = new string(kingdom.KingdomGUID);
 					update.kingdomNAME = new string(kingdom.KingdomNAME);
@@ -442,27 +457,27 @@ namespace VSKingdom {
 					sentry.cachedData.UpdateEnemies(kingdom.EnemiesGUID.ToArray());
 					sentry.cachedData.UpdateFriends(kingdom.FriendsGUID.ToArray());
 					sentry.cachedData.UpdateOutlaws(kingdom.OutlawsGUID.ToArray());
+				} catch (NullReferenceException error) {
+					serverAPI.Logger.Error($"Error getting Kingdom information!\n{error}");
 				}
-			} catch (NullReferenceException error) {
-				serverAPI.Logger.Error($"Error getting Kingdom information!\n{error}");
 			}
-			try {
-				if (sentryUpdate.cultureGUID != null && sentryUpdate.cultureGUID.Length > 0) {
+			if (sentryUpdate.cultureGUID != null && sentryUpdate.cultureGUID.Length > 0) {
+				try {
 					var culture = cultureList.Find(cultureMatch => cultureMatch.CultureGUID == sentryUpdate.cultureGUID);
 					update.cultureGUID = new string(culture.CultureGUID);
 					update.cultureNAME = new string(culture.CultureNAME);
+				} catch (NullReferenceException error) {
+					serverAPI.Logger.Error($"Error getting Culture guid or name!\n{error}");
 				}
-			} catch (NullReferenceException error) {
-				serverAPI.Logger.Error($"Error getting Culture guid or name!\n{error}");
 			}
-			try {
-				if (sentryUpdate.leadersGUID != null && sentryUpdate.leadersGUID.Length > 0) {
+			if (sentryUpdate.leadersGUID != null && sentryUpdate.leadersGUID.Length > 0) {
+				try {
 					var leaders = serverAPI.World.PlayerByUid(sentryUpdate?.leadersGUID) ?? null;
 					update.leadersGUID = new string(leaders?.PlayerUID ?? null);
 					update.leadersNAME = new string(leaders?.PlayerName ?? null);
+				} catch (NullReferenceException error) {
+					serverAPI.Logger.Error($"Error getting Leaders guid or name!\n{error}");
 				}
-			} catch (NullReferenceException error) {
-				serverAPI.Logger.Error($"Error getting Leaders guid or name!\n{error}");
 			}
 			// Try to fully sync entity packet to the sentry if possible.
 			serverAPI.Network.BroadcastEntityPacket(sentryUpdate.entityUID, 1502, SerializerUtil.Serialize<SentryUpdateToEntity>(update));

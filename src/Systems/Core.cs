@@ -1086,8 +1086,8 @@ namespace VSKingdom {
 				}
 			}
 			string setPrivs = string.Empty;
-			string[] positives = { "t", "y", "true", "yes", "yep", "net", "shi", "ja", "tak", "ye", "si", "sim", "oo", "hayir", "naeam" };
-			string[] negatives = { "f", "n", "false", "no", "nope", "net", "bu", "nee", "nein", "nie", "aniyo", "nao", "hindi", "evet", "la" };
+			string[] positives = { "t", "y", "true", "yes", "yep", "shi", "ja", "tak", "ye", "si", "sim", "oo", "hayir", "naeam" };
+			string[] negatives = { "f", "n", "false", "no", "nope", "nyet", "bu", "nee", "nein", "nie", "aniyo", "nao", "hindi", "evet", "la" };
 			for (int i = 0; i < 5; i++) {
 				if ((privileges.Length - 1) < i || negatives.Contains(privileges[i].RemoveDiacritics().ToLowerInvariant())) {
 					setPrivs += "/F";

@@ -161,8 +161,10 @@ namespace VSKingdom.Utilities {
 
 		public static string PlayerDetails(string playersGUID, string membersROLE = null, string specifcROLE = null) {
 			string[] allRoles = GetRolesName(membersROLE);
-			string joinedRole = membersROLE.Split(':')[allRoles.IndexOf(specifcROLE)];
-			if (specifcROLE == null || !allRoles.Contains(specifcROLE)) {
+			string joinedRole;
+			if (specifcROLE != null && allRoles.Contains(specifcROLE)) {
+				joinedRole = membersROLE.Split(':')[allRoles.IndexOf(specifcROLE)];
+			} else {
 				joinedRole = membersROLE.Split(':')[0].Split('/')[0];
 			}
 			return playersGUID + ":" + joinedRole + ":" + DateTime.Now.ToShortDateString();

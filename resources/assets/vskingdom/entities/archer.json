@@ -331,9 +331,16 @@
 						"isBandit": false
 					},
 					{
+						"code": "SentryAttack",
+						"priority": 2.0,
+						"entityCodes": [ "player", "archer-*", "knight-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "looter-*", "bandit-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
+						"animations": [ "hit", "spearstabs", "swordswing", "swordsmash", "swordslash", "swordstabs" ],
+						"damageTier": 3,
+						"isBandit": false
+					},
+					{
 						"code": "SentrySearch",
-						"priority": 1.5,
-						"isArcher": true
+						"priority": 1.5
 					},
 					{
 						"code": "SentryFollow",

@@ -147,6 +147,7 @@ namespace VSKingdom {
 					if (api.World.ClassRegistry.GetBlockEntity(api.World.BlockAccessor.GetBlock(blockSel.Position).EntityClass) == typeof(BlockEntityPost)) {
 						_outpost = api.World.BlockAccessor.GetBlockEntity(blockSel.Position) as BlockEntityPost;
 						if (_outpost.IsCapacity(entity.EntityId)) {
+							(api as ICoreServerAPI)?.Network.SendBlockEntityPacket((player as IServerPlayer), _outpost.Pos.X, _outpost.Pos.Y, _outpost.Pos.Z, 7001, SerializerUtil.Serialize<long>(entity.EntityId));
 							(api as ICoreServerAPI)?.Network.BroadcastBlockEntityPacket(_outpost.Pos.X, _outpost.Pos.Y, _outpost.Pos.Z, 7001, SerializerUtil.Serialize<long>(entity.EntityId));
 							_outpostXyzd = blockSel.Position;
 							_outpostSize = _outpost.areasize;
@@ -204,8 +205,8 @@ namespace VSKingdom {
 
 				// Setup sentry dataCache!
 				sentry.cachedData = new SentryDataCache() {
-					moveSpeed = properties.Attributes["moveSpeed"].AsFloat(0.030f),
-					walkSpeed = properties.Attributes["walkSpeed"].AsFloat(0.015f),
+					moveSpeed = properties.Attributes["moveSpeed"].AsFloat(0.040f),
+					walkSpeed = properties.Attributes["walkSpeed"].AsFloat(0.020f),
 					postRange = properties.Attributes["postRange"].AsFloat(6.0f),
 					weapRange = properties.Attributes["weapRange"].AsFloat(1.5f),
 					idleAnims = properties.Attributes["idleAnims"].AsString("idle").ToLower(),

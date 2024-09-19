@@ -7,7 +7,7 @@
 		},
 		"width": 1,
 		"height": 3,
-		"output": { "type": "block", "code": "vskingdom:post-{metal}-null-none-good" }
+		"output": { "type": "block", "code": "vskingdom:post-{metal}-good" }
 	},
 	{
 		"ingredientPattern": "N_N,NFN,_P_",
@@ -18,7 +18,7 @@
 		},
 		"width": 3,
 		"height": 3,
-		"output": { "type": "block", "code": "vskingdom:post-{metal}-null-none-good" }
+		"output": { "type": "block", "code": "vskingdom:post-{metal}-good" }
 	},
 	{
 		"ingredientPattern": "I_I,ITI,_P_",
@@ -29,7 +29,7 @@
 		},
 		"width": 3,
 		"height": 3,
-		"output": { "type": "block", "code": "vskingdom:post-{metal}-null-none-good" }
+		"output": { "type": "block", "code": "vskingdom:post-{metal}-good" }
 	},
 	{
 		"ingredientPattern": "I_I,ITI,_P_",
@@ -40,6 +40,6 @@
 		},
 		"width": 3,
 		"height": 3,
-		"output": { "type": "block", "code": "vskingdom:post-{metal}-temp-none-good" }
+		"output": { "type": "block", "code": "vskingdom:post-{metal}-good" }
 	}
 ]

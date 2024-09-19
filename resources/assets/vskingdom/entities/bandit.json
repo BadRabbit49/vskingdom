@@ -12,7 +12,8 @@
 		"baseClass": "melee",
 		"baseState": "DESERTER",
 		"baseSides": "xxxxxxxx",
-		"weapSpawn": [ "game:blade-scrap-scrap", "game:blade-arming-ruined", "game:blade-claymore-ruined", "game:spear-scrap-scrap", "game:club-scrap-scrap", "game:club-generic-wood" ],
+		"weapSpawn": [ "game:blade-scrap-scrap", "game:blade-arming-ruined", "game:blade-claymore-ruined", "game:spear-scrap-scrap", "game:club-scrap-scrap", "game:club-generic-wood", "game:bow-crude", "game:bow-simple" ],
+		"ammoSpawn": [ "game:arrow-crude", "game:arrow-flint", "game:arrow-copper" ],
 		"headSpawn": [ "game:clothes-head-peasent-head-scarf", "", "", "", "" ],
 		"handSpawn": [ "game:clothes-hand-survivor", "game:clothes-hand-commoner-gloves", "game:clothes-hand-heavy-leather-gloves", "", "", "", "" ],
 		"gearSpawn": [ "game:clothes-upperbody-tattered-linen-shirt", "game:clothes-upperbody-tattered-crimson-tunic" ],
@@ -335,9 +336,15 @@
 						"isBandit": true
 					},
 					{
+						"code": "SentryRanged",
+						"priority": 2.0,
+						"entityCodes": [ "player", "archer-*", "knight-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
+						"damageTier": 3,
+						"isBandit": true
+					},
+					{
 						"code": "SentrySearch",
-						"priority": 1.5,
-						"isArcher": false
+						"priority": 1.5
 					},
 					{
 						"code": "SentryWander",

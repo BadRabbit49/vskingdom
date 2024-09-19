@@ -1,0 +1,124 @@
+{
+	"editor": {
+		"allAngles": true,
+		"entityTextureMode": false
+	},
+	"textureWidth": 16,
+	"textureHeight": 16,
+	"textureSizes": { },
+	"textures": {
+		"fuels": "vskingdom:block/fuels/coal"
+	},
+	"elements": [
+		{
+			"name": "origin",
+			"from": [ 8.0, 3.5, 8.0 ],
+			"to": [ 8.0, 3.5, 8.0 ],
+			"rotationOrigin": [ 8.0, 0.0, 8.0 ],
+			"faces": { },
+			"children": [
+				{
+					"name": "coal0",
+					"from": [ -3.0, 0.0, 0.0 ],
+					"to": [ 0.0, 2.0, 3.0 ],
+					"rotationOrigin": [ -1.5, 0.0, 1.5 ],
+					"faces": {
+						"north": { "texture": "#fuels", "uv": [ 0.0, 0.0, 3.0, 2.0 ] },
+						"east": { "texture": "#fuels", "uv": [ 0.0, 0.0, 3.0, 2.0 ] },
+						"south": { "texture": "#fuels", "uv": [ 1.0, 3.5, 4.0, 5.5 ] },
+						"west": { "texture": "#fuels", "uv": [ 0.0, 0.0, 3.0, 2.0 ] },
+						"up": { "texture": "#fuels", "uv": [ 0.0, 0.0, 3.0, 3.0 ] },
+						"down": { "texture": "#fuels", "uv": [ 0.0, 0.0, 3.0, 3.0 ] }
+					}
+				},
+				{
+					"name": "coal1",
+					"from": [ -1.8, 0.5, 0.0 ],
+					"to": [ 0.2, 2.5, 2.0 ],
+					"rotationOrigin": [ -0.7, 0.5, 0.0 ],
+					"faces": {
+						"north": { "texture": "#fuels", "uv": [ 0.0, 0.0, 2.0, 2.0 ] },
+						"east": { "texture": "#fuels", "uv": [ 0.0, 0.0, 2.0, 2.0 ] },
+						"south": { "texture": "#fuels", "uv": [ 0.0, 0.0, 2.0, 2.0 ] },
+						"west": { "texture": "#fuels", "uv": [ 0.0, 0.0, 2.0, 2.0 ] },
+						"up": { "texture": "#fuels", "uv": [ 0.0, 0.0, 2.0, 2.0 ] },
+						"down": { "texture": "#fuels", "uv": [ 0.0, 0.0, 2.0, 2.0 ] }
+					}
+				},
+				{
+					"name": "coal2",
+					"from": [ 0.0, 0.0, 1.1 ],
+					"to": [ 1.5, 1.0, 2.7 ],
+					"rotationOrigin": [ 0.8, 0.5, 1.9 ],
+					"rotationX": 20.0,
+					"faces": {
+						"north": { "texture": "#fuels", "uv": [ 0.0, 0.0, 1.5, 1.0 ] },
+						"east": { "texture": "#fuels", "uv": [ 0.0, 0.0, 1.5, 1.0 ] },
+						"south": { "texture": "#fuels", "uv": [ 0.0, 0.0, 1.5, 1.0 ] },
+						"west": { "texture": "#fuels", "uv": [ 0.0, 0.0, 1.5, 1.0 ] },
+						"up": { "texture": "#fuels", "uv": [ 0.0, 0.0, 1.5, 1.5 ] },
+						"down": { "texture": "#fuels", "uv": [ 0.0, 0.0, 1.5, 1.5 ] }
+					}
+				},
+				{
+					"name": "coal3",
+					"from": [ -1.5, 0.0, -2.9 ],
+					"to": [ 2.5, 2.5, 0.1 ],
+					"rotationOrigin": [ 0.5, 0.0, -1.4 ],
+					"rotationY": -30.0,
+					"faces": {
+						"north": { "texture": "#fuels", "uv": [ 12.0, 3.0, 16.0, 5.5 ] },
+						"east": { "texture": "#fuels", "uv": [ 9.0, 0.0, 12.0, 2.5 ] },
+						"south": { "texture": "#fuels", "uv": [ 12.0, 3.0, 16.0, 5.5 ] },
+						"west": { "texture": "#fuels", "uv": [ 9.0, 0.0, 12.0, 2.5 ] },
+						"up": { "texture": "#fuels", "uv": [ 12.0, 0.0, 16.0, 3.0 ] },
+						"down": { "texture": "#fuels", "uv": [ 12.0, 0.0, 16.0, 3.0 ] }
+					}
+				},
+				{
+					"name": "coal4",
+					"from": [ -1.6205, 0.0, -0.8343 ],
+					"to": [ 0.3795, 2.0, 1.1657 ],
+					"rotationOrigin": [ -0.5196, 0.0, -0.834 ],
+					"rotationY": -89.98,
+					"faces": {
+						"north": { "texture": "#fuels", "uv": [ 14.0, 0.0, 16.0, 2.0 ] },
+						"east": { "texture": "#fuels", "uv": [ 14.0, 2.5, 16.0, 4.5 ] },
+						"south": { "texture": "#fuels", "uv": [ 14.0, 2.5, 16.0, 4.5 ] },
+						"west": { "texture": "#fuels", "uv": [ 9.0, 0.0, 11.0, 2.0 ] },
+						"up": { "texture": "#fuels", "uv": [ 0.0, 0.0, 2.0, 2.0 ] },
+						"down": { "texture": "#fuels", "uv": [ 11.5, 0.0, 13.5, 2.0 ] }
+					}
+				},
+				{
+					"name": "coal5",
+					"from": [ 1.4745, 0.0, 0.3269 ],
+					"to": [ 2.9745, 1.6, 3.3269 ],
+					"rotationOrigin": [ 2.2749, 0.5, 1.1258 ],
+					"rotationY": -89.98,
+					"faces": {
+						"north": { "texture": "#fuels", "uv": [ 0.0, 0.0, 1.5, 1.5 ] },
+						"east": { "texture": "#fuels", "uv": [ 0.0, 0.0, 3.0, 1.5 ] },
+						"south": { "texture": "#fuels", "uv": [ 0.0, 0.0, 1.5, 1.5 ] },
+						"west": { "texture": "#fuels", "uv": [ 0.0, 0.0, 3.0, 1.5 ] },
+						"up": { "texture": "#fuels", "uv": [ 0.0, 0.0, 1.5, 3.0 ] },
+						"down": { "texture": "#fuels", "uv": [ 0.0, 0.0, 1.5, 3.0 ] }
+					}
+				},
+				{
+					"name": "coal6",
+					"from": [ -1.5, 0.0, -1.5 ],
+					"to": [ 1.5, 3.5, 1.5 ],
+					"rotationOrigin": [ 0.5, 0.0, 0.0 ],
+					"faces": {
+						"north": { "texture": "#fuels", "uv": [ 12.0, 3.0, 15.0, 6.5 ] },
+						"east": { "texture": "#fuels", "uv": [ 9.0, 0.0, 12.0, 3.5 ] },
+						"south": { "texture": "#fuels", "uv": [ 12.0, 3.0, 15.0, 6.5 ] },
+						"west": { "texture": "#fuels", "uv": [ 9.0, 0.0, 12.0, 3.5 ] },
+						"up": { "texture": "#fuels", "uv": [ 12.0, 0.0, 15.0, 3.0 ] },
+						"down": { "texture": "#fuels", "uv": [ 12.0, 0.0, 15.0, 3.0 ] }
+					}
+				}
+			]
+		}
+	]}

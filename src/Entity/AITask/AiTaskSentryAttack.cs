@@ -33,8 +33,14 @@ namespace VSKingdom {
 		protected string[] shieldAnim;
 		protected string[] animations;
 		protected HashSet<long> allyCaches = new HashSet<long>();
-		protected AiTaskSentrySearch searchTask => entity.GetBehavior<EntityBehaviorTaskAI>().TaskManager.GetTask<AiTaskSentrySearch>();
-		
+		protected AiTaskManager tasksManager;
+		protected AiTaskSentrySearch searchTask => tasksManager.GetTask<AiTaskSentrySearch>();
+
+		public override void AfterInitialize() {
+			world = entity.World;
+			tasksManager = entity.GetBehavior<EntityBehaviorTaskAI>().TaskManager;
+		}
+
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);
 			this.banditPilled = taskConfig["isBandit"].AsBool(false);
@@ -47,14 +53,13 @@ namespace VSKingdom {
 		}
 
 		public override bool ShouldExecute() {
-			if (!entity.ruleOrder[2]) {
+			if (!entity.cachedData.usesMelee || !entity.cachedData.weapReady || !entity.ruleOrder[2]) {
 				return false;
 			}
-			long elapsedMilliseconds = entity.World.ElapsedMilliseconds;
-			if (elapsedMilliseconds - lastAttackMs < durationOfMs || cooldownUntilMs > elapsedMilliseconds) {
+			if (cooldownUntilMs > entity.World.ElapsedMilliseconds || entity.World.ElapsedMilliseconds - lastAttackMs < durationOfMs) {
 				return false;
 			}
-			if (elapsedMilliseconds - attackedByEntityMs > 30000) {
+			if (entity.World.ElapsedMilliseconds - attackedByEntityMs > 30000) {
 				attackedByEntity = null;
 			}
 			if (retaliateAttacks && attackedByEntity != null && attackedByEntity.Alive && attackedByEntity.IsInteractable && IsTargetableEntity(attackedByEntity, maximumRange, ignoreEntityCode: true) && hasDirectContact(attackedByEntity, maximumRange, maximumRange / 2f)) {
@@ -71,7 +76,7 @@ namespace VSKingdom {
 				}
 			}
 			lastAttackMs = entity.World.ElapsedMilliseconds;
-			return targetEntity != null;
+			return targetEntity?.Alive ?? false;
 		}
 
 		public override bool IsTargetableEntity(Entity ent, float range, bool ignoreEntityCode = false) {
@@ -81,31 +86,31 @@ namespace VSKingdom {
 			if (allyCaches.Contains(ent.EntityId)) {
 				return false;
 			}
-			if (ent is EntityProjectile projectile && projectile.FiredBy is not null) {
+			if (ent is EntityProjectile projectile && projectile.FiredBy != null) {
 				targetEntity = projectile.FiredBy;
 			}
-			if (ent.WatchedAttributes.HasAttribute("kingdomGUID")) {
+			if (ent.WatchedAttributes.HasAttribute(king_GUID)) {
 				if (banditPilled) {
 					return ent is EntityPlayer || (ent is EntitySentry sentry && sentry.cachedData.kingdomGUID != banditryGUID);
 				}
-				if (ent.WatchedAttributes.HasAttribute("leadersGUID") && entity.cachedData.leadersGUID == ent.WatchedAttributes.GetString("leadersGUID")) {
+				if (ent.WatchedAttributes.HasAttribute(lead_GUID) && entity.cachedData.leadersGUID == ent.WatchedAttributes.GetString(lead_GUID)) {
 					allyCaches.Add(ent.EntityId);
 					return false;
 				}
 				if (ent is EntitySentry sent) {
 					return entity.cachedData.enemiesLIST.Contains(sent.cachedData.kingdomGUID) || entity.cachedData.outlawsLIST.Contains(sent.cachedData.leadersGUID) || sent.cachedData.kingdomGUID == banditryGUID;
 				}
-				return entity.cachedData.enemiesLIST.Contains(ent.WatchedAttributes.GetString("kingdomGUID"));
+				return entity.cachedData.enemiesLIST.Contains(ent.WatchedAttributes.GetString(king_GUID));
 			}
 			if (ent.WatchedAttributes.HasAttribute("domesticationstatus")) {
 				if (!ent.WatchedAttributes.GetTreeAttribute("domesticationstatus")?.HasAttribute("owner") ?? false) {
 					return true;
 				}
 				string ownerGUID = ent.WatchedAttributes.GetTreeAttribute("domesticationstatus")?.GetString("owner");
-				if (ownerGUID != null && !ent.WatchedAttributes.HasAttribute("leadersGUID")) {
-					ent.WatchedAttributes.SetString("leadersGUID", ownerGUID);
+				if (ownerGUID != null && !ent.WatchedAttributes.HasAttribute(lead_GUID)) {
+					ent.WatchedAttributes.SetString(lead_GUID, ownerGUID);
 				}
-				if (entity.WatchedAttributes.GetString("leadersGUID") == ownerGUID) {
+				if (entity.WatchedAttributes.GetString(lead_GUID) == ownerGUID) {
 					allyCaches.Add(ent.EntityId);
 					return false;
 				}
@@ -150,20 +155,18 @@ namespace VSKingdom {
 			animsRunning = false;
 			attackFinish = true;
 			curTurnAngle = pathTraverser.curTurnRadPerSec;
-			searchTask.SetTargetEnts(targetEntity);
+			searchTask?.SetTargetEnts(targetEntity);
 		}
-
+		
 		public override bool ContinueExecute(float dt) {
-			if (cancelAttack || targetEntity is null || !targetEntity.Alive || entity.Swimming) {
-				cancelAttack = true;
-				searchTask.ResetsTargets();
+			if (cancelAttack || (!targetEntity?.Alive ?? true) || !entity.cachedData.usesMelee) {
 				return false;
 			}
-			EntityPos serverPos1 = entity.ServerPos;
-			EntityPos serverPos2 = targetEntity?.ServerPos;
+			EntityPos ownPos = entity.ServerPos;
+			EntityPos hisPos = targetEntity.ServerPos;
 			bool flag = true;
 			if (turnToTarget) {
-				float num = GameMath.AngleRadDistance(entity.ServerPos.Yaw, (float)Math.Atan2(serverPos2.X - serverPos1.X, serverPos2.Z - serverPos1.Z));
+				float num = GameMath.AngleRadDistance(entity.ServerPos.Yaw, (float)Math.Atan2(hisPos.X - ownPos.X, hisPos.Z - ownPos.Z));
 				entity.ServerPos.Yaw += GameMath.Clamp(num, (0f - curTurnAngle) * dt * GlobalConstants.OverallSpeedMultiplier, curTurnAngle * dt * GlobalConstants.OverallSpeedMultiplier);
 				entity.ServerPos.Yaw %= (MathF.PI * 2f);
 				flag = Math.Abs(num) < maximumRange * (MathF.PI / 180f);
@@ -211,9 +214,9 @@ namespace VSKingdom {
 
 		public override void FinishExecute(bool cancelled) {
 			cooldownUntilMs = entity.World.ElapsedMilliseconds + mincooldown + entity.World.Rand.Next(maxcooldown - mincooldown);
-			if (targetEntity == null || !targetEntity.Alive || !IsTargetableEntity(targetEntity, (float)targetEntity.ServerPos.DistanceTo(entity.ServerPos))) {
-				searchTask.ResetsTargets();
-				searchTask.StopMovements();
+			if ((!targetEntity?.Alive ?? true) || !IsTargetableEntity(targetEntity, (float)targetEntity.ServerPos.DistanceTo(entity.ServerPos))) {
+				searchTask?.ResetsTargets();
+				searchTask?.StopMovements();
 			}
 			if (currAnimCode != null) {
 				entity.AnimManager.StopAnimation(currAnimCode);
@@ -223,11 +226,11 @@ namespace VSKingdom {
 		}
 
 		public override void OnEntityHurt(DamageSource source, float damage) {
-			if (damage < 1 || source.GetCauseEntity() == null || !IsTargetableEntity(source.GetCauseEntity(), (float)source.GetSourcePosition().DistanceTo(entity.ServerPos.XYZ))) {
+			if (damage < 1 || !IsTargetableEntity(source.GetCauseEntity(), (float)source.GetSourcePosition().DistanceTo(entity.ServerPos.XYZ))) {
 				return;
 			}
-			if (source.Type != EnumDamageType.Heal && lastHelpedMs + 5000 < entity.World.ElapsedMilliseconds) {
-				targetEntity = source.GetCauseEntity();
+			if (source.GetCauseEntity() != null && source.Type != EnumDamageType.Heal && lastHelpedMs + 5000 < entity.World.ElapsedMilliseconds) {
+				targetEntity = source?.GetCauseEntity();
 				lastHelpedMs = entity.World.ElapsedMilliseconds;
 				// Alert all surrounding units! We're under attack!
 				foreach (EntitySentry sentry in entity.World.GetEntitiesAround(entity.ServerPos.XYZ, 20f, 4f, entity => (entity is EntitySentry))) {
@@ -243,7 +246,7 @@ namespace VSKingdom {
 
 		public void OnAllyAttacked(Entity targetEnt) {
 			// Prioritize attacks of other people. Assess threat level in future.
-			if (targetEntity == null || !targetEntity.Alive || (targetEnt is EntityHumanoid && targetEntity is not EntityHumanoid)) {
+			if ((!targetEntity?.Alive ?? true) || (targetEnt is EntityHumanoid && targetEntity is not EntityHumanoid)) {
 				targetEntity = targetEnt;
 				searchTask.SetTargetEnts(targetEnt);
 			}

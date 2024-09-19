@@ -45,7 +45,7 @@ namespace VSKingdom {
 		}
 
 		public void LootGear(EntitySentry killer, EntitySentry victim) {
-			if (!entity.World.Config.GetAsBool("AllowLooting") || killer == null || victim == null) {
+			if (!entity.World.Config.GetAsBool("AllowLooting") || killer is null || victim is null) {
 				return;
 			}
 			if (killer.ServerPos.DistanceTo(victim.ServerPos) > 4f) {
@@ -127,13 +127,10 @@ namespace VSKingdom {
 				}
 			}
 			// Spawn the body block here if it was placed, drop all items if not possible.
-			if (placedBlock && entity.WatchedAttributes.HasAttribute("inventory")) {
-				// Initialize BlockEntityBody here and put stuff into it.
-				if (blockAccessor.GetBlockEntity(bonePos) is BlockEntityBody decblock) {
-					// Get the inventory of the person who died if they have one.
-					for (int i = 0; i < entity.GearInventory.Count; i++) {
-						entity.GearInventory[i].TryPutInto(entity.World, decblock.gearInv[i], entity.GearInventory[i].StackSize);
-					}
+			if (placedBlock && entity.WatchedAttributes.HasAttribute("inventory") && !entity.GearInventory.Empty && blockAccessor.GetBlockEntity(bonePos) is BlockEntityBody decblock) {
+				// Get the inventory of the person who died if they have one.
+				for (int i = 0; i < entity.GearInventory.Count; i++) {
+					entity.GearInventory[i].TryPutInto(entity.World, decblock.gearInv[i], entity.GearInventory[i].StackSize);
 				}
 			} else {
 				for (int i = 0; i < entity.GearInventory.Count; i++) {

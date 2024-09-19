@@ -14,7 +14,6 @@ namespace VSKingdom {
 		#pragma warning disable CS0108
 		public EntitySentry entity;
 		#pragma warning restore CS0108
-		protected bool archerPilled;
 		protected bool cancelSearch;
 		protected bool lastPathfind;
 		protected long lastAttackedAtMs;
@@ -34,6 +33,7 @@ namespace VSKingdom {
 		protected Vec3d lastGoalReachedPos;
 		protected Dictionary<long, int> futilityCounters;
 		protected EnumAttackPattern attackPattern;
+		protected AiTaskManager tasksManager;
 		protected bool InTheReachOfTargets => targetEntity.ServerPos.SquareDistanceTo(entity.ServerPos.XYZ) < (extraTargetOffset * extraTargetOffset);
 		protected bool RecentlyTookDamages => entity.World.ElapsedMilliseconds - lastHurtByTarget < 10000;
 		protected bool RemainInRetreatMode => entity.World.ElapsedMilliseconds - lastRetreatsAtMs < 20000;
@@ -41,14 +41,21 @@ namespace VSKingdom {
 		protected float pursueRange { get => entity.WatchedAttributes.GetFloat("pursueRange", 1f); }
 		protected Vec3d outpostXYZD { get => entity.WatchedAttributes.GetBlockPos("postBlock").ToVec3d(); }
 
+		public override void AfterInitialize() {
+			world = entity.World;
+			bhPhysics = entity.GetBehavior<EntityBehaviorControlledPhysics>();
+			pathTraverser = entity.GetBehavior<EntityBehaviorTaskAI>().PathTraverser;
+			bhEmo = entity.GetBehavior<EntityBehaviorEmotionStates>();
+			tasksManager = entity.GetBehavior<EntityBehaviorTaskAI>().TaskManager;
+		}
+
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);
 			this.partitionUtil = entity.Api.ModLoader.GetModSystem<EntityPartitioning>();
-			this.archerPilled = taskConfig["isArcher"].AsBool(false);
 			this.retaliateAttacks = taskConfig["retaliateAttacks"].AsBool(true);
 			this.mincooldown = taskConfig["mincooldown"].AsInt(1000);
 			this.maxcooldown = taskConfig["maxcooldown"].AsInt(1500);
-			this.extraTargetOffset = archerPilled ? (taskConfig["extraTargetOffset"].AsFloat(1f) * 5f) : taskConfig["extraTargetOffset"].AsFloat(1f);
+			this.extraTargetOffset = taskConfig["extraTargetOffset"].AsFloat(1f);
 			this.maximumFollowTime = taskConfig["maximumFollowTime"].AsFloat(60f);
 			this.retreatRange = taskConfig["retreatRange"].AsFloat(36f);
 			this.seekingRange = taskConfig["seekingRange"].AsFloat(25f);
@@ -73,7 +80,7 @@ namespace VSKingdom {
 				return;
 			}
 			var navigateAction = DoSieged;
-			if (archerPilled) {
+			if (entity.cachedData.usesRange) {
 				bool safeSpot = !NotSafe();
 				bool tooClose = targetEntity.ServerPos.SquareDistanceTo(entity.ServerPos) < 16f && CanSeeEnt(targetEntity, entity);
 				bool runfight = tooClose || (!safeSpot && world.Rand.NextDouble() < 0.5);
@@ -89,16 +96,12 @@ namespace VSKingdom {
 				lastAttackedAtMs = entity.World.ElapsedMilliseconds;
 				lastPathfind = true;
 				return true;
-			} else {
-				return attackPattern == EnumAttackPattern.TacticalRetreat;
 			}
+			return attackPattern == EnumAttackPattern.TacticalRetreat;
 		}
 
 		public override bool ContinueExecute(float dt) {
-			if (targetEntity == null) {
-				cancelSearch = true;
-			}
-			if (!targetEntity.Alive) {
+			if (targetEntity == null || !targetEntity.Alive) {
 				cancelSearch = true;
 			}
 			if (cancelSearch) {
@@ -107,7 +110,7 @@ namespace VSKingdom {
 			if (currentFollowTime == 0f && world.Rand.NextDouble() < 0.25) {
 				base.StartExecute();
 			}
-			if (archerPilled && InTheReachOfTargets) {
+			if (entity.cachedData.usesRange && InTheReachOfTargets) {
 				attackPattern = EnumAttackPattern.TacticalRetreat;
 			}
 			if (!entity.ruleOrder[3]) {
@@ -424,7 +427,7 @@ namespace VSKingdom {
 		}
 
 		private float TargetDist() {
-			return extraTargetOffset + Math.Max(0.1f, targetEntity.SelectionBox.XSize / 2f + entity.SelectionBox.XSize / 4f);
+			return extraTargetOffset * (entity.cachedData.usesRange ? 5 : 1) + Math.Max(0.1f, targetEntity.SelectionBox.XSize / 2f + entity.SelectionBox.XSize / 4f);
 		}
 	}
 }

@@ -1,0 +1,100 @@
+{
+	"editor": {
+		"allAngles": true,
+		"entityTextureMode": false
+	},
+	"textureWidth": 16,
+	"textureHeight": 16,
+	"textureSizes": { },
+	"textures": {
+		"burns": "vskingdom:block/burns/live",
+		"ember": "vskingdom:block/fires/coal"
+	},
+	"elements": [
+		{
+			"name": "origin",
+			"from": [ 8.0, 3.5, 8.0 ],
+			"to": [ 8.0, 3.5, 8.0 ],
+			"rotationOrigin": [ 8.0, 0.0, 8.0 ],
+			"faces": { },
+			"children": [
+				{
+					"name": "ashpile",
+					"from": [ -4.0, 0.0, -4.0 ],
+					"to": [ 4.0, 0.0, 4.0 ],
+					"faces": {
+						"up": { "texture": "#burns", "uv": [ 0.0, 0.0, 8.0, 8.0 ] }
+					},
+					"children": [
+						{
+							"name": "ashes1",
+							"from": [ 3.0, 0.0, 3.0 ],
+							"to": [ 5.0, 1.5, 5.0 ],
+							"rotationOrigin": [ 4.0, 0.0, 4.0 ],
+							"faces": {
+								"north": { "texture": "#ember", "uv": [ 7.5, 5.5, 9.5, 7.0 ] },
+								"east": { "texture": "#ember", "uv": [ 7.5, 5.0, 9.5, 6.5 ] },
+								"south": { "texture": "#ember", "uv": [ 6.5, 5.5, 8.5, 7.0 ] },
+								"west": { "texture": "#ember", "uv": [ 6.5, 5.5, 8.5, 7.0 ] },
+								"up": { "texture": "#ember", "uv": [ 7.0, 5.5, 9.0, 7.5 ] }
+							}
+						},
+						{
+							"name": "ashes2",
+							"from": [ 3.5, 0.0, 2.5 ],
+							"to": [ 5.5, 1.0, 4.5 ],
+							"rotationOrigin": [ 4.5, 0.0, 3.5 ],
+							"rotationY": 50.0,
+							"faces": {
+								"north": { "texture": "#ember", "uv": [ 7.0, 6.5, 9.0, 7.5 ] },
+								"east": { "texture": "#ember", "uv": [ 6.5, 5.0, 8.5, 6.0 ] },
+								"south": { "texture": "#ember", "uv": [ 5.0, 4.0, 7.0, 5.0 ] },
+								"west": { "texture": "#ember", "uv": [ 5.5, 6.0, 7.5, 7.0 ] },
+								"up": { "texture": "#ember", "uv": [ 6.0, 4.5, 8.0, 6.5 ] }
+							}
+						},
+						{
+							"name": "ashes3",
+							"from": [ 2.4, 0.0, 4.0 ],
+							"to": [ 3.9, 1.0, 5.5 ],
+							"rotationOrigin": [ 3.4, 0.0, 4.5 ],
+							"rotationY": 70.0,
+							"faces": {
+								"north": { "texture": "#ember", "uv": [ 6.5, 6.0, 8.0, 7.0 ] },
+								"east": { "texture": "#ember", "uv": [ 7.0, 6.5, 8.5, 7.5 ] },
+								"south": { "texture": "#ember", "uv": [ 5.0, 6.5, 6.5, 7.5 ] },
+								"west": { "texture": "#ember", "uv": [ 5.0, 7.5, 6.5, 8.5 ] },
+								"up": { "texture": "#ember", "uv": [ 7.5, 7.5, 9.0, 9.0 ] }
+							}
+						},
+						{
+							"name": "ashes4",
+							"from": [ 2.0, 0.0, 2.5 ],
+							"to": [ 4.0, 0.7, 4.5 ],
+							"rotationOrigin": [ 3.0, 0.0, 3.0 ],
+							"faces": {
+								"north": { "texture": "#ember", "uv": [ 7.5, 6.0, 9.5, 6.5 ] },
+								"east": { "texture": "#ember", "uv": [ 5.5, 4.5, 7.5, 5.0 ] },
+								"south": { "texture": "#ember", "uv": [ 7.5, 8.5, 9.5, 9.0 ] },
+								"west": { "texture": "#ember", "uv": [ 8.5, 4.5, 10.5, 5.0 ] },
+								"up": { "texture": "#ember", "uv": [ 6.5, 5.0, 8.5, 7.0 ] }
+							}
+						},
+						{
+							"name": "ashes5",
+							"from": [ 3.5, 0.0, 3.5 ],
+							"to": [ 5.5, 0.7, 5.5 ],
+							"rotationOrigin": [ 4.5, 0.0, 4.0 ],
+							"faces": {
+								"north": { "texture": "#ember", "uv": [ 5.5, 6.0, 7.5, 6.5 ] },
+								"east": { "texture": "#ember", "uv": [ 5.5, 7.0, 7.5, 7.5 ] },
+								"south": { "texture": "#ember", "uv": [ 7.0, 5.0, 9.0, 5.5 ] },
+								"west": { "texture": "#ember", "uv": [ 7.0, 6.0, 9.0, 6.5 ] },
+								"up": { "texture": "#ember", "uv": [ 8.0, 7.5, 10.0, 9.5 ] }
+							}
+						}
+					]
+				}
+			]
+		}
+	]}

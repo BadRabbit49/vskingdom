@@ -20,9 +20,9 @@ namespace VSKingdom {
 		protected bool releasedShot = false;
 		protected bool banditPilled = false;
 		protected long totalDurationMs;
-		protected long durationOfMs = 1200;
-		protected long releasesAtMs = 1000;
-		protected long totalCooldownMs = 1000L;
+		protected long releasesAtMs = 1000L;
+		protected long durationOfMs = 1200L;
+		protected long lastAttackMs;
 		protected float maximumRange = 20f;
 		protected float minimumRange = 6f;
 		protected float accum = 0;
@@ -33,10 +33,16 @@ namespace VSKingdom {
 		protected AnimationMetaData fireBowsMeta;
 		protected AnimationMetaData loadBowsMeta;
 		protected EntityProperties projectileType;
-		protected AssetLocation drawingsound = null;
-		protected AssetLocation hittingsound = null;
-		protected AssetLocation ammoLocation = null;
-		protected AiTaskSentrySearch searchTask => entity.GetBehavior<EntityBehaviorTaskAI>().TaskManager.GetTask<AiTaskSentrySearch>();
+		protected AssetLocation drawingsound;
+		protected AssetLocation hittingsound;
+		protected AssetLocation ammoLocation;
+		protected AiTaskManager tasksManager;
+		protected AiTaskSentrySearch searchTask => tasksManager.GetTask<AiTaskSentrySearch>();
+
+		public override void AfterInitialize() {
+			world = entity.World;
+			tasksManager = entity.GetBehavior<EntityBehaviorTaskAI>().TaskManager;
+		}
 
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);
@@ -48,18 +54,24 @@ namespace VSKingdom {
 		}
 
 		public override bool ShouldExecute() {
-			if (cooldownUntilMs > entity.World.ElapsedMilliseconds) {
+			if (!entity.cachedData.usesRange || !entity.cachedData.weapReady || !entity.ruleOrder[2]) {
 				return false;
 			}
-			if (!entity.cachedData.weapReady) {
+			if (cooldownUntilMs > entity.World.ElapsedMilliseconds || entity.World.ElapsedMilliseconds - lastAttackMs < durationOfMs) {
 				return false;
 			}
-			if (totalDurationMs + totalCooldownMs < entity.World.ElapsedMilliseconds) {
+			if (entity.World.ElapsedMilliseconds - attackedByEntityMs > 30000) {
+				attackedByEntity = null;
+			}
+			if (retaliateAttacks && attackedByEntity != null && attackedByEntity.Alive && attackedByEntity.IsInteractable && IsTargetableEntity(attackedByEntity, maximumRange, ignoreEntityCode: true) && hasDirectContact(attackedByEntity, maximumRange, maximumRange / 2f)) {
+				targetEntity = attackedByEntity;
+			}
+			if (totalDurationMs + releasesAtMs < entity.World.ElapsedMilliseconds) {
 				if (targetEntity == null || !targetEntity.Alive) {
 					goto IL_0095;
 				}
 			}
-			if (totalDurationMs + totalCooldownMs * 5 < entity.World.ElapsedMilliseconds) {
+			if (totalDurationMs + releasesAtMs * 5 < entity.World.ElapsedMilliseconds) {
 				goto IL_0095;
 			}
 			goto IL_00d6;
@@ -73,6 +85,7 @@ namespace VSKingdom {
 			}
 			goto IL_00d6;
 			IL_00d6:
+			lastAttackMs = entity.World.ElapsedMilliseconds;
 			return targetEntity?.Alive ?? false;
 		}
 
@@ -83,7 +96,7 @@ namespace VSKingdom {
 			if (ent is EntityProjectile projectile && projectile.FiredBy != null) {
 				targetEntity = projectile.FiredBy;
 			}
-			if (ent.WatchedAttributes.HasAttribute("kingdomGUID")) {
+			if (ent.WatchedAttributes.HasAttribute(king_GUID)) {
 				return IsAnEnemy(ent);
 			}
 			if (ignoreEntityCode || IsTargetEntity(ent.Code.Path)) {
@@ -181,9 +194,7 @@ namespace VSKingdom {
 		}
 
 		public override bool ContinueExecute(float dt) {
-			if (cancelAttack || targetEntity is null || !targetEntity.Alive || entity.Swimming) {
-				cancelAttack = true;
-				searchTask.ResetsTargets();
+			if (cancelAttack || (!targetEntity?.Alive ?? true) || !entity.cachedData.usesMelee || entity.Swimming) {
 				return false;
 			}
 			// Calculate aiming at targetEntity!
@@ -193,7 +204,9 @@ namespace VSKingdom {
 			float yawDist = GameMath.AngleRadDistance(entity.ServerPos.Yaw, desiredYaw);
 			entity.ServerPos.Yaw += GameMath.Clamp(yawDist, -curTurnAnglePerSec * dt, curTurnAnglePerSec * dt);
 			entity.ServerPos.Yaw = entity.ServerPos.Yaw % GameMath.TWOPI;
-			if (Math.Abs(yawDist) > 0.02) { return true; }
+			if (Math.Abs(yawDist) > 0.02) {
+				return true;
+			}
 			// Start animations if not already doing so.
 			if (!animsStarted) {
 				animsStarted = true;
@@ -310,7 +323,7 @@ namespace VSKingdom {
 			}
 			return entity.cachedData.enemiesLIST.Contains(target.WatchedAttributes.GetString("kingdomGUID"));
 		}
-
+		
 		private bool IsTargetEntity(string testPath) {
 			if (targetEntityFirstLetters.Length == 0) {
 				return true;

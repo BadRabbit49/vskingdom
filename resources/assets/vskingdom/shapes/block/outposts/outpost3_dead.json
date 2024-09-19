@@ -7,10 +7,7 @@
 	"textureHeight": 16,
 	"textureSizes": { },
 	"textures": {
-		"metal": "vskingdom:block/metal/iron",
-		"burns": "vskingdom:block/burns/none",
-		"fuels": "vskingdom:block/fuels/null",
-		"fires": "vskingdom:block/fires/null"
+		"metal": "vskingdom:block/metal/iron"
 	},
 	"elements": [
 		{
@@ -34,15 +31,6 @@
 						"down": { "reflectiveMode": 3, "texture": "#metal", "uv": [ 7.0, 7.0, 15.0, 15.0 ] }
 					},
 					"children": [
-						{
-							"name": "ashpile",
-							"from": [ 0.0, 0.55, 0.0 ],
-							"to": [ 8.0, 0.55, 8.0 ],
-							"rotationOrigin": [ 4.0, 0.5, 4.0 ],
-							"faces": {
-								"up": { "texture": "#burns", "uv": [ 0.0, 0.0, 16.0, 16.0 ] }
-							}
-						},
 						{
 							"name": "NW",
 							"from": [ -1.0, -3.0, -1.0 ],

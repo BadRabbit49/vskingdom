@@ -39,5 +39,20 @@ namespace VSKingdom.Constants {
 			{ "titanium", 9 },
 			{ "electrum", 9 }
 		};
+
+		public static Dictionary<string, string[]> fuelsCodes { get; set; } = new Dictionary<string, string[]>() {
+			{ "wood", new string[] { "bark", "wood" } },
+			{ "firewood", new string[] { "bark", "wood" } },
+			{ "agedfirewood", new string[] { "bark", "wood" } },
+			{ "coal", new string[] { "ore", "coal" } },
+			{ "coke", new string[] { "ore", "coal" } },
+			{ "charcoal", new string[] { "ore", "coal" } },
+			{ "ore-lignite", new string[] { "ore", "coal" } },
+			{ "ore-bituminouscoal", new string[] { "ore", "coal" } },
+			{ "ore-anthracite", new string[] { "ore", "coal" } },
+			{ "gear", new string[] { "rusty-iron", "gear" } },
+			{ "gear-rusty", new string[] { "rusty-iron", "gear" } },
+			{ "gear-temporal", new string[] { "temporal", "gear" } }
+		};
 	}
 }

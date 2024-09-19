@@ -66,9 +66,6 @@ namespace VSKingdom {
 		}
 
 		public override bool ContinueExecute(float dt) {
-			if (targetEntity is null) {
-				return false;
-			}
 			if (isAPassenger) {
 				if (targetEntity.WatchedAttributes["mountedOn"] == null || boatSeatsEnt == null) {
 					isAPassenger = !entity.TryUnmount();

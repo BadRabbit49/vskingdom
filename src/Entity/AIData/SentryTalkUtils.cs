@@ -259,57 +259,26 @@ public class SentryTalkUtils {
 			sapi.Network.BroadcastEntityPacket(sentry.EntityId, 1231, SerializerUtil.Serialize(talkType));
 			return;
 		}
-
 		IClientWorldAccessor world = capi.World;
 		this.talkType = talkType;
 		totalLettersTalked = 0;
 		currentLetterInWord = 0;
 		chordDelay = TalkSpeed[talkType];
 		LongNote = false;
-		if (talkType == EnumTalkType.Meet) {
-			lettersLeftToTalk = 2 + world.Rand.Next(10);
+		switch (talkType) {
+			case EnumTalkType.Meet: lettersLeftToTalk = 2 + world.Rand.Next(10); break;
+			case EnumTalkType.Idle: lettersLeftToTalk = 3 + world.Rand.Next(12); break;
+			case EnumTalkType.Hurt: lettersLeftToTalk = 2 + world.Rand.Next(3); break;
+			case EnumTalkType.Hurt2: lettersLeftToTalk = 2 + world.Rand.Next(3); break;
+			case EnumTalkType.IdleShort: lettersLeftToTalk = 3 + world.Rand.Next(4); break;
+			case EnumTalkType.Laugh: lettersLeftToTalk = (int)((float)(4 + world.Rand.Next(4)) * Math.Max(1f, pitchModifier)); break;
+			case EnumTalkType.Purchase: lettersLeftToTalk = 2 + world.Rand.Next(2); break;
+			case EnumTalkType.Complain: lettersLeftToTalk = 10 + world.Rand.Next(12); break;
+			case EnumTalkType.Goodbye: lettersLeftToTalk = 2 + world.Rand.Next(2); break;
+			case EnumTalkType.Death: lettersLeftToTalk = 1; break;
+			case EnumTalkType.Shrug: lettersLeftToTalk = 1; break;
+			case EnumTalkType.Thrust: lettersLeftToTalk = 1; break;
 		}
-
-		if (talkType == EnumTalkType.Hurt || talkType == EnumTalkType.Hurt2) {
-			lettersLeftToTalk = 2 + world.Rand.Next(3);
-		}
-
-		if (talkType == EnumTalkType.Idle) {
-			lettersLeftToTalk = 3 + world.Rand.Next(12);
-		}
-
-		if (talkType == EnumTalkType.IdleShort) {
-			lettersLeftToTalk = 3 + world.Rand.Next(4);
-		}
-
-		if (talkType == EnumTalkType.Laugh) {
-			lettersLeftToTalk = (int)((float)(4 + world.Rand.Next(4)) * Math.Max(1f, pitchModifier));
-		}
-
-		if (talkType == EnumTalkType.Purchase) {
-			lettersLeftToTalk = 2 + world.Rand.Next(2);
-		}
-
-		if (talkType == EnumTalkType.Complain) {
-			lettersLeftToTalk = 10 + world.Rand.Next(12);
-		}
-
-		if (talkType == EnumTalkType.Goodbye) {
-			lettersLeftToTalk = 2 + world.Rand.Next(2);
-		}
-
-		if (talkType == EnumTalkType.Death) {
-			lettersLeftToTalk = 1;
-		}
-
-		if (talkType == EnumTalkType.Shrug) {
-			lettersLeftToTalk = 1;
-		}
-
-		if (talkType == EnumTalkType.Thrust) {
-			lettersLeftToTalk = 1;
-		}
-
 		totalLettersToTalk = lettersLeftToTalk;
 	}
 

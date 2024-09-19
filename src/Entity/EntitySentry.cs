@@ -30,6 +30,9 @@ namespace VSKingdom {
 		public virtual ItemSlot BackItemSlot => gearInv[17];
 		public virtual ItemSlot AmmoItemSlot => gearInv[18];
 		public virtual ItemSlot HealItemSlot => gearInv[19];
+		public override bool StoreWithChunk => true;
+		public override bool AlwaysActive => false;
+		public override double LadderFixDelta { get => Properties.SpawnCollisionBox.Y2 - SelectionBox.YSize; }
 		public override IInventory GearInventory => gearInv;
 		public ICoreClientAPI ClientAPI;
 		public ICoreServerAPI ServerAPI;
@@ -51,6 +54,7 @@ namespace VSKingdom {
 			// Register listeners if api is on server.
 			if (api is ICoreServerAPI sapi) {
 				ServerAPI = sapi;
+				ruleOrder = new bool[7] { true, false, true, true, false, false, false };
 				WatchedAttributes.RegisterModifiedListener("inventory", ReadInventoryFromAttributes);
 				WatchedAttributes.RegisterModifiedListener("mountedOn", updateMountedState);
 				if (WatchedAttributes["mountedOn"] != null) {
@@ -58,6 +62,9 @@ namespace VSKingdom {
 					if (MountedOn != null) {
 						TryMount(MountedOn);
 					}
+				}
+				if (cachedData is null) {
+					cachedData = new SentryDataCache();
 				}
 				GetBehavior<EntityBehaviorHealth>().onDamaged += (dmg, dmgSource) => handleDamaged(World.Api, this, dmg, dmgSource);
 				ReadInventoryFromAttributes();
@@ -208,8 +215,8 @@ namespace VSKingdom {
 				return;
 			}
 			if (Alive && leadersGuid != null && leadersGuid == player.PlayerUID && Api.Side == EnumAppSide.Server) {
-				GetBehavior<EntityBehaviorTaskAI>().TaskManager?.GetTask<AiTaskSentryPatrol>()?.PauseExecute(player);
-				GetBehavior<EntityBehaviorTaskAI>().TaskManager?.GetTask<AiTaskSentryWander>()?.PauseExecute(player);
+				GetBehavior<EntityBehaviorTaskAI>()?.TaskManager?.GetTask<AiTaskSentryPatrol>()?.PauseExecute(player);
+				GetBehavior<EntityBehaviorTaskAI>()?.TaskManager?.GetTask<AiTaskSentryWander>()?.PauseExecute(player);
 			}
 			if (!itemslot.Empty && player.Controls.Sneak) {
 				// TRY TO REVIVE!
@@ -292,6 +299,7 @@ namespace VSKingdom {
 					return;
 				case 1506:
 					player.InventoryManager.CloseInventory(GearInventory);
+					Skeletalize();
 					return;
 			}
 		}
@@ -334,15 +342,12 @@ namespace VSKingdom {
 		}
 
 		public override void ToBytes(BinaryWriter writer, bool forClient) {
-			// Save as much as possible, but ignore anything if it catches a null reference exception.
-			try { gearInv.ToTreeAttributes(GetInventoryTree()); } catch (NullReferenceException) { }
 			base.ToBytes(writer, forClient);
+			try { gearInv.ToTreeAttributes(GetInventoryTree()); } catch (NullReferenceException) { }
 		}
 
 		public override void Die(EnumDespawnReason reason = EnumDespawnReason.Death, DamageSource damageSourceForDeath = null) {
-			if (!Alive) {
-				return;
-			}
+			if (!Alive) { return; }
 			if (reason == EnumDespawnReason.Death) {
 				PlayEntitySound("death");
 			}
@@ -414,9 +419,22 @@ namespace VSKingdom {
 			ReceiveDamage(new DamageSource { SourceEntity = this, CauseEntity = this, Source = EnumDamageSource.Revive, Type = EnumDamageType.Heal }, 9999f);
 			AnimManager.StopAnimation(new string(WatchedAttributes.GetString("deathAnimation")));
 			IsOnFire = false;
+			State = EnumEntityState.Active;
+			// AI seems to go dead after revive and does not return to doing tasks? Fix.
 			foreach (EntityBehavior behavior in SidedProperties.Behaviors) {
+				if (behavior is EntityBehaviorTaskAI taskai) {
+					taskai.OnEntityLoaded();
+				}
 				behavior.OnEntityRevive();
 			}
+		}
+
+		public override void PlayEntitySound(string type, IPlayer dualCallByPlayer = null, bool randomizePitch = true, float range = 24) {
+			switch (type) {
+				case "hurt": sentryTalk?.Talk(EnumTalkType.Hurt2); return;
+				case "death": sentryTalk?.Talk(EnumTalkType.Death); return;
+			}
+			base.PlayEntitySound(type, dualCallByPlayer, randomizePitch, range);
 		}
 
 		public virtual ITreeAttribute GetInventoryTree() {
@@ -441,12 +459,7 @@ namespace VSKingdom {
 		}
 
 		public virtual void ToggleInventoryDialog(IPlayer player) {
-			if (Api.Side != EnumAppSide.Client) {
-				if (!Alive && gearInv.Empty && HasBehavior<EntityBehaviorDecayBody>()) {
-					GetBehavior<EntityBehaviorDecayBody>()?.DecayNow(this);
-				}
-				return;
-			}
+			if (Api.Side != EnumAppSide.Client) { return; }
 			if (InventoryDialog is null) {
 				InventoryDialog = new InvSentryDialog(gearInv, this, ClientAPI);
 				InventoryDialog.OnClosed += OnInventoryDialogClosed;
@@ -478,15 +491,16 @@ namespace VSKingdom {
 			try {
 				bool updateAll = (slotId == null);
 				bool hasWeapon = !RightHandItemSlot.Empty;
+				bool hasRanged = hasWeapon && allowedWeaponry.Contains(RightHandItemSlot.Itemstack.Item.Code.FirstCodePart());
 				float massTotal = 0;
 				float healTotal = 0;
 				float walkSpeed = Properties.Attributes["walkSpeed"].AsFloat(0.020f);
 				float moveSpeed = Properties.Attributes["moveSpeed"].AsFloat(0.040f);
 				if (updateAll || (slotId == 16 || slotId == 18)) {
-					if (cachedData.usesRange) {
-						cachedData.UpdateWeapons(this.GearInventory);
-						cachedData.UpdateReloads(this.GearInventory);
-					}
+					cachedData.usesRange = hasRanged;
+					cachedData.usesMelee = !hasRanged;
+					cachedData.UpdateWeapons(this.GearInventory);
+					cachedData.UpdateReloads(this.GearInventory);
 					cachedData.weapRange = hasWeapon ? RightHandItemSlot.Itemstack.Collectible.AttackRange : GlobalConstants.DefaultAttackRange;
 					cachedData.recruitINFO = new string(hasWeapon ? "ENLISTED" : Properties.Attributes["baseState"].AsString("CIVILIAN"));
 				}
@@ -520,6 +534,12 @@ namespace VSKingdom {
 				}
 			} catch (NullReferenceException e) {
 				World.Logger.Error(e.ToString());
+			}
+		}
+
+		public virtual void Skeletalize() {
+			if (Api.Side != EnumAppSide.Client && !Alive && gearInv.Empty && HasBehavior<EntityBehaviorDecayBody>()) {
+				GetBehavior<EntityBehaviorDecayBody>()?.DecayNow(this);
 			}
 		}
 

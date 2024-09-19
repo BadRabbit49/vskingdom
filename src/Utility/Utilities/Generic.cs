@@ -39,11 +39,11 @@ namespace VSKingdom.Utilities {
 			EntityFilter eFilter = (e) => (e.IsInteractable || e.EntityId != entity1.EntityId);
 			// Do a line Trace into the target, see if there are any entities in the way.
 			entity1.World.RayTraceForSelection(entity1.ServerPos.XYZ.AddCopy(entity1.LocalEyePos), entity2.ServerPos.XYZ.AddCopy(entity2.LocalEyePos), ref blockSel, ref entitySel, bFilter, eFilter);
-			if (blockSel.Block != null) {
-				return !blockSel.Block.SideIsSolid(blockSel.Position, blockSel.Face.Index);
+			if (blockSel?.Block != null) {
+				return !blockSel.Block?.SideIsSolid(blockSel.Position, blockSel.Face.Index) ?? true;
 			}
-			if (entitySel.Entity != null) {
-				return entitySel.Entity.EntityId == entity2.EntityId;
+			if (entitySel?.Entity != null) {
+				return entitySel.Entity?.EntityId == entity2.EntityId;
 			}
 			return true;
 		}

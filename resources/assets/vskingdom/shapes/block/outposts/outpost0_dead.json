@@ -7,10 +7,7 @@
 	"textureHeight": 16,
 	"textureSizes": { },
 	"textures": {
-		"metal": "vskingdom:block/metal/iron",
-		"burns": "vskingdom:block/burns/done",
-		"fuels": "vskingdom:block/fuels/wood",
-		"fires": "vskingdom:block/fires/wood"
+		"metal": "vskingdom:block/metal/iron"
 	},
 	"elements": [
 		{
@@ -34,15 +31,6 @@
 						"down": { "texture": "#metal", "uv": [ 7.0, 7.0, 15.0, 15.0 ] }
 					},
 					"children": [
-						{
-							"name": "ashpile",
-							"from": [ 0.0, 0.55, 0.0 ],
-							"to": [ 8.0, 0.55, 8.0 ],
-							"rotationOrigin": [ 4.0, 0.5, 4.0 ],
-							"faces": {
-								"up": { "texture": "#burns", "uv": [ 0.0, 0.0, 16.0, 16.0 ] }
-							}
-						},
 						{
 							"name": "NW",
 							"from": [ -1.0, -3.0, -1.0 ],
@@ -121,10 +109,10 @@
 						},
 						{
 							"name": "W2",
-							"from": [ 7.7, 4.0, -0.3 ],
-							"to": [ 8.2, 5.0, 7.7 ],
-							"rotationOrigin": [ 7.7, 4.0, 4.7 ],
-							"rotationX": 10.0,
+							"from": [ 7.75, 4.0, 0.0 ],
+							"to": [ 8.25, 5.0, 8.0 ],
+							"rotationOrigin": [ 7.7, 4.0, 4.0 ],
+							"rotationX": 8.0,
 							"faces": {
 								"north": { "texture": "#metal", "uv": [ 5.0, 12.5, 5.5, 13.5 ] },
 								"east": { "texture": "#metal", "uv": [ 5.0, 14.0, 13.0, 15.0 ] },
@@ -150,12 +138,28 @@
 							}
 						},
 						{
+							"name": "S2",
+							"from": [ 2.0, 6.0, 6.75 ],
+							"to": [ 7.0, 7.0, 7.25 ],
+							"rotationOrigin": [ 2.0, 6.0, 6.7 ],
+							"rotationY": -36.0,
+							"rotationZ": -36.0,
+							"faces": {
+								"north": { "texture": "#metal", "uv": [ 3.0, 5.0, 8.0, 6.0 ] },
+								"east": { "texture": "#metal", "uv": [ 11.0, 3.0, 11.5, 4.0 ] },
+								"south": { "texture": "#metal", "uv": [ 7.5, 7.5, 12.5, 8.5 ] },
+								"west": { "texture": "#metal", "uv": [ 11.5, 14.5, 12.0, 15.5 ] },
+								"up": { "texture": "#metal", "uv": [ 0.0, 5.0, 5.0, 5.5 ] },
+								"down": { "texture": "#metal", "uv": [ 3.0, 12.5, 8.0, 13.0 ] }
+							}
+						},
+						{
 							"name": "N2",
-							"from": [ 0.0, 5.0, -0.2 ],
-							"to": [ 8.0, 6.0, 0.3 ],
+							"from": [ 0.0, 5.0, -0.25 ],
+							"to": [ 8.0, 6.0, 0.25 ],
 							"rotationOrigin": [ 4.0, 5.0, -0.3 ],
 							"rotationX": 10.0,
-							"rotationZ": 10.0,
+							"rotationZ": 8.0,
 							"faces": {
 								"north": { "texture": "#metal", "uv": [ 3.5, 6.5, 11.5, 7.5 ] },
 								"east": { "texture": "#metal", "uv": [ 12.5, 11.5, 13.0, 12.5 ] },
@@ -213,10 +217,10 @@
 						},
 						{
 							"name": "E3",
-							"from": [ -0.25, 7.0, 0.0 ],
-							"to": [ 0.25, 8.0, 8.0 ],
-							"rotationOrigin": [ -0.3, 7.0, 4.0 ],
-							"rotationX": 10.0,
+							"from": [ -0.25, 8.0, 0.0 ],
+							"to": [ 0.25, 9.0, 8.0 ],
+							"rotationOrigin": [ -0.3, 8.0, 4.0 ],
+							"rotationX": -10.0,
 							"faces": {
 								"north": { "texture": "#metal", "uv": [ 0.0, 1.0, 0.5, 2.0 ] },
 								"east": { "texture": "#metal", "uv": [ 4.5, 10.0, 12.5, 11.0 ] },
@@ -231,7 +235,7 @@
 							"from": [ 1.0, 0.0, 7.75 ],
 							"to": [ 8.0, 1.0, 8.25 ],
 							"rotationOrigin": [ 4.0, 0.0, 7.7 ],
-							"rotationZ": 30.0,
+							"rotationZ": 38.0,
 							"faces": {
 								"north": { "texture": "#metal", "uv": [ 1.5, 14.5, 8.5, 15.5 ] },
 								"east": { "texture": "#metal", "uv": [ 11.5, 0.0, 12.0, 1.0 ] },
@@ -306,7 +310,7 @@
 							"from": [ 3.5, -2.0, 8.0 ],
 							"to": [ 4.5, 4.0, 8.5 ],
 							"rotationOrigin": [ 4.0, -1.0, 8.0 ],
-							"rotationY": 5.0,
+							"rotationY": 3.0,
 							"faces": {
 								"north": { "texture": "#metal", "uv": [ 0.0, 0.0, 1.0, 6.0 ] },
 								"east": { "texture": "#metal", "uv": [ 3.0, 0.0, 3.5, 6.0 ] },
@@ -318,10 +322,9 @@
 						},
 						{
 							"name": "E4",
-							"from": [ 0.0, 0.0, 3.5 ],
-							"to": [ 0.5, 10.0, 4.5 ],
-							"rotationOrigin": [ 0.0, 0.0, 4.0 ],
-							"rotationY": -30.0,
+							"from": [ -0.5, -1.0, 3.5 ],
+							"to": [ 0.0, 9.0, 4.5 ],
+							"rotationOrigin": [ -0.5, -1.0, 4.0 ],
 							"rotationZ": 10.0,
 							"faces": {
 								"north": { "texture": "#metal", "uv": [ 9.0, 1.5, 9.5, 11.5 ] },
@@ -345,51 +348,6 @@
 								"west": { "texture": "#metal", "uv": [ 1.0, 0.5, 2.0, 6.5 ] },
 								"up": { "texture": "#metal", "uv": [ 3.0, 13.5, 3.5, 14.5 ] },
 								"down": { "texture": "#metal", "uv": [ 0.5, 13.0, 1.0, 14.0 ] }
-							}
-						},
-						{
-							"name": "log1",
-							"from": [ 1.0, 0.2, 4.0 ],
-							"to": [ 7.0, 2.2, 6.0 ],
-							"rotationOrigin": [ 4.0, 1.2, 5.0 ],
-							"rotationY": 40.0,
-							"faces": {
-								"north": { "texture": "#fuels", "uv": [ 10.0, 5.0, 12.0, 11.0 ], "rotation": 90 },
-								"east": { "texture": "#fuels", "uv": [ 0.0, 14.0, 2.0, 16.0 ] },
-								"south": { "texture": "#fuels", "uv": [ 7.0, 3.5, 9.0, 9.5 ], "rotation": 90 },
-								"west": { "texture": "#fuels", "uv": [ 0.0, 14.0, 2.0, 16.0 ] },
-								"up": { "texture": "#fuels", "uv": [ 7.0, 7.5, 9.0, 13.5 ], "rotation": 90 },
-								"down": { "texture": "#fuels", "uv": [ 10.5, 3.0, 12.5, 9.0 ], "rotation": 90 }
-							}
-						},
-						{
-							"name": "log2",
-							"from": [ -4.0, -2.7, 7.0 ],
-							"to": [ 2.0, -0.7, 9.0 ],
-							"rotationOrigin": [ -1.0, -1.7, 8.0 ],
-							"rotationY": -70.0,
-							"rotationZ": -10.0,
-							"faces": {
-								"north": { "texture": "#fuels", "uv": [ 10.0, 5.0, 12.0, 11.0 ], "rotation": 90 },
-								"east": { "texture": "#fuels", "uv": [ 0.0, 14.0, 2.0, 16.0 ] },
-								"south": { "texture": "#fuels", "uv": [ 7.0, 3.5, 9.0, 9.5 ], "rotation": 90 },
-								"west": { "texture": "#fuels", "uv": [ 0.0, 14.0, 2.0, 16.0 ] },
-								"up": { "texture": "#fuels", "uv": [ 7.0, 7.5, 9.0, 13.5 ], "rotation": 90 },
-								"down": { "texture": "#fuels", "uv": [ 10.5, 3.0, 12.5, 9.0 ], "rotation": 90 }
-							}
-						},
-						{
-							"name": "log3",
-							"from": [ -4.0, -3.0, 4.0 ],
-							"to": [ 0.0, -1.0, 6.0 ],
-							"rotationOrigin": [ -2.0, -2.0, 5.0 ],
-							"rotationY": -10.0,
-							"faces": {
-								"north": { "texture": "#fuels", "uv": [ 10.0, 5.0, 12.0, 9.0 ], "rotation": 90 },
-								"east": { "texture": "#fuels", "uv": [ 0.0, 14.0, 2.0, 16.0 ] },
-								"south": { "texture": "#fuels", "uv": [ 7.0, 3.5, 9.0, 7.5 ], "rotation": 90 },
-								"west": { "texture": "#fuels", "uv": [ 0.0, 14.0, 2.0, 16.0 ] },
-								"up": { "texture": "#fuels", "uv": [ 7.0, 7.5, 9.0, 11.5 ], "rotation": 90 }
 							}
 						}
 					]

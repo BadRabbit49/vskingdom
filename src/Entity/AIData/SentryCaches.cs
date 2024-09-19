@@ -79,12 +79,17 @@ namespace VSKingdom {
 		}
 		
 		public void UpdateWeapons(IInventory gearInv) {
-			AssetLocation _weapCode = gearInv[16].Itemstack.Collectible.Code;
-			AssetLocation _ammoCode = gearInv[18].Itemstack.Collectible.Code;
-			weapCodes = (_weapCode?.Domain + ":" + _weapCode?.FirstCodePart()) ?? "";
-			ammoCodes = (_ammoCode?.Domain + ":" + _ammoCode?.FirstCodePart()) ?? "";
-			if (WeaponProperties.ContainsKey(weapCodes)) {
-				var _weapClass = WeaponProperties[weapCodes];
+			if (!gearInv[16].Empty) {
+				AssetLocation _weapCode = gearInv[16]?.Itemstack.Collectible.Code;
+				weapCodes = (_weapCode?.Domain + ":" + _weapCode?.FirstCodePart()) ?? "";
+			}
+			if (!gearInv[18].Empty) {
+				AssetLocation _ammoCode = gearInv[18]?.Itemstack.Collectible.Code;
+				ammoCodes = (_ammoCode?.Domain + ":" + _ammoCode?.FirstCodePart()) ?? "";
+			}
+			string _searchFor = usesRange ? weapCodes : "";
+			if (WeaponProperties.ContainsKey(_searchFor)) {
+				var _weapClass = WeaponProperties[_searchFor];
 				string[] _weapAnims = _weapClass.allCodes;
 				idleAnims = _weapAnims[0];
 				walkAnims = _weapAnims[1];
@@ -101,7 +106,7 @@ namespace VSKingdom {
 		}
 
 		public void UpdateReloads(IInventory gearInv) {
-			weapReady = !gearInv[16].Empty && !gearInv[18].Empty && WeaponProperties[weapCodes].ammoCodes == ammoCodes;
+			weapReady = usesMelee || (!gearInv[16].Empty && !gearInv[18].Empty && WeaponProperties[weapCodes].ammoCodes == ammoCodes);
 		}
 
 		public void UpdateEnemies(string[] codes) {

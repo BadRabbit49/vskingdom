@@ -10,15 +10,15 @@ using Vintagestory.API.MathTools;
 namespace VSKingdom.Utilities {
 	internal static class GenericUtil {
 		public static string GetKingdom(this SyncedTreeAttribute tree) {
-			return tree.GetString(king_GUID);
+			return tree.GetString(KingdomUID, CommonerID);
 		}
 
 		public static string GetCulture(this SyncedTreeAttribute tree) {
-			return tree.GetString(cult_GUID);
+			return tree.GetString(CultureUID, SeraphimID);
 		}
 
 		public static string GetLeaders(this SyncedTreeAttribute tree) {
-			return tree.GetString(lead_GUID);
+			return tree.GetString(LeadersUID);
 		}
 
 		public static double GetLookAtPitch(this Vec3d from, Vec3d toPos) {

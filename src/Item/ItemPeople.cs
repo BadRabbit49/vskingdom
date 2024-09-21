@@ -64,14 +64,14 @@ namespace VSKingdom {
 			}
 			if (api.Side == EnumAppSide.Server) {
 				// Change variabels depending on if the entity is a bandit or not. Bandits have no leaders.
-				bool isBandit = properties.Attributes["baseSides"].AsString(commonerGUID) == banditryGUID;
+				bool isBandit = properties.Attributes["baseSides"].AsString(CommonerID) == BanditryID;
 				bool isCrouch = player.Entity.ServerControls.Sneak;
 				string _entityClass = properties.Attributes["baseClass"].AsString("melee").ToLower();
 				string _entityState = isBandit ? EnlistedStatus.DESERTER.ToString() : EnlistedStatus.CIVILIAN.ToString();
 				string firstName = null;
 				string famlyName = null;
-				string _kingdomGuid = isBandit ? banditryGUID : byEntity.WatchedAttributes.GetString("kingdomGUID", commonerGUID);
-				string _cultureGuid = isBandit && isCrouch ? seraphimGUID : byEntity.WatchedAttributes.GetString("cultureGUID", seraphimGUID);
+				string _kingdomGuid = isBandit ? BanditryID : byEntity.WatchedAttributes.GetString("kingdomGUID", CommonerID);
+				string _cultureGuid = isBandit && isCrouch ? SeraphimID : byEntity.WatchedAttributes.GetString("cultureGUID", SeraphimID);
 				string _leadersGuid = isBandit ? null : player.PlayerUID;
 				string _kingdomName = null;
 				string _cultureName = null;
@@ -112,7 +112,7 @@ namespace VSKingdom {
 				}
 
 				// Setup skins stuff!
-				if (byCulture != null && byCulture?.CultureGUID != seraphimGUID) {
+				if (byCulture != null && byCulture?.CultureGUID != SeraphimID) {
 					// Editing the "skinConfig" tree here and changing it to what we want.
 					var entitySkinParts = entity.WatchedAttributes.GetOrAddTreeAttribute("skinConfig").GetOrAddTreeAttribute("appliedParts");
 					string[] skinColors = byCulture.SkinColours.ToArray<string>();
@@ -171,8 +171,8 @@ namespace VSKingdom {
 				nametagTree.SetString("name", firstName);
 				nametagTree.SetString("last", famlyName);
 				nametagTree.SetString("full", $"{firstName} {famlyName}");
-				nametagTree.SetBool("showtagonlywhentargeted", api.World.Config.GetBool("HideAllNames", true));
-				nametagTree.SetInt("renderRange", api.World.Config.GetInt("NameRenderDist", 500));
+				nametagTree.SetBool("showtagonlywhentargeted", api.World.Config.GetAsBool(SentryTags, true));
+				nametagTree.SetInt("renderRange", (int)api.World.Config.GetLong(RenderTags, 500));
 				entity.WatchedAttributes.SetAttribute("nametag", nametagTree);
 
 				// Setup loyalty stuff!

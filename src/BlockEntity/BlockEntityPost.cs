@@ -139,8 +139,8 @@ namespace VSKingdom {
 			totalDmg = tree.GetDouble("totalDmg");
 			burnFuel = tree.GetDouble("burnFuel");
 			ownerUID = tree.GetString("ownerUID");
-			if (tree.HasAttribute("contents")) {
-				contents = tree.GetItemstack("contents");
+			if (tree.HasAttribute("contents") && tree.HasAttribute("itemAmnt")) {
+				contents = new ItemStack(Api.World.GetItem(new AssetLocation(tree.GetString("contents"))), tree.GetInt("itemAmnt"));
 			}
 			if (tree.HasAttribute("entities")) {
 				entGUIDS = GetListFromString(tree.GetString("entities"));
@@ -161,7 +161,8 @@ namespace VSKingdom {
 			tree.SetDouble("burnFuel", burnFuel);
 			tree.SetString("ownerUID", ownerUID);
 			if (contents != null) {
-				tree.SetItemstack("contents", contents.Clone());
+				tree.SetString("contents", contents.Item.Code.ToString());
+				tree.SetInt("itemAmnt", contents.StackSize);
 			}
 			if (entGUIDS.Count > 0) {
 				tree.SetString("entities", GetStringFromList(entGUIDS));
@@ -260,7 +261,7 @@ namespace VSKingdom {
 			if (entGUIDS.Contains(ent.EntityId) || !ent.Alive) {
 				return false;
 			}
-			if (hasEnemy && ent.WatchedAttributes.HasAttribute(king_GUID) && enemyIDs.Contains(ent.WatchedAttributes.GetString(king_GUID))) {
+			if (hasEnemy && ent.WatchedAttributes.HasAttribute(KingdomUID) && enemyIDs.Contains(ent.WatchedAttributes.GetString(KingdomUID))) {
 				return true;
 			}
 			return false;

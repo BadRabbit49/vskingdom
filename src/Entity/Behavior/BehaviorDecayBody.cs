@@ -45,14 +45,11 @@ namespace VSKingdom {
 		}
 
 		public void LootGear(EntitySentry killer, EntitySentry victim) {
-			if (!entity.World.Config.GetAsBool("AllowLooting") || killer is null || victim is null) {
-				return;
-			}
-			if (killer.ServerPos.DistanceTo(victim.ServerPos) > 4f) {
+			if (!entity.World.Config.GetAsBool(NpcCanLoot) || killer is null || victim is null || killer.ServerPos.DistanceTo(victim.ServerPos) > 4f) {
 				return;
 			}
 			// If the entities were at war with eachother then loot will be dropped. Specifically their armor and what they had in their right hand slot.
-			if (killer.cachedData.enemiesLIST.Contains(victim.cachedData.kingdomGUID) || killer.cachedData.kingdomGUID == banditryGUID) {
+			if (killer.cachedData.enemiesLIST.Contains(victim.cachedData.kingdomGUID) || killer.cachedData.kingdomGUID == BanditryID) {
 				// If the killer can, try looting the player corpse right away, take what is better.
 				for (int i = 12; i < 14; i++) {
 					try {

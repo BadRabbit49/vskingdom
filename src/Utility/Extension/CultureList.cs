@@ -21,8 +21,8 @@ namespace VSKingdom.Extension {
 		}
 
 		public static bool PartOfCulture(this List<Culture> cultureList, IPlayer player) {
-			string cultureGUID = player.Entity.WatchedAttributes.GetString("cultureGUID", commonerGUID);
-			if (cultureGUID == null || cultureGUID == commonerGUID || cultureGUID == banditryGUID || cultureList.Count == 0) {
+			string cultureGUID = player.Entity.WatchedAttributes.GetString("cultureGUID", CommonerID);
+			if (cultureGUID == null || cultureGUID == CommonerID || cultureGUID == BanditryID || cultureList.Count == 0) {
 				return false;
 			}
 			for (int k = 0; k < cultureList.Count; k++) {
@@ -87,6 +87,34 @@ namespace VSKingdom.Extension {
 				return cultureList.Find(cultureMatch => cultureMatch.CultureNAME.ToLowerInvariant().RemoveDiacritics() == cultureNAME.ToLowerInvariant().RemoveDiacritics());
 			}
 			return null;
+		}
+
+		public static Culture Copy(this Culture culture) {
+			return new Culture() {
+				CultureGUID = culture.CultureGUID,
+				CultureNAME = culture.CultureNAME,
+				CultureLONG = culture.CultureLONG,
+				CultureDESC = culture.CultureDESC,
+				FounderGUID = culture.FounderGUID,
+				FoundedMETA = culture.FoundedMETA,
+				FoundedDATE = culture.FoundedDATE,
+				FoundedHOUR = culture.FoundedHOUR,
+				Predecessor = culture.Predecessor,
+				PlayersGUID = culture.PlayersGUID,
+				InvitesGUID = culture.InvitesGUID,
+				MFirstNames = culture.MFirstNames,
+				FFirstNames = culture.FFirstNames,
+				FamilyNames = culture.FamilyNames,
+				SkinColours = culture.SkinColours,
+				HairColours = culture.HairColours,
+				EyesColours = culture.EyesColours,
+				HairsStyles = culture.HairsStyles,
+				HairsExtras = culture.HairsExtras,
+				FacesStyles = culture.FacesStyles,
+				FacesBeards = culture.FacesBeards,
+				WoodsBlocks = culture.WoodsBlocks,
+				StoneBlocks = culture.StoneBlocks
+			};
 		}
 	}
 }

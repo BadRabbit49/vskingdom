@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using Vintagestory.API.Common;
+using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Util;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Datastructures;
-using Vintagestory.API.Common;
-using Vintagestory.API.Common.Entities;
 using Vintagestory.GameContent;
 
 namespace VSKingdom {
@@ -96,7 +96,7 @@ namespace VSKingdom {
 			if (ent is EntityProjectile projectile && projectile.FiredBy != null) {
 				targetEntity = projectile.FiredBy;
 			}
-			if (ent.WatchedAttributes.HasAttribute(king_GUID)) {
+			if (ent.WatchedAttributes.HasAttribute(KingdomUID)) {
 				return IsAnEnemy(ent);
 			}
 			if (ignoreEntityCode || IsTargetEntity(ent.Code.Path)) {
@@ -194,7 +194,7 @@ namespace VSKingdom {
 		}
 
 		public override bool ContinueExecute(float dt) {
-			if (cancelAttack || (!targetEntity?.Alive ?? true) || !entity.cachedData.usesMelee || entity.Swimming) {
+			if (cancelAttack || (!targetEntity?.Alive ?? true) || !entity.cachedData.usesRange || entity.Swimming) {
 				return false;
 			}
 			// Calculate aiming at targetEntity!
@@ -248,7 +248,7 @@ namespace VSKingdom {
 		}
 		
 		public override void OnEntityHurt(DamageSource source, float damage) {
-			if (source.SourceEntity == null) {
+			if (source == null || source.SourceEntity == null) {
 				return;
 			}
 			// Ignore projectiles for the most part, only cancel attack.
@@ -275,7 +275,7 @@ namespace VSKingdom {
 		}
 
 		private bool FireProjectile() {
-			bool infiniteAmmo = entity.Api.World.Config.GetAsBool("InfiniteAmmo");
+			bool infiniteAmmo = entity.Api.World.Config.GetAsBool(NpcInfAmmo);
 			bool isModdedAmmo = entity.AmmoItemSlot.Itemstack.Item.Code.Domain != "game" && compatibleRange.Contains(entity.AmmoItemSlot.Itemstack.Item.Code.Domain);
 			EntityProjectile projectile = (EntityProjectile)entity.World.ClassRegistry.CreateEntity(projectileType);
 			projectile.FiredBy = entity;
@@ -313,15 +313,15 @@ namespace VSKingdom {
 
 		private bool IsAnEnemy(Entity target) {
 			if (banditPilled) {
-				return entity.cachedData.kingdomGUID != target.WatchedAttributes.GetString("kingdomGUID");
+				return entity.cachedData.kingdomGUID != target.WatchedAttributes.GetString(KingdomUID);
 			}
 			if (target is EntitySentry sentry) {
-				return entity.cachedData.enemiesLIST.Contains(sentry.cachedData.kingdomGUID) || sentry.cachedData.kingdomGUID == banditryGUID;
+				return entity.cachedData.enemiesLIST.Contains(sentry.cachedData.kingdomGUID) || sentry.cachedData.kingdomGUID == BanditryID;
 			}
 			if (target is EntityPlayer player) {
-				return entity.cachedData.outlawsLIST.Contains(player.PlayerUID) || entity.cachedData.enemiesLIST.Contains(player.WatchedAttributes.GetString("kingdomGUID"));
+				return entity.cachedData.outlawsLIST.Contains(player.PlayerUID) || entity.cachedData.enemiesLIST.Contains(player.WatchedAttributes.GetString(KingdomUID));
 			}
-			return entity.cachedData.enemiesLIST.Contains(target.WatchedAttributes.GetString("kingdomGUID"));
+			return entity.cachedData.enemiesLIST.Contains(target.WatchedAttributes.GetString(KingdomUID));
 		}
 		
 		private bool IsTargetEntity(string testPath) {

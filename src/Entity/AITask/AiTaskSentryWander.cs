@@ -135,12 +135,12 @@ namespace VSKingdom {
 
 		// Requirements:
 		// - ✔ Try to not move a lot vertically.
-		// - ✔ Try not to fall from very large heights if entity has FallDamageOn.
+		// - ✔ Try not to fall from very large heights if entity has Allowed_SentryTripping.
 		// - ✔ Must be above a block the entity can stand on.
 		// - ✔ If failed search is high, reduce wander range.
 		// - ✘ If wander ranges are not met.
 		private Vec3d LoadNextWanderTarget() {
-			bool canFallDamage = entity.Api.World.Config.GetAsBool("FallDamageOn");
+			bool canFallDamage = entity.Api.World.Config.GetAsBool(FallDamage);
 			int num = 9;
 			float multiplier = 1f;
 			Vec4d bestTarget = null;

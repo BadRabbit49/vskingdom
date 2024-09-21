@@ -12,8 +12,8 @@ namespace VSKingdom.Extension {
 		}
 
 		public static bool PartOfKingdom(this List<Kingdom> kingdomList, IPlayer player) {
-			string kingdomGUID = player.Entity.WatchedAttributes.GetString("kingdomGUID", commonerGUID);
-			if (kingdomGUID == null || kingdomGUID == commonerGUID || kingdomGUID == banditryGUID || kingdomList.Count == 0) {
+			string kingdomGUID = player.Entity.WatchedAttributes.GetString("kingdomGUID", CommonerID);
+			if (kingdomGUID == null || kingdomGUID == CommonerID || kingdomGUID == BanditryID || kingdomList.Count == 0) {
 				return false;
 			}
 			for (int k = 0; k < kingdomList.Count; k++) {
@@ -86,6 +86,44 @@ namespace VSKingdom.Extension {
 				return kingdomList.Find(kingdomMatch => kingdomMatch.KingdomNAME.ToLowerInvariant().RemoveDiacritics() == kingdomNAME.ToLowerInvariant().RemoveDiacritics());
 			}
 			return null;
+		}
+		
+		public static Kingdom Copy(this Kingdom kingdom) {
+			return new Kingdom() {
+				KingdomGUID = kingdom.KingdomGUID,
+				KingdomNAME	= kingdom.KingdomNAME,
+				KingdomLONG	= kingdom.KingdomLONG,
+				KingdomDESC	= kingdom.KingdomDESC,
+				KingdomTYPE	= kingdom.KingdomTYPE,
+				KingdomHEXA	= kingdom.KingdomHEXA,
+				KingdomHEXB	= kingdom.KingdomHEXB,
+				KingdomHEXC	= kingdom.KingdomHEXC,
+				LeadersGUID	= kingdom.LeadersGUID,
+				LeadersNAME	= kingdom.LeadersNAME,
+				LeadersLONG	= kingdom.LeadersLONG,
+				LeadersDESC	= kingdom.LeadersDESC,
+				FoundedDATE	= kingdom.FoundedDATE,
+				FoundedMETA	= kingdom.FoundedMETA,
+				FoundedHOUR	= kingdom.FoundedHOUR,
+				MembersROLE	= kingdom.MembersROLE,
+				CurrentVOTE	= kingdom.CurrentVOTE,
+				PlayersINFO	= kingdom.PlayersINFO,
+				PlayersGUID	= kingdom.PlayersGUID,
+				OutlawsGUID	= kingdom.OutlawsGUID,
+				InvitesGUID	= kingdom.InvitesGUID,
+				RequestGUID	= kingdom.RequestGUID,
+				FriendsGUID	= kingdom.FriendsGUID,
+				EnemiesGUID	= kingdom.EnemiesGUID,
+				PeaceOffers	= kingdom.PeaceOffers
+			};
+		}
+
+		public static List<Kingdom> Copy(this List<Kingdom> list) {
+			List<Kingdom> copy = new List<Kingdom>();
+			foreach (Kingdom kingdom in list) {
+				copy.Add(kingdom);
+			}
+			return new List<Kingdom>(copy);
 		}
 	}
 }

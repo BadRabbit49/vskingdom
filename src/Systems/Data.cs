@@ -24,15 +24,15 @@ namespace VSKingdom {
 			return config;
 		}
 
-		private static T LoadData<T>(ICoreAPI api, string jsonData) where T : IModData {
+		public static T LoadData<T>(ICoreAPI api, string jsonData) where T : IModData {
 			return api.LoadModConfig<T>(jsonData);
 		}
 
-		private static T CopyData<T>(ICoreAPI api, T data = null) where T : class, IModData {
+		public static T CopyData<T>(ICoreAPI api, T data = null) where T : class, IModData {
 			return (T)Activator.CreateInstance(typeof(T), new object[] { api, data });
 		}
 
-		private static void SaveData<T>(ICoreAPI api, string jsonData, T previousData = null) where T : class, IModData {
+		public static void SaveData<T>(ICoreAPI api, string jsonData, T previousData = null) where T : class, IModData {
 			api.StoreModConfig(CopyData<T>(api, previousData), jsonData);
 		}
 	}

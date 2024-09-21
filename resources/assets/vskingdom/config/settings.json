@@ -4,6 +4,7 @@
   "Allowed_SentryDrowning": true,
   "Allowed_SentryTeleport": true,
   "Allowed_SentryDropLoot": true,
+  "Allowed_InfiniteArrows": true,
   "Allowed_PlayerDropLoot": true,
   "Allowed_StartCivilWars": true,
   "Limited_SentryResupply": true,

@@ -55,7 +55,7 @@ namespace VSKingdom {
 			this.retaliateAttacks = taskConfig["retaliateAttacks"].AsBool(true);
 			this.mincooldown = taskConfig["mincooldown"].AsInt(1000);
 			this.maxcooldown = taskConfig["maxcooldown"].AsInt(1500);
-			this.extraTargetOffset = taskConfig["extraTargetOffset"].AsFloat(1f);
+			this.extraTargetOffset = taskConfig["extraTargetOffset"].AsFloat(1.5f);
 			this.maximumFollowTime = taskConfig["maximumFollowTime"].AsFloat(60f);
 			this.retreatRange = taskConfig["retreatRange"].AsFloat(36f);
 			this.seekingRange = taskConfig["seekingRange"].AsFloat(25f);
@@ -139,12 +139,14 @@ namespace VSKingdom {
 					pathTraverser.CurrentTarget.Y = targetEntity.ServerPos.Y;
 					pathTraverser.CurrentTarget.Z = targetEntity.ServerPos.Z;
 				}
-			} else if (attackPattern == EnumAttackPattern.TacticalRetreat && world.Rand.NextDouble() < 0.2) {
+			}
+			if (attackPattern == EnumAttackPattern.TacticalRetreat && world.Rand.NextDouble() >= 0.4) {
 				updateTargetPosFleeMode(curTargetPos);
 				pathTraverser.CurrentTarget.X = curTargetPos.X;
 				pathTraverser.CurrentTarget.Y = curTargetPos.Y;
 				pathTraverser.CurrentTarget.Z = curTargetPos.Z;
 				MoveAnimation();
+				Retreats();
 			}
 			if (pathTraverser.Active) {
 				// Look ahead, if there is a door, open it if possible before walking through. Remember to shut afterwards if it was closed! Code courtesy of Dana!

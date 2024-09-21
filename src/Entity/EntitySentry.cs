@@ -96,8 +96,8 @@ namespace VSKingdom {
 					cultureGUID = WatchedAttributes.GetString("cultureGUID"),
 					leadersGUID = WatchedAttributes.GetString("leadersGUID"),
 					recruitINFO = (previousExists ? cachedData.recruitINFO : "CIVILIAN"),
-					enemiesLIST = (previousExists ? cachedData.enemiesLIST : new string[] { banditryGUID }),
-					friendsLIST = (previousExists ? cachedData.friendsLIST : new string[] { commonerGUID }),
+					enemiesLIST = (previousExists ? cachedData.enemiesLIST : new string[] { BanditryID }),
+					friendsLIST = (previousExists ? cachedData.friendsLIST : new string[] { CommonerID }),
 					outlawsLIST = (previousExists ? cachedData.outlawsLIST : new string[] { })
 				};
 				UpdateStats();
@@ -325,7 +325,7 @@ namespace VSKingdom {
 				if (attacker is EntityPlayer player && WatchedAttributes.GetString("leadersGUID") == player.PlayerUID) {
 					return player.ServerControls.Sneak && base.ShouldReceiveDamage(damageSource, damage);
 				}
-				if (WatchedAttributes.GetString("kingdomGUID") == attacker.WatchedAttributes.GetString("kingdomGUID") && Api.World.Config.GetAsBool("FriendlyFire", true)) {
+				if (WatchedAttributes.GetString(KingdomUID) == attacker.WatchedAttributes.GetString(KingdomUID) && Api.World.Config.GetAsBool(FriendFire, true)) {
 					return base.ShouldReceiveDamage(damageSource, damage);
 				}
 				return base.ShouldReceiveDamage(damageSource, damage);

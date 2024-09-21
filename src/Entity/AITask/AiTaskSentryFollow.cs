@@ -24,7 +24,7 @@ namespace VSKingdom {
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);
 			this.curMoveSpeed = taskConfig["curMoveSpeed"].AsFloat(0.03f);
-			allowTeleport &= entity.Api.World.Config.GetAsBool("AllowTeleport");
+			allowTeleport &= entity.Api.World.Config.GetAsBool(TeleportTo);
 		}
 
 		public override bool ShouldExecute() {

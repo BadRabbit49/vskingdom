@@ -14,11 +14,27 @@ namespace VSKingdom.Constants {
 			{ "am", "ian" }
 		};
 
-		public static Dictionary<string, string> suffixReplaced = new Dictionary<string, string> {
+		public static Dictionary<string, string> suffixReplaced { get; set; } = new Dictionary<string, string> {
 			{ "e", "ian" },
 			{ "na", "ese" },
 			{ "y", "ian" },
 			{ "ish", "ish" }
+		};
+
+		public static Dictionary<string, string[]> subcomReplaced = new Dictionary<string, string[]> {
+			{ "append", new string[] { "append", "addnew", "add", "addto", "upload" } },
+			{ "rename", new string[] { "rename", "update", "setname", "name", "change", "replace" } },
+			{ "remove", new string[] { "remove", "delete", "clear", "erase", "subtract" } },
+			{ "colour", new string[] { "colour", "colors", "color", "recolor", "recolour" } },
+			{ "getall", new string[] { "getall", "detail", "getinfo", "details", "get" } }
+		};
+
+		public static Dictionary<string, string[]> numberReplaced = new Dictionary<string, string[]> {
+			{ "first", new string[] { "first", "1st", "one", "primary" } },
+			{ "secnd", new string[] { "secnd", "2nd", "two", "secondary" } },
+			{ "third", new string[] { "third", "3rd", "three", "tertiary" } },
+			{ "forth", new string[] { "forth", "4th", "four", "quaternary" } },
+			{ "fifth", new string[] { "fifth", "5th", "five", "quinary" } },
 		};
 
 		public static Dictionary<string, int> metalTiers = new Dictionary<string, int> {

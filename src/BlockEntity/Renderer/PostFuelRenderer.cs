@@ -92,6 +92,8 @@ namespace VSKingdom {
 			capi.Tesselator.TesselateShape("postcontents", shapeBase, out modelData, this, null, 0, 0, 0, stack.StackSize);
 			if (modelData != null) {
 				workItemMeshRef = capi.Render.UploadMesh(modelData);
+			} else {
+				capi.Logger.Error($"shapeBase was null, couldn't find {fuelCode} at: {new string("vskingdom:shapes/block/outposts/contents_" + fuelCode + ".json")}");
 			}
 		}
 

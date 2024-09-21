@@ -58,12 +58,12 @@ namespace VSKingdom {
 		public string loadAnims { get; set; } = "load";
 		public string bashAnims { get; set; } = "bash";
 		public string stabAnims { get; set; } = "stab";
-		public string kingdomGUID { get; set; } = commonerGUID;
-		public string cultureGUID { get; set; } = seraphimGUID;
+		public string kingdomGUID { get; set; } = CommonerID;
+		public string cultureGUID { get; set; } = SeraphimID;
 		public string leadersGUID { get; set; } = null;
 		public string recruitINFO { get; set; } = "CIVILIAN";
-		public string[] enemiesLIST { get; set; } = new string[] { banditryGUID };
-		public string[] friendsLIST { get; set; } = new string[] { commonerGUID };
+		public string[] enemiesLIST { get; set; } = new string[] { BanditryID };
+		public string[] friendsLIST { get; set; } = new string[] { CommonerID };
 		public string[] outlawsLIST { get; set; } = new string[] { null };
 
 		public void UpdateLoyalty(Entity entity) {

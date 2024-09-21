@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Config;
-using Vintagestory.API.Datastructures;
-using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
+using Vintagestory.API.MathTools;
+using Vintagestory.API.Datastructures;
 using Vintagestory.GameContent;
 
 namespace VSKingdom {
@@ -80,44 +80,14 @@ namespace VSKingdom {
 		}
 
 		public override bool IsTargetableEntity(Entity ent, float range, bool ignoreEntityCode = false) {
-			if (ent == null || ent == entity || !ent.Alive) {
-				return false;
-			}
-			if (allyCaches.Contains(ent.EntityId)) {
+			if (ent is null || ent == entity || !ent.Alive) {
 				return false;
 			}
 			if (ent is EntityProjectile projectile && projectile.FiredBy != null) {
 				targetEntity = projectile.FiredBy;
 			}
-			if (ent.WatchedAttributes.HasAttribute(king_GUID)) {
-				if (banditPilled) {
-					return ent is EntityPlayer || (ent is EntitySentry sentry && sentry.cachedData.kingdomGUID != banditryGUID);
-				}
-				if (ent.WatchedAttributes.HasAttribute(lead_GUID) && entity.cachedData.leadersGUID == ent.WatchedAttributes.GetString(lead_GUID)) {
-					allyCaches.Add(ent.EntityId);
-					return false;
-				}
-				if (ent is EntitySentry sent) {
-					return entity.cachedData.enemiesLIST.Contains(sent.cachedData.kingdomGUID) || entity.cachedData.outlawsLIST.Contains(sent.cachedData.leadersGUID) || sent.cachedData.kingdomGUID == banditryGUID;
-				}
-				return entity.cachedData.enemiesLIST.Contains(ent.WatchedAttributes.GetString(king_GUID));
-			}
-			if (ent.WatchedAttributes.HasAttribute("domesticationstatus")) {
-				if (!ent.WatchedAttributes.GetTreeAttribute("domesticationstatus")?.HasAttribute("owner") ?? false) {
-					return true;
-				}
-				string ownerGUID = ent.WatchedAttributes.GetTreeAttribute("domesticationstatus")?.GetString("owner");
-				if (ownerGUID != null && !ent.WatchedAttributes.HasAttribute(lead_GUID)) {
-					ent.WatchedAttributes.SetString(lead_GUID, ownerGUID);
-				}
-				if (entity.WatchedAttributes.GetString(lead_GUID) == ownerGUID) {
-					allyCaches.Add(ent.EntityId);
-					return false;
-				}
-				if (entity.cachedData.outlawsLIST.Contains(ownerGUID)) {
-					return true;
-				}
-				return false;
+			if (ent.WatchedAttributes.HasAttribute(KingdomUID)) {
+				return IsAnEnemy(ent);
 			}
 			if (ignoreEntityCode || IsTargetEntity(ent.Code.Path)) {
 				return CanSense(ent, range);
@@ -155,61 +125,65 @@ namespace VSKingdom {
 			animsRunning = false;
 			attackFinish = true;
 			curTurnAngle = pathTraverser.curTurnRadPerSec;
-			searchTask?.SetTargetEnts(targetEntity);
+			searchTask.SetTargetEnts(targetEntity);
 		}
 		
 		public override bool ContinueExecute(float dt) {
-			if (cancelAttack || (!targetEntity?.Alive ?? true) || !entity.cachedData.usesMelee) {
+			try {
+				if (cancelAttack || (!targetEntity?.Alive ?? true) || !entity.cachedData.usesMelee) {
+					return false;
+				}
+				EntityPos ownPos = entity.ServerPos;
+				EntityPos hisPos = targetEntity.ServerPos;
+				bool flag = true;
+				if (turnToTarget) {
+					float num = GameMath.AngleRadDistance(entity.ServerPos.Yaw, (float)Math.Atan2(hisPos.X - ownPos.X, hisPos.Z - ownPos.Z));
+					entity.ServerPos.Yaw += GameMath.Clamp(num, (0f - curTurnAngle) * dt * GlobalConstants.OverallSpeedMultiplier, curTurnAngle * dt * GlobalConstants.OverallSpeedMultiplier);
+					entity.ServerPos.Yaw %= (MathF.PI * 2f);
+					flag = Math.Abs(num) < maximumRange * (MathF.PI / 180f);
+				}
+				if (!attackFinish) {
+					attackFinish = currAnimCode != null && !entity.AnimManager.IsAnimationActive(currAnimCode);
+				}
+				animsRunning = lastAnimCode != null ? entity.AnimManager.GetAnimationState(lastAnimCode).Running : false;
+				if (!animsRunning && attackFinish && flag) {
+					attackFinish = false;
+					animsRunning = AttackTarget();
+				}
+				if (usingAShield) {
+					bool closeToTarget = entity.ServerPos.SquareDistanceTo(targetEntity.ServerPos) < 16f;
+					bool targetsRanged = false;
+					if (targetEntity != null && targetEntity is EntityHumanoid humanoidEnt && !humanoidEnt.RightHandItemSlot.Empty) {
+						Item targetWeapon = humanoidEnt.RightHandItemSlot.Itemstack.Item;
+						targetsRanged = (targetWeapon is ItemBow || targetWeapon is ItemSling);
+					}
+					bool shouldShield = (closeToTarget && !targetsRanged) || (!closeToTarget && targetsRanged);
+					bool animationsOn = entity.AnimManager.IsAnimationActive(shieldAnim[shieldedHand]);
+					if (shouldShield && !animationsOn) {
+						string ArmToUse = shieldedHand.Equals(0) ? "ArmL" : "ArmR";
+						entity.AnimManager.StartAnimation(new AnimationMetaData() {
+								Animation = shieldAnim[shieldedHand],
+								Code = shieldAnim[shieldedHand],
+								BlendMode = EnumAnimationBlendMode.Add,
+								EaseInSpeed = 1f,
+								ElementWeight = new Dictionary<string, float> {
+									{ "Upper" + ArmToUse, 100f },
+									{ "Lower" + ArmToUse, 100f }
+								},
+								ElementBlendMode = new Dictionary<string, EnumAnimationBlendMode> {
+									{ "Upper" + ArmToUse, EnumAnimationBlendMode.AddAverage },
+									{ "Lower" + ArmToUse, EnumAnimationBlendMode.AddAverage }
+								}
+							}.Init());
+					} else if (!shouldShield && animationsOn) {
+						entity.AnimManager.StopAnimation(shieldAnim[0]);
+						entity.AnimManager.StopAnimation(shieldAnim[1]);
+					}
+				}
+				return lastAttackMs + durationOfMs > entity.World.ElapsedMilliseconds;
+			} catch {
 				return false;
 			}
-			EntityPos ownPos = entity.ServerPos;
-			EntityPos hisPos = targetEntity.ServerPos;
-			bool flag = true;
-			if (turnToTarget) {
-				float num = GameMath.AngleRadDistance(entity.ServerPos.Yaw, (float)Math.Atan2(hisPos.X - ownPos.X, hisPos.Z - ownPos.Z));
-				entity.ServerPos.Yaw += GameMath.Clamp(num, (0f - curTurnAngle) * dt * GlobalConstants.OverallSpeedMultiplier, curTurnAngle * dt * GlobalConstants.OverallSpeedMultiplier);
-				entity.ServerPos.Yaw %= (MathF.PI * 2f);
-				flag = Math.Abs(num) < maximumRange * (MathF.PI / 180f);
-			}
-			if (!attackFinish) {
-				attackFinish = currAnimCode != null && !entity.AnimManager.IsAnimationActive(currAnimCode);
-			}
-			animsRunning = lastAnimCode != null ? entity.AnimManager.GetAnimationState(lastAnimCode).Running : false;
-			if (!animsRunning && attackFinish && flag) {
-				attackFinish = false;
-				animsRunning = AttackTarget();
-			}
-			if (usingAShield) {
-				bool closeToTarget = entity.ServerPos.SquareDistanceTo(targetEntity.ServerPos) < 16f;
-				bool targetsRanged = false;
-				if (targetEntity != null && targetEntity is EntityHumanoid humanoidEnt && !humanoidEnt.RightHandItemSlot.Empty) {
-					Item targetWeapon = humanoidEnt.RightHandItemSlot.Itemstack.Item;
-					targetsRanged = (targetWeapon is ItemBow || targetWeapon is ItemSling);
-				}
-				bool shouldShield = (closeToTarget && !targetsRanged) || (!closeToTarget && targetsRanged);
-				bool animationsOn = entity.AnimManager.IsAnimationActive(shieldAnim[shieldedHand]);
-				if (shouldShield && !animationsOn) {
-					string ArmToUse = shieldedHand.Equals(0) ? "ArmL" : "ArmR";
-					entity.AnimManager.StartAnimation(new AnimationMetaData() {
-							Animation = shieldAnim[shieldedHand],
-							Code = shieldAnim[shieldedHand],
-							BlendMode = EnumAnimationBlendMode.Add,
-							EaseInSpeed = 1f,
-							ElementWeight = new Dictionary<string, float> {
-								{ "Upper" + ArmToUse, 100f },
-								{ "Lower" + ArmToUse, 100f }
-							},
-							ElementBlendMode = new Dictionary<string, EnumAnimationBlendMode> {
-								{ "Upper" + ArmToUse, EnumAnimationBlendMode.AddAverage },
-								{ "Lower" + ArmToUse, EnumAnimationBlendMode.AddAverage }
-							}
-						}.Init());
-				} else if (!shouldShield && animationsOn) {
-					entity.AnimManager.StopAnimation(shieldAnim[0]);
-					entity.AnimManager.StopAnimation(shieldAnim[1]);
-				}
-			}
-			return lastAttackMs + durationOfMs > entity.World.ElapsedMilliseconds;
 		}
 
 		public override void FinishExecute(bool cancelled) {
@@ -226,11 +200,11 @@ namespace VSKingdom {
 		}
 
 		public override void OnEntityHurt(DamageSource source, float damage) {
-			if (damage < 1 || !IsTargetableEntity(source.GetCauseEntity(), (float)source.GetSourcePosition().DistanceTo(entity.ServerPos.XYZ))) {
+			if (damage < 1 || source == null || !IsTargetableEntity(source.GetCauseEntity(), (float)source.GetSourcePosition().DistanceTo(entity.ServerPos.XYZ))) {
 				return;
 			}
 			if (source.GetCauseEntity() != null && source.Type != EnumDamageType.Heal && lastHelpedMs + 5000 < entity.World.ElapsedMilliseconds) {
-				targetEntity = source?.GetCauseEntity();
+				targetEntity = source.GetCauseEntity();
 				lastHelpedMs = entity.World.ElapsedMilliseconds;
 				// Alert all surrounding units! We're under attack!
 				foreach (EntitySentry sentry in entity.World.GetEntitiesAround(entity.ServerPos.XYZ, 20f, 4f, entity => (entity is EntitySentry))) {
@@ -277,6 +251,19 @@ namespace VSKingdom {
 				return false;
 			}
 			return true;
+		}
+
+		private bool IsAnEnemy(Entity target) {
+			if (banditPilled) {
+				return entity.cachedData.kingdomGUID != target.WatchedAttributes.GetString(KingdomUID);
+			}
+			if (target is EntitySentry sentry) {
+				return entity.cachedData.enemiesLIST.Contains(sentry.cachedData.kingdomGUID) || sentry.cachedData.kingdomGUID == BanditryID;
+			}
+			if (target is EntityPlayer player) {
+				return entity.cachedData.outlawsLIST.Contains(player.PlayerUID) || entity.cachedData.enemiesLIST.Contains(player.WatchedAttributes.GetString(KingdomUID));
+			}
+			return entity.cachedData.enemiesLIST.Contains(target.WatchedAttributes.GetString(KingdomUID));
 		}
 
 		private bool IsTargetEntity(string testPath) {

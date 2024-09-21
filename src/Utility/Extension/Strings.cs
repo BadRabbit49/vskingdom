@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace VSKingdom.Extension {
 	internal static class StringExtension {
@@ -15,7 +17,9 @@ namespace VSKingdom.Extension {
 		public static bool Contains(this string str, char sep, string wrd) {
 			string[] tmp = str.Split(sep, StringSplitOptions.RemoveEmptyEntries);
 			for (int i = 0; i < tmp.Length; i++) {
-				if (tmp[i] == wrd) { return true; }
+				if (tmp[i] == wrd) {
+					return true;
+				}
 			}
 			return false;
 		}
@@ -46,6 +50,34 @@ namespace VSKingdom.Extension {
 				}
 			}
 			return fails > chances;
+		}
+
+		public static string ReplaceTo(this string str, Dictionary<string, string> dictionary) {
+			string str2 = str.ToLower();
+			string str3 = dictionary[str2];
+			return str2.Replace(str2, str3);
+		}
+
+		public static string ReplaceTo(this string str, Dictionary<string, string[]> dictionary) {
+			string str2 = str.ToLower();
+			foreach (string key in dictionary.Keys) {
+				if (dictionary[key].Contains(str2)) {
+					return str.Replace(str2, key);
+				}
+			}
+			return str2;
+		}
+
+		public static string GetString(this string[] array, char seperator = ',', bool newline = false) {
+			string fullString = "";
+			for (int i = 0; i < array.Length; i++) {
+				if (i != array.Length - 1) {
+					fullString += array[i] + (newline ? (seperator + "\n") : seperator);
+					continue;
+				}
+				fullString += array[i];
+			}
+			return fullString;
 		}
 	}
 }

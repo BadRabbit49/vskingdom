@@ -7,6 +7,7 @@ using Vintagestory.API.Util;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Datastructures;
 using Vintagestory.GameContent;
+using VSKingdom.Utilities;
 
 namespace VSKingdom {
 	public class AiTaskSentryRanged : AiTaskBaseTargetable {
@@ -19,7 +20,7 @@ namespace VSKingdom {
 		protected bool renderSwitch = false;
 		protected bool releasedShot = false;
 		protected bool banditPilled = false;
-		protected long totalDurationMs;
+		protected long durationAtMs;
 		protected long releasesAtMs = 1000L;
 		protected long durationOfMs = 1200L;
 		protected long lastAttackMs;
@@ -29,12 +30,12 @@ namespace VSKingdom {
 		protected float minTurnAnglePerSec;
 		protected float maxTurnAnglePerSec;
 		protected float curTurnAnglePerSec;
-		protected AnimationMetaData drawBowsMeta;
-		protected AnimationMetaData fireBowsMeta;
-		protected AnimationMetaData loadBowsMeta;
-		protected EntityProperties projectileType;
+		protected AnimationMetaData drawWeapMeta;
+		protected AnimationMetaData fireWeapMeta;
+		protected AnimationMetaData loadWeapMeta;
 		protected AssetLocation drawingsound;
 		protected AssetLocation hittingsound;
+		protected AssetLocation weapLocation;
 		protected AssetLocation ammoLocation;
 		protected AiTaskManager tasksManager;
 		protected AiTaskSentrySearch searchTask => tasksManager.GetTask<AiTaskSentrySearch>();
@@ -66,17 +67,17 @@ namespace VSKingdom {
 			if (retaliateAttacks && attackedByEntity != null && attackedByEntity.Alive && attackedByEntity.IsInteractable && IsTargetableEntity(attackedByEntity, maximumRange, ignoreEntityCode: true) && hasDirectContact(attackedByEntity, maximumRange, maximumRange / 2f)) {
 				targetEntity = attackedByEntity;
 			}
-			if (totalDurationMs + releasesAtMs < entity.World.ElapsedMilliseconds) {
+			if (durationAtMs + releasesAtMs < entity.World.ElapsedMilliseconds) {
 				if (targetEntity == null || !targetEntity.Alive) {
 					goto IL_0095;
 				}
 			}
-			if (totalDurationMs + releasesAtMs * 5 < entity.World.ElapsedMilliseconds) {
+			if (durationAtMs + releasesAtMs * 5 < entity.World.ElapsedMilliseconds) {
 				goto IL_0095;
 			}
 			goto IL_00d6;
-			IL_0095:
-			totalDurationMs = entity.World.ElapsedMilliseconds;
+		IL_0095:
+			durationAtMs = entity.World.ElapsedMilliseconds;
 			if (rand.Next(0, 1) == 0) {
 				targetEntity = partitionUtil.GetNearestInteractableEntity(entity.ServerPos.XYZ, maximumRange * 2f, (Entity ent) => IsTargetableEntity(ent, maximumRange) && hasDirectContact(ent, maximumRange, minimumRange));
 			} else {
@@ -84,7 +85,7 @@ namespace VSKingdom {
 				targetEntity = targetList[rand.Next(0, targetList.Length - 1)];
 			}
 			goto IL_00d6;
-			IL_00d6:
+		IL_00d6:
 			lastAttackMs = entity.World.ElapsedMilliseconds;
 			return targetEntity?.Alive ?? false;
 		}
@@ -96,7 +97,7 @@ namespace VSKingdom {
 			if (ent is EntityProjectile projectile && projectile.FiredBy != null) {
 				targetEntity = projectile.FiredBy;
 			}
-			if (ent.WatchedAttributes.HasAttribute(KingdomUID)) {
+			if (ent.WatchedAttributes.HasAttribute(KingdomGUID)) {
 				return IsAnEnemy(ent);
 			}
 			if (ignoreEntityCode || IsTargetEntity(ent.Code.Path)) {
@@ -111,73 +112,32 @@ namespace VSKingdom {
 			cancelAttack = false;
 			renderSwitch = false;
 			releasedShot = false;
-			drawBowsMeta = new AnimationMetaData() {
+			drawWeapMeta = new AnimationMetaData() {
 				Code = new string(entity.cachedData.drawAnims),
 				Animation = new string(entity.cachedData.drawAnims),
-				BlendMode = EnumAnimationBlendMode.Add,
-				ElementWeight = new Dictionary<string, float> {
-					{ "UpperArmR", 90f },
-					{ "LowerArmR", 90f },
-					{ "UpperArmL", 90f },
-					{ "LowerArmL", 90f },
-					{ "ItemAnchor", 90f }
-				},
-				ElementBlendMode = new Dictionary<string, EnumAnimationBlendMode> {
-					{ "UpperArmR", EnumAnimationBlendMode.AddAverage },
-					{ "LowerArmR", EnumAnimationBlendMode.AddAverage },
-					{ "UpperArmL", EnumAnimationBlendMode.AddAverage },
-					{ "LowerArmL", EnumAnimationBlendMode.AddAverage },
-					{ "ItemAnchor", EnumAnimationBlendMode.AddAverage }
-				}
-			}.Init();
-			fireBowsMeta = new AnimationMetaData() {
+				BlendMode = EnumAnimationBlendMode.Average
+			};
+			fireWeapMeta = new AnimationMetaData() {
 				Code = new string(entity.cachedData.fireAnims),
 				Animation = new string(entity.cachedData.fireAnims),
-				BlendMode = EnumAnimationBlendMode.Add,
-				EaseInSpeed = 999f,
-				ElementWeight = new Dictionary<string, float> {
-					{ "UpperArmR", 20f },
-					{ "LowerArmR", 20f },
-					{ "UpperArmL", 20f },
-					{ "LowerArmL", 20f }
-				},
-				ElementBlendMode = new Dictionary<string, EnumAnimationBlendMode> {
-					{ "UpperArmR", EnumAnimationBlendMode.AddAverage },
-					{ "LowerArmR", EnumAnimationBlendMode.AddAverage },
-					{ "UpperArmL", EnumAnimationBlendMode.AddAverage },
-					{ "LowerArmL", EnumAnimationBlendMode.AddAverage }
-				}
+				BlendMode = EnumAnimationBlendMode.Average
 			};
-			loadBowsMeta = new AnimationMetaData() {
+			loadWeapMeta = new AnimationMetaData() {
 				Code = new string(entity.cachedData.loadAnims),
 				Animation = new string(entity.cachedData.loadAnims),
-				BlendMode = EnumAnimationBlendMode.Add,
-				ElementWeight = new Dictionary<string, float> {
-					{ "UpperArmR", 90f },
-					{ "LowerArmR", 90f },
-					{ "UpperArmL", 90f },
-					{ "LowerArmL", 90f },
-					{ "ItemAnchor", 90f }
-				},
-				ElementBlendMode = new Dictionary<string, EnumAnimationBlendMode> {
-					{ "UpperArmR", EnumAnimationBlendMode.AddAverage },
-					{ "LowerArmR", EnumAnimationBlendMode.AddAverage },
-					{ "UpperArmL", EnumAnimationBlendMode.AddAverage },
-					{ "LowerArmL", EnumAnimationBlendMode.AddAverage },
-					{ "ItemAnchor", EnumAnimationBlendMode.AddAverage }
-				}
+				BlendMode = EnumAnimationBlendMode.Average
 			};
 			// Get and initialize the item's attributes to the weapon.
-			AssetLocation[] drawAudio = WeaponProperties[entity.cachedData.weapCodes].drawAudio;
+			WeaponProperties properties = Constants.GlobalProps.WeaponProperties[entity.cachedData.weapCodes];
+			AssetLocation[] drawAudio = properties.drawAudio;
 			drawingsound = drawAudio.Length > 1 ? drawAudio[rand.Next(0, drawAudio.Length - 1)] : drawAudio[0];
-			AssetLocation[] fireAudio = WeaponProperties[entity.cachedData.weapCodes].fireAudio;
+			AssetLocation[] fireAudio = properties.fireAudio;
 			hittingsound = fireAudio.Length > 1 ? fireAudio[rand.Next(0, fireAudio.Length - 1)] : fireAudio[0];
+			durationOfMs = properties.loadSpeed;
+			weapLocation = entity.RightHandItemSlot?.Itemstack?.Collectible?.Code;
 			ammoLocation = entity.GearInventory[18]?.Itemstack?.Collectible?.Code;
 			// Start switching the renderVariant to change to aiming.
-			entity.RightHandItemSlot?.Itemstack?.Attributes?.SetInt("renderVariant", 1);
-			entity.RightHandItemSlot?.MarkDirty();
-			// Get whatever the asset entity type is based on the item's code path.
-			projectileType = entity.World.GetEntityType(ammoLocation);
+			RenderVariants(1);
 			if (entity.Properties.Server?.Attributes != null) {
 				ITreeAttribute pathfinder = entity.Properties.Server.Attributes.GetTreeAttribute("pathfinder");
 				if (pathfinder != null) {
@@ -190,7 +150,10 @@ namespace VSKingdom {
 			}
 			curTurnAnglePerSec = minTurnAnglePerSec + (float)entity.World.Rand.NextDouble() * (maxTurnAnglePerSec - minTurnAnglePerSec);
 			curTurnAnglePerSec *= GameMath.DEG2RAD * 50 * 0.02f;
-			searchTask.SetTargetEnts(targetEntity);
+			// Only move if not above the target and safe!
+			if (entity.ServerPos.Y - targetEntity.ServerPos.Y < 4 && entity.ServerPos.HorDistanceTo(targetEntity.ServerPos) < 3) {
+				searchTask.SetTargetEnts(targetEntity);
+			}
 		}
 
 		public override bool ContinueExecute(float dt) {
@@ -211,7 +174,7 @@ namespace VSKingdom {
 			if (!animsStarted) {
 				animsStarted = true;
 				searchTask.StopMovements();
-				entity.AnimManager.StartAnimation(drawBowsMeta.Init());
+				entity.AnimManager.StartAnimation(drawWeapMeta.Init());
 				if (drawingsound != null) {
 					entity.World.PlaySoundAt(drawingsound, entity, null, false);
 				}
@@ -221,12 +184,11 @@ namespace VSKingdom {
 
 			// Draw back the weapon to its render variant if it has one. 
 			if (!renderSwitch && accum > durationOfMs / 2000f) {
-				entity.RightHandItemSlot.Itemstack?.Attributes?.SetInt("renderVariant", 3);
-				entity.RightHandItemSlot.MarkDirty();
+				RenderVariants(3);
 				renderSwitch = true;
 			}
 			// Do after aiming time is finished.
-			if (accum > releasesAtMs / 1000f && !releasedShot && !EntityInTheWay() && entity.cachedData.weapReady) {
+			if (accum > releasesAtMs / 1000f && !releasedShot && !NothinInTheWay() && entity.cachedData.weapReady) {
 				releasedShot = FireProjectile();
 				// Don't play anything when the hittingSound is incorrectly set.
 				if (hittingsound != null && releasedShot) {
@@ -238,28 +200,34 @@ namespace VSKingdom {
 
 		public override void FinishExecute(bool cancelled) {
 			cooldownUntilMs = entity.World.ElapsedMilliseconds + mincooldown + entity.World.Rand.Next(maxcooldown - mincooldown);
-			entity.RightHandItemSlot?.Itemstack?.Attributes?.SetInt("renderVariant", 0);
-			entity.RightHandItemSlot?.MarkDirty();
+			RenderVariants(0);
 			entity.AnimManager.StopAnimation(new string(entity.cachedData.drawAnims));
 			if (targetEntity == null || !targetEntity.Alive) {
 				searchTask.ResetsTargets();
 				searchTask.StopMovements();
 			}
 		}
-		
+
 		public override void OnEntityHurt(DamageSource source, float damage) {
-			if (source == null || source.SourceEntity == null) {
+			if (source?.GetCauseEntity() == null) {
 				return;
 			}
+			if (source.GetCauseEntity().WatchedAttributes.HasAttribute(KingdomGUID) && source.GetCauseEntity().WatchedAttributes.GetKingdom() == entity.cachedData.kingdomGUID) {
+				if (entity.WatchedAttributes.GetKingdom() != CommonersID) {
+					return;
+				}
+			}
 			// Ignore projectiles for the most part, only cancel attack.
-			if (source.SourceEntity is EntityProjectile) {
+			if (source?.SourceEntity is EntityProjectile && damage < 5) {
 				cancelAttack = true;
 			}
+			attackedByEntity = source.GetCauseEntity();
+			attackedByEntityMs = entity.World.ElapsedMilliseconds;
 			// Interrupt attack and flee! Enemy is close!
-			if (source.GetCauseEntity().ServerPos.SquareDistanceTo(entity.ServerPos) < minimumRange * minimumRange) {
+			if (entity.ServerPos.Y - source.GetCauseEntity().ServerPos.Y < 4 && entity.ServerPos.HorDistanceTo(attackedByEntity.ServerPos) < minimumRange) {
 				cancelAttack = true;
 				FinishExecute(true);
-				searchTask.SetTargetEnts(targetEntity);
+				searchTask.SetTargetEnts(attackedByEntity);
 			} else {
 				base.OnEntityHurt(source, damage);
 			}
@@ -275,34 +243,44 @@ namespace VSKingdom {
 		}
 
 		private bool FireProjectile() {
-			bool infiniteAmmo = entity.Api.World.Config.GetAsBool(NpcInfAmmo);
-			bool isModdedAmmo = entity.AmmoItemSlot.Itemstack.Item.Code.Domain != "game" && compatibleRange.Contains(entity.AmmoItemSlot.Itemstack.Item.Code.Domain);
-			EntityProjectile projectile = (EntityProjectile)entity.World.ClassRegistry.CreateEntity(projectileType);
-			projectile.FiredBy = entity;
-			projectile.ProjectileStack = new ItemStack(entity.World.GetItem(ammoLocation));
-			projectile.DropOnImpactChance = infiniteAmmo ? 0 : 1f - (entity.AmmoItemSlot.Itemstack.ItemAttributes["breakChanceOnImpact"].AsFloat(0.5f));
-			projectile.World = entity.World;
+			bool infiniteAmmo = entity.Api.World.Config.GetAsBool(NpcInfAmmos);
+			bool isModdedAmmo = ammoLocation.Domain != "game" && CompatibleRange.Contains(ammoLocation.Domain);
+			EntityProperties properties = entity.World.GetEntityType(ammoLocation);
+			EntityProjectile projectile = (EntityProjectile)entity.World.ClassRegistry.CreateEntity(properties);
+			WeaponProperties weaponprop = Constants.GlobalProps.WeaponProperties[entity.cachedData.weapCodes];
 			// Get damage according to type of projectile.	
 			if (isModdedAmmo) {
-				projectile.Damage = AmmunitionDamages[entity.gearInv[18].Itemstack.Item.Code.ToString()] * WeaponMultipliers[entity.gearInv[16].Itemstack.Item.Code.ToString()];
+				projectile = (EntityProjectile)entity.World.ClassRegistry.CreateEntity(properties);
+				projectile.SetCollisionBox(0.2f, 0.2f);
+				projectile.Properties.Class = "ItemArrow";
+				projectile.Damage = (float)AmmunitionDamages[ammoLocation.ToString()] * (float)WeaponMultipliers[weapLocation.ToString()];
 			} else {
-				projectile.Damage = entity.gearInv[18].Itemstack.Collectible.Attributes["damage"].AsFloat() + entity.gearInv[16].Itemstack.Collectible.Attributes["damage"].AsFloat();
+				projectile.Damage = entity.AmmoItemSlot.Itemstack.Collectible.Attributes["damage"].AsFloat() + entity.RightHandItemSlot.Itemstack.Collectible.Attributes["damage"].AsFloat();
 			}
+
+			projectile.ProjectileStack = new ItemStack(entity.World.GetItem(ammoLocation));
+			projectile.FiredBy = entity;
+			projectile.World = entity.World;
+			projectile.DropOnImpactChance = infiniteAmmo ? 0 : 1f - (entity.AmmoItemSlot.Itemstack.ItemAttributes["breakChanceOnImpact"].AsFloat(0.5f));
+			
 			// Adjust projectile position and velocity to be used.
-			Vec3d pos = entity.ServerPos.AheadCopy(0.5).XYZ.AddCopy(0, entity.LocalEyePos.Y, 0);
-			Vec3d aheadPos = targetEntity.ServerPos.XYZ.AddCopy(0, targetEntity.LocalEyePos.Y, 0);
-			double distf = Math.Pow(pos.SquareDistanceTo(aheadPos), 0.1);
-			double curve = pos.DistanceTo(aheadPos) / 16;
-			double speed = isModdedAmmo ? WeaponProperties[entity.cachedData.weapCodes].ammoSpeed : GameMath.Clamp(distf - 1f, 0.1f, 1f);
-			Vec3d velocity = (aheadPos - pos + new Vec3d(0, curve, 0)).Normalize() * speed;
+			Vec3d aheadPos = entity.ServerPos.AheadCopy(0.25).XYZ.AddCopy(0, entity.LocalEyePos.Y, 0);
+			Vec3d tagetPos = targetEntity.ServerPos.XYZ.AddCopy(0, targetEntity.LocalEyePos.Y, 0);
+			double distf = Math.Pow(aheadPos.SquareDistanceTo(tagetPos), 0.1);
+			double curve = isModdedAmmo ? 0 : aheadPos.DistanceTo(tagetPos) / 16;
+			double speed = isModdedAmmo ? weaponprop.ammoSpeed : GameMath.Clamp(distf - 1f, 0.1f, 1f);
+			Vec3d velocity = (tagetPos - aheadPos + new Vec3d(0, curve, 0)).Normalize() * speed;
 			// Set final projectile parameters, position, velocity, from point, and rotation.
 			projectile.ServerPos.SetPos(entity.ServerPos.AheadCopy(0.5).XYZ.Add(0, entity.LocalEyePos.Y, 0));
 			projectile.ServerPos.Motion.Set(velocity);
 			projectile.Pos.SetFrom(projectile.ServerPos);
 			projectile.SetRotation();
 			// Spawn and fire the entity with given parameters.
-			entity.RightHandItemSlot.Itemstack.Attributes.SetInt("renderVariant", 0);
+			RenderVariants(0);
 			entity.World.SpawnEntity(projectile);
+			if (weaponprop.usesSmoke) {
+				SpawnParticles();
+			}
 			if (!infiniteAmmo) {
 				entity.GearInventory[18]?.TakeOut(1);
 				entity.GearInventory[18]?.MarkDirty();
@@ -313,17 +291,17 @@ namespace VSKingdom {
 
 		private bool IsAnEnemy(Entity target) {
 			if (banditPilled) {
-				return entity.cachedData.kingdomGUID != target.WatchedAttributes.GetString(KingdomUID);
+				return entity.cachedData.kingdomGUID != target.WatchedAttributes.GetString(KingdomGUID);
 			}
 			if (target is EntitySentry sentry) {
-				return entity.cachedData.enemiesLIST.Contains(sentry.cachedData.kingdomGUID) || sentry.cachedData.kingdomGUID == BanditryID;
+				return entity.cachedData.enemiesLIST.Contains(sentry.cachedData.kingdomGUID) || sentry.cachedData.kingdomGUID == BanditrysID;
 			}
 			if (target is EntityPlayer player) {
-				return entity.cachedData.outlawsLIST.Contains(player.PlayerUID) || entity.cachedData.enemiesLIST.Contains(player.WatchedAttributes.GetString(KingdomUID));
+				return entity.cachedData.outlawsLIST.Contains(player.PlayerUID) || entity.cachedData.enemiesLIST.Contains(player.WatchedAttributes.GetString(KingdomGUID));
 			}
-			return entity.cachedData.enemiesLIST.Contains(target.WatchedAttributes.GetString(KingdomUID));
+			return entity.cachedData.enemiesLIST.Contains(target.WatchedAttributes.GetString(KingdomGUID));
 		}
-		
+
 		private bool IsTargetEntity(string testPath) {
 			if (targetEntityFirstLetters.Length == 0) {
 				return true;
@@ -344,17 +322,42 @@ namespace VSKingdom {
 			return false;
 		}
 
-		private bool EntityInTheWay() {
-			EntitySelection entitySel = new EntitySelection();
-			BlockSelection blockSel = new BlockSelection();
-			EntityFilter eFilter = (e) => (e.IsInteractable || e.EntityId != entity.EntityId || e.EntityId != targetEntity.EntityId);
-			// Do a line Trace into the target, see if there are any entities in the way.
-			entity.World.RayTraceForSelection(entity.ServerPos.XYZ.AddCopy(entity.LocalEyePos), targetEntity?.ServerPos?.XYZ.AddCopy(targetEntity?.LocalEyePos), ref blockSel, ref entitySel, null, eFilter);
-			// Make sure the target isn't obstructed by other entities, but if it IS then make sure it's okay to hit them.
-			if (entitySel?.Entity != null) {
-				return !IsTargetableEntity(entitySel?.Entity, (float)entity.ServerPos.DistanceTo(entitySel.Position));
+		private void RenderVariants(int variant) {
+			if (entity.RightHandItemSlot?.Itemstack?.Attributes.HasAttribute("renderVariant") ?? false) {
+				entity.RightHandItemSlot.Itemstack.Attributes.SetInt("renderVariant", variant);
+				entity.RightHandItemSlot.MarkDirty();
 			}
-			return false;
+		}
+
+		private void SpawnParticles() {
+			Int32 smokeColours = ColorUtil.ToRgba(100, 245, 245, 245);
+			Vec3d gunBarrelPos = entity.ServerPos.XYZ.AddCopy(entity.LocalEyePos);
+			Vec3d gunTrailsPos = entity.ServerPos.XYZ.AddCopy(entity.LocalEyePos).AheadCopy(6, entity.ServerPos.Pitch, entity.ServerPos.Yaw + GameMath.PIHALF);
+			//entity.ServerPos.AheadCopy(-6).XYZ.AddCopy(entity.LocalEyePos);
+			Vec3f minTrailsVel = new Vec3f(1f, 0f, 0f);
+			Vec3f maxTrailsVel = new Vec3f(1f, 0f, 0f);
+			var smoke = new SimpleParticleProperties(5f, 40f, smokeColours, gunBarrelPos, gunTrailsPos, minTrailsVel, maxTrailsVel, rand.Next(4, 10), 0f, 1f, 6f, EnumParticleModel.Quad);
+			smoke.ShouldDieInLiquid = true;
+			smoke.ShouldSwimOnLiquid = true;
+			smoke.WindAffected = true;
+			smoke.OpacityEvolve = EvolvingNatFloat.create(EnumTransformFunction.LINEAR, -16f);
+			smoke.WindAffectednes = 3f;
+			entity.World.SpawnParticles(smoke);
+		}
+
+		private bool NothinInTheWay() {
+			var eSelect = new EntitySelection();
+			var bSelect = new BlockSelection();
+			var eFilter = new EntityFilter((e) => (e.IsInteractable || e.EntityId != entity.EntityId || e.EntityId != targetEntity.EntityId));
+			var bFilter = new BlockFilter((pos, block) => (block.Replaceable < 6000));
+			// Do a line Trace into the target, see if there are any entities in the way.
+			entity.World.RayTraceForSelection(entity.ServerPos.XYZ.AddCopy(entity.LocalEyePos), targetEntity?.ServerPos.XYZ.AddCopy(targetEntity?.LocalEyePos), ref bSelect, ref eSelect, bFilter, eFilter);
+			// Make sure the target isn't obstructed by other entities, but if it IS then make sure it's okay to hit them.
+			if (eSelect?.Entity != null) {
+				return !IsTargetableEntity(eSelect?.Entity, (float)entity.ServerPos.DistanceTo(eSelect.Position));
+			}
+			// Don't waste ammunition by shooting at the hecking ground.
+			return bSelect?.Block == null;
 		}
 	}
 }

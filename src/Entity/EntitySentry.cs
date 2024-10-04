@@ -92,12 +92,12 @@ namespace VSKingdom {
 					swimAnims = Properties.Attributes["swimAnims"].AsString("swim").ToLower(),
 					jumpAnims = Properties.Attributes["jumpAnims"].AsString("jump").ToLower(),
 					postBlock = WatchedAttributes.GetBlockPos("postBlock").ToVec3d(),
-					kingdomGUID = WatchedAttributes.GetString("kingdomGUID"),
-					cultureGUID = WatchedAttributes.GetString("cultureGUID"),
-					leadersGUID = WatchedAttributes.GetString("leadersGUID"),
+					kingdomGUID = WatchedAttributes.GetString(KingdomGUID),
+					cultureGUID = WatchedAttributes.GetString(CultureGUID),
+					leadersGUID = WatchedAttributes.GetString(LeadersGUID),
 					recruitINFO = (previousExists ? cachedData.recruitINFO : "CIVILIAN"),
-					enemiesLIST = (previousExists ? cachedData.enemiesLIST : new string[] { BanditryID }),
-					friendsLIST = (previousExists ? cachedData.friendsLIST : new string[] { CommonerID }),
+					enemiesLIST = (previousExists ? cachedData.enemiesLIST : new string[] { BanditrysID }),
+					friendsLIST = (previousExists ? cachedData.friendsLIST : new string[] { CommonersID }),
 					outlawsLIST = (previousExists ? cachedData.outlawsLIST : new string[] { })
 				};
 				UpdateStats();
@@ -115,9 +115,9 @@ namespace VSKingdom {
 				};
 				SentryUpdateToServer update = new SentryUpdateToServer();
 				update.entityUID = EntityId;
-				update.kingdomGUID = WatchedAttributes.GetString("kingdomGUID");
-				update.cultureGUID = WatchedAttributes.GetString("cultureGUID");
-				update.leadersGUID = WatchedAttributes.GetString("leadersGUID");
+				update.kingdomGUID = WatchedAttributes.GetString(KingdomGUID);
+				update.cultureGUID = WatchedAttributes.GetString(CultureGUID);
+				update.leadersGUID = WatchedAttributes.GetString(LeadersGUID);
 				ClientAPI.Network.GetChannel("sentrynetwork").SendPacket(update);
 			}
 		}
@@ -136,17 +136,17 @@ namespace VSKingdom {
 				if (playersCreative) {
 					ITreeAttribute healthyTree = WatchedAttributes.GetTreeAttribute("health");
 					if (healthyTree != null) {
-						infotext.AppendLine($"<font color=\"#ff8888\">Health: {healthyTree.GetFloat("currenthealth")}/{healthyTree.GetFloat("maxhealth")}</font>");
+						infotext.AppendLine($"<font color=\"#ff8888\">Health: {healthyTree.GetFloat("currenthealth")}/{healthyTree.GetFloat("basemaxhealth")}</font>");
 					}
 					infotext.AppendLine($"<font color=\"#bbbbbb\">{EntityId}</font>");
-					if (WatchedAttributes.HasAttribute("kingdomGUID") && WatchedAttributes.GetString("kingdomGUID") != null) {
-						infotext.AppendLine($"<font color=\"{clientData.coloursHEXC}\">{Get("entries-keyword-kingdom")}: {WatchedAttributes.GetString("kingdomGUID")}</font>");
+					if (WatchedAttributes.HasAttribute(KingdomGUID) && WatchedAttributes.GetString(KingdomGUID) != null) {
+						infotext.AppendLine($"<font color=\"{clientData.coloursHEXC}\">{Get("entries-keyword-kingdom")}: {WatchedAttributes.GetString(KingdomGUID)}</font>");
 					}
-					if (WatchedAttributes.HasAttribute("cultureGUID") && WatchedAttributes.GetString("cultureGUID") != null) {
-						infotext.AppendLine($"{Get("entries-keyword-culture")}: {WatchedAttributes.GetString("cultureGUID")}");
+					if (WatchedAttributes.HasAttribute(CultureGUID) && WatchedAttributes.GetString(CultureGUID) != null) {
+						infotext.AppendLine($"{Get("entries-keyword-culture")}: {WatchedAttributes.GetString(CultureGUID)}");
 					}
-					if (WatchedAttributes.HasAttribute("leadersGUID") && WatchedAttributes.GetString("leadersGUID") != null) {
-						infotext.AppendLine($"{Get("entries-keyword-leaders")}: {WatchedAttributes.GetString("leadersGUID")}");
+					if (WatchedAttributes.HasAttribute(LeadersGUID) && WatchedAttributes.GetString(LeadersGUID) != null) {
+						infotext.AppendLine($"{Get("entries-keyword-leaders")}: {WatchedAttributes.GetString(LeadersGUID)}");
 					}
 				} else {
 					ITreeAttribute nametagTree = WatchedAttributes.GetTreeAttribute("nametag");
@@ -171,35 +171,88 @@ namespace VSKingdom {
 			}
 		}
 
+		public override WorldInteraction[] GetInteractionHelp(IClientWorldAccessor world, EntitySelection es, IClientPlayer player) {
+			if (!Alive) {
+				List<ItemStack> bandages = new List<ItemStack>();
+				for (int i = 0; i < VanillaBandages.Length; i++) {
+					var item = world.GetItem(new AssetLocation(VanillaBandages[i]));
+					if (item != null) {
+						bandages.Add(new ItemStack(item));
+					}
+				}
+				return new WorldInteraction[] {
+					new WorldInteraction () {
+						ActionLangCode = "vskingdom:entries-keyword-revive",
+						MouseButton = EnumMouseButton.Right,
+						Itemstacks = bandages.ToArray()
+					}
+				};
+			}
+			return base.GetInteractionHelp(world, es, player);
+		}
+
 		public override void OnInteract(EntityAgent byEntity, ItemSlot itemslot, Vec3d hitPosition, EnumInteractMode mode) {
 			base.OnInteract(byEntity, itemslot, hitPosition, mode);
 			if (mode != EnumInteractMode.Interact && byEntity is not EntityPlayer) {
 				return;
 			}
 			EntityPlayer player = byEntity as EntityPlayer;
-			string theirKingdom = player.WatchedAttributes.GetString("kingdomGUID");
-			string kingdomGuid = WatchedAttributes.GetString("kingdomGUID");
-			string cultureGuid = WatchedAttributes.GetString("cultureGUID");
-			string leadersGuid = WatchedAttributes.GetString("leadersGUID");
+			string theirKingdom = player.WatchedAttributes.GetString(KingdomGUID);
+			string kingdomGuid = WatchedAttributes.GetString(KingdomGUID);
+			string cultureGuid = WatchedAttributes.GetString(CultureGUID);
+			string leadersGuid = WatchedAttributes.GetString(LeadersGUID);
 			bool IsTheLeader = leadersGuid != null && leadersGuid == player.PlayerUID;
-			bool LootingBody = !Alive && World.Config.GetAsBool("AllowLooting");
+			bool LootingBody = !Alive && World.Config.GetAsBool(CanLootNpcs);
 			bool NoOrdersSet = Api.Side == EnumAppSide.Server && !ruleOrder[0] && !ruleOrder[1] && !ruleOrder[2] && !ruleOrder[3] && !ruleOrder[4] && !ruleOrder[5] && !ruleOrder[6];
-			if (IsTheLeader && NoOrdersSet && Alive && player.Controls.Sneak && gearInv.Empty && !itemslot.Empty && itemslot.Itemstack?.Item is ItemFirewood) {
+			// Pickup the sentry with a piece of firewood.
+			if (IsTheLeader && NoOrdersSet && Alive && player.Controls.Sneak && !itemslot.Empty && itemslot.Itemstack?.Item is ItemFirewood) {
 				string stackCode = $"{this.Code.Domain}:people-{this.Code.Path}";
 				if (byEntity.World.GetItem(new AssetLocation(stackCode)) == null) {
 					byEntity.World.Logger.Error("Could not get {0}", stackCode);
 					return;
 				}
 				ItemStack people = new ItemStack(byEntity.World.GetItem(new AssetLocation(stackCode)), 1);
-				if (!byEntity.TryGiveItemStack(people)) {
-					byEntity.World.SpawnItemEntity(people, ServerPos.XYZ);
+				ITreeAttribute inventories = people.Attributes.GetOrAddTreeAttribute("entInventory");
+				ITreeAttribute nametagTree = WatchedAttributes.GetTreeAttribute("nametag");
+				ITreeAttribute healthyTree = WatchedAttributes.GetTreeAttribute("health");
+				ITreeAttribute appliedTree = WatchedAttributes.GetTreeAttribute("skinConfig");
+				for (int i = 0; i < GearsDressCodes.Length; i++) {
+					if (!gearInv[i].Empty) {
+						inventories.SetItemstack(new string(GearsDressCodes[i] + "Stack"), gearInv[i]?.Itemstack);
+					}
 				}
-				if (HasBehavior<EntityBehaviorDecayBody>()) {
-					RemoveBehavior(GetBehavior<EntityBehaviorDecayBody>());
+				if (healthyTree.HasAttribute("currenthealth")) {
+					people.Attributes.SetInt("durability", (int)(100 * (healthyTree.GetFloat("currenthealth") / healthyTree.GetFloat("basemaxhealth"))));
+				}
+				if (nametagTree.HasAttribute("name") || nametagTree.HasAttribute("last") || nametagTree.HasAttribute("full")) {
+					var nametree = people.Attributes.GetOrAddTreeAttribute("nametagParts");
+					nametree.SetString("name", nametagTree?.GetString("name"));
+					nametree.SetString("last", nametagTree?.GetString("last"));
+				}
+				if (appliedTree.HasAttribute("appliedParts")) {
+					var skintree = people.Attributes.GetOrAddTreeAttribute("appliedParts");
+					skintree.SetString("baseskin", appliedTree.GetString("baseskin"));
+					skintree.SetString("eyecolor", appliedTree.GetString("eyecolor"));
+					skintree.SetString("haircolor", appliedTree.GetString("haircolor"));
+					skintree.SetString("hairextra", appliedTree.GetString("hairextra"));
+					skintree.SetString("hairbase", appliedTree.GetString("hairbase"));
+					skintree.SetString("mustache", appliedTree.GetString("mustache"));
+					skintree.SetString("beard", appliedTree.GetString("beard"));
+					skintree.SetString("underwear", appliedTree.GetString("underwear"));
+					skintree.SetString("facialexpression", appliedTree.GetString("facialexpression"));
+				}
+				people.Attributes.SetString("gender", this.Code.EndVariant());
+				if (!byEntity.TryGiveItemStack(people)) {
+					var peopleItem = byEntity.World.SpawnItemEntity(people, ServerPos.XYZ) as EntityItem;
 				}
 				Die(EnumDespawnReason.Removed);
-				AllowDespawn = true;
 				return;
+			}
+			if (IsTheLeader && byEntity.Controls.RightMouseDown && byEntity.RightHandItemSlot.Empty && byEntity.Pos.DistanceTo(Pos) < 1.2) {
+				AiTaskManager tmgr = GetBehavior<EntityBehaviorTaskAI>()?.TaskManager;
+				tmgr?.StopTask(typeof(AiTaskSentryIdling));
+				tmgr?.StopTask(typeof(AiTaskSentrySearch));
+				tmgr?.StopTask(typeof(AiTaskSentryWander));
 			}
 			// Remind them to join their leaders kingdom if they aren't already in it.
 			if (IsTheLeader && Api.Side == EnumAppSide.Client) {
@@ -219,15 +272,6 @@ namespace VSKingdom {
 				GetBehavior<EntityBehaviorTaskAI>()?.TaskManager?.GetTask<AiTaskSentryWander>()?.PauseExecute(player);
 			}
 			if (!itemslot.Empty && player.Controls.Sneak) {
-				// TRY TO REVIVE!
-				if (!Alive && itemslot.Itemstack.Item is ItemPoultice) {
-					Revive();
-					itemslot.TakeOut(1);
-					itemslot.MarkDirty();
-					WatchedAttributes.GetTreeAttribute("health").SetFloat("currenthealth", itemslot.Itemstack.ItemAttributes["health"].AsFloat());
-					WatchedAttributes.MarkPathDirty("health");
-					return;
-				}
 				// TRY TO EQUIP!
 				if (Alive && leadersGuid != null && leadersGuid == player.PlayerUID && itemslot.Itemstack.Item is ItemWearable wearable) {
 					itemslot.TryPutInto(World, gearInv[(int)wearable.DressType]);
@@ -246,9 +290,9 @@ namespace VSKingdom {
 					if (Api.Side == EnumAppSide.Server) {
 						cachedData.recruitINFO = EnlistedStatus.ENLISTED.ToString();
 					}
-					WatchedAttributes.SetString("leadersGUID", player.PlayerUID);
-					WatchedAttributes.SetString("leadersNAME", player.Player.PlayerName);
-					WatchedAttributes.SetString("kingdomGUID", theirKingdom);
+					WatchedAttributes.SetString(LeadersGUID, player.PlayerUID);
+					WatchedAttributes.SetString(LeadersNAME, player.Player.PlayerName);
+					WatchedAttributes.SetString(KingdomGUID, theirKingdom);
 					return;
 				}
 				// TRY TO RALLY!
@@ -257,20 +301,20 @@ namespace VSKingdom {
 						ServerAPI?.World.PlayerByUid(player.PlayerUID).Entity.WatchedAttributes.SetAttribute("followerEntityUids", new LongArrayAttribute(new long[] { }));
 					}
 					var followed = (player.WatchedAttributes.GetAttribute("followerEntityUids") as LongArrayAttribute)?.value?.ToList<long>();
-					var sentries = World.GetEntitiesAround(ServerPos.XYZ, 16f, 8f, entity => (entity is EntitySentry sentry && sentry.WatchedAttributes.GetString("kingdomGUID") == theirKingdom));
+					var sentries = World.GetEntitiesAround(ServerPos.XYZ, 16f, 8f, entity => (entity is EntitySentry sentry && sentry.WatchedAttributes.GetString(KingdomGUID) == theirKingdom));
 					foreach (EntitySentry sentry in sentries) {
 						sentry.WatchedAttributes.SetLong("guardedEntityId", player.EntityId);
-						sentry.WatchedAttributes.SetBool("orderFollow", true);
+						sentry.WatchedAttributes.SetBool(OrderFollow, true);
 						sentry.ruleOrder[1] = true;
 						sentry.GetBehavior<EntityBehaviorTaskAI>()?.TaskManager.GetTask<AiTaskSentryFollow>()?.StartExecute();
 						if (!followed.Contains(sentry.EntityId)) {
 							followed.Add(sentry.EntityId);
 						}
-						ServerAPI?.Network.GetChannel("sentrynetwork").SendPacket<SentryUpdateToServer>(new SentryUpdateToServer() {
+						ServerAPI?.Network.GetChannel("sentrynetwork").SendPacket(new SentryUpdateToServer() {
 							entityUID = sentry.EntityId,
-							kingdomGUID = sentry.WatchedAttributes.GetString("kingdomGUID"),
-							cultureGUID = sentry.WatchedAttributes.GetString("cultureGUID"),
-							leadersGUID = sentry.WatchedAttributes.GetString("leadersGUID")
+							kingdomGUID = sentry.WatchedAttributes.GetString(KingdomGUID),
+							cultureGUID = sentry.WatchedAttributes.GetString(CultureGUID),
+							leadersGUID = sentry.WatchedAttributes.GetString(LeadersGUID)
 						}, player.Player as IServerPlayer);
 					}
 					player.WatchedAttributes.SetAttribute("followerEntityUids", new LongArrayAttribute(followed.ToArray<long>()));
@@ -286,9 +330,10 @@ namespace VSKingdom {
 
 		public override void OnTesselation(ref Shape entityShape, string shapePathForLogging) {
 			base.OnTesselation(ref entityShape, shapePathForLogging);
-			foreach (ItemSlot slot in GearInventory) {
-				addGearToShape(slot, entityShape, shapePathForLogging);
+			for (int i = 0; i < GearInventory.Count; i++) {
+				addGearToShape(GearInventory[i], entityShape, shapePathForLogging);
 			}
+			AnimManager.HeadController = new EntityHeadController(AnimManager, this, entityShape);
 		}
 
 		public override void OnReceivedClientPacket(IServerPlayer player, int packetid, byte[] data) {
@@ -320,19 +365,6 @@ namespace VSKingdom {
 			}
 		}
 
-		public override bool ShouldReceiveDamage(DamageSource damageSource, float damage) {
-			if (damageSource.GetCauseEntity() is EntityHumanoid attacker) {
-				if (attacker is EntityPlayer player && WatchedAttributes.GetString("leadersGUID") == player.PlayerUID) {
-					return player.ServerControls.Sneak && base.ShouldReceiveDamage(damageSource, damage);
-				}
-				if (WatchedAttributes.GetString(KingdomUID) == attacker.WatchedAttributes.GetString(KingdomUID) && Api.World.Config.GetAsBool(FriendFire, true)) {
-					return base.ShouldReceiveDamage(damageSource, damage);
-				}
-				return base.ShouldReceiveDamage(damageSource, damage);
-			}
-			return base.ShouldReceiveDamage(damageSource, damage);
-		}
-
 		public override void FromBytes(BinaryReader reader, bool forClient) {
 			base.FromBytes(reader, forClient);
 			if (gearInv is null) {
@@ -346,11 +378,21 @@ namespace VSKingdom {
 			try { gearInv.ToTreeAttributes(GetInventoryTree()); } catch (NullReferenceException) { }
 		}
 
+		public override bool ShouldReceiveDamage(DamageSource damageSource, float damage) {
+			if (damageSource.GetCauseEntity() is EntityHumanoid attacker) {
+				if (attacker is EntityPlayer player && WatchedAttributes.GetString(LeadersGUID) == player.PlayerUID) {
+					return player.ServerControls.Sneak && base.ShouldReceiveDamage(damageSource, damage);
+				}
+				if (WatchedAttributes.GetString(KingdomGUID) == attacker.WatchedAttributes.GetString(KingdomGUID)) {
+					return Api.World.Config.GetAsBool(FriendlyDmg, true) && base.ShouldReceiveDamage(damageSource, damage);
+				}
+				return base.ShouldReceiveDamage(damageSource, damage);
+			}
+			return base.ShouldReceiveDamage(damageSource, damage);
+		}
+
 		public override void Die(EnumDespawnReason reason = EnumDespawnReason.Death, DamageSource damageSourceForDeath = null) {
 			if (!Alive) { return; }
-			if (reason == EnumDespawnReason.Death) {
-				PlayEntitySound("death");
-			}
 			if (reason != 0) {
 				AllowDespawn = true;
 			}
@@ -359,7 +401,14 @@ namespace VSKingdom {
 			controls.FlyVector.Set(0.0, 0.0, 0.0);
 			ClimbingOnFace = null;
 			TryUnmount();
+			if (reason == EnumDespawnReason.Removed) {
+				if (HasBehavior<EntityBehaviorDecayBody>()) {
+					RemoveBehavior(GetBehavior<EntityBehaviorDecayBody>());
+				}
+				AllowDespawn = true;
+			}
 			if (reason == EnumDespawnReason.Death) {
+				PlayEntitySound("death");
 				Api.Event.TriggerEntityDeath(this, damageSourceForDeath);
 				ItemStack[] drops = GetDrops(World, Pos.AsBlockPos, null);
 				if (drops != null) {
@@ -380,7 +429,7 @@ namespace VSKingdom {
 					}
 				}
 				AnimManager.ActiveAnimationsByAnimCode.Clear();
-				AnimManager.StartAnimation(new string(WatchedAttributes.GetString("deathAnimation", "die")));
+				AnimManager.StartAnimation(new string(WatchedAttributes.GetString("deathAnimation", "dies")));
 				if (reason == EnumDespawnReason.Death && damageSourceForDeath != null && World.Side == EnumAppSide.Server) {
 					WatchedAttributes.SetInt("deathReason", (int)damageSourceForDeath.Source);
 					WatchedAttributes.SetInt("deathDamageType", (int)damageSourceForDeath.Type);
@@ -418,6 +467,7 @@ namespace VSKingdom {
 			this.Alive = true;
 			ReceiveDamage(new DamageSource { SourceEntity = this, CauseEntity = this, Source = EnumDamageSource.Revive, Type = EnumDamageType.Heal }, 9999f);
 			AnimManager.StopAnimation(new string(WatchedAttributes.GetString("deathAnimation")));
+			AnimManager.StartAnimation(new string(WatchedAttributes.GetString("deathAnimation").Replace("dies", "ress")));
 			IsOnFire = false;
 			State = EnumEntityState.Active;
 			// AI seems to go dead after revive and does not return to doing tasks? Fix.
@@ -491,7 +541,7 @@ namespace VSKingdom {
 			try {
 				bool updateAll = (slotId == null);
 				bool hasWeapon = !RightHandItemSlot.Empty;
-				bool hasRanged = hasWeapon && allowedWeaponry.Contains(RightHandItemSlot.Itemstack.Item.Code.FirstCodePart());
+				bool hasRanged = hasWeapon && AllowedWeaponry.Contains(RightHandItemSlot.Itemstack.Item.Code.FirstCodePart());
 				float massTotal = 0;
 				float healTotal = 0;
 				float walkSpeed = Properties.Attributes["walkSpeed"].AsFloat(0.020f);
@@ -515,15 +565,6 @@ namespace VSKingdom {
 					cachedData.walkSpeed = Math.Clamp((walkSpeed + (walkSpeed * massTotal)), 0f, walkSpeed * 2f);
 					cachedData.moveSpeed = Math.Clamp((moveSpeed + (moveSpeed * massTotal)), 0f, moveSpeed * 2f);
 				}
-				if (slotId == 19) {
-					if (!Alive) {
-						Revive();
-						WatchedAttributes.GetTreeAttribute("health").SetFloat("currenthealth", gearInv[19].Itemstack.ItemAttributes["health"].AsFloat());
-						WatchedAttributes.MarkPathDirty("health");
-						gearInv[19].TakeOut(1);
-						gearInv[19].MarkDirty();
-					}
-				}
 				if (updateAll) {
 					if (Api.World.BlockAccessor.GetBlockEntity(WatchedAttributes.GetBlockPos("postBlock")) is BlockEntityPost post) {
 						WatchedAttributes.SetDouble("postRange", cachedData.postRange = (float)post.areasize);
@@ -545,9 +586,9 @@ namespace VSKingdom {
 
 		public virtual void UpdateInfos(byte[] data) {
 			SentryUpdateToEntity update = SerializerUtil.Deserialize<SentryUpdateToEntity>(data);
-			if (update.kingdomGUID != null) { WatchedAttributes.SetString("kingdomGUID", new string(update.kingdomGUID)); }
-			if (update.cultureGUID != null) { WatchedAttributes.SetString("cultureGUID", new string(update.cultureGUID)); }
-			if (update.leadersGUID != null) { WatchedAttributes.SetString("leadersGUID", new string(update.leadersGUID)); }
+			if (update.kingdomGUID != null) { WatchedAttributes.SetString(KingdomGUID, new string(update.kingdomGUID)); }
+			if (update.cultureGUID != null) { WatchedAttributes.SetString(CultureGUID, new string(update.cultureGUID)); }
+			if (update.leadersGUID != null) { WatchedAttributes.SetString(LeadersGUID, new string(update.leadersGUID)); }
 			if (Api.Side == EnumAppSide.Client) {
 				clientData.UpdateLoyalty(update.kingdomNAME, update.cultureNAME, update.leadersNAME);
 				clientData.UpdateColours(update.coloursHEXA, update.coloursHEXB, update.coloursHEXC);
@@ -556,13 +597,13 @@ namespace VSKingdom {
 
 		public virtual void UpdateTasks() {
 			ruleOrder = new bool[7] {
-				WatchedAttributes.GetBool("orderWander"),
-				WatchedAttributes.GetBool("orderFollow"),
-				WatchedAttributes.GetBool("orderEngage"),
-				WatchedAttributes.GetBool("orderPursue"),
-				WatchedAttributes.GetBool("orderShifts"),
-				WatchedAttributes.GetBool("orderPatrol"),
-				WatchedAttributes.GetBool("orderReturn")
+				WatchedAttributes.GetBool(OrderWander),
+				WatchedAttributes.GetBool(OrderFollow),
+				WatchedAttributes.GetBool(OrderEngage),
+				WatchedAttributes.GetBool(OrderPursue),
+				WatchedAttributes.GetBool(OrderShifts),
+				WatchedAttributes.GetBool(OrderPatrol),
+				WatchedAttributes.GetBool(OrderReturn)
 			};
 		}
 

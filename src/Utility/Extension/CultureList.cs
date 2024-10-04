@@ -21,8 +21,8 @@ namespace VSKingdom.Extension {
 		}
 
 		public static bool PartOfCulture(this List<Culture> cultureList, IPlayer player) {
-			string cultureGUID = player.Entity.WatchedAttributes.GetString("cultureGUID", CommonerID);
-			if (cultureGUID == null || cultureGUID == CommonerID || cultureGUID == BanditryID || cultureList.Count == 0) {
+			string cultureGUID = player.Entity.WatchedAttributes.GetString("cultureGUID", CommonersID);
+			if (cultureGUID == null || cultureGUID == CommonersID || cultureGUID == BanditrysID || cultureList.Count == 0) {
 				return false;
 			}
 			for (int k = 0; k < cultureList.Count; k++) {

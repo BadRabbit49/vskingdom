@@ -10,15 +10,15 @@ using Vintagestory.API.MathTools;
 namespace VSKingdom.Utilities {
 	internal static class GenericUtil {
 		public static string GetKingdom(this SyncedTreeAttribute tree) {
-			return tree.GetString(KingdomUID, CommonerID);
+			return tree.GetString(KingdomGUID);
 		}
 
 		public static string GetCulture(this SyncedTreeAttribute tree) {
-			return tree.GetString(CultureUID, SeraphimID);
+			return tree.GetString(CultureGUID, SeraphimsID);
 		}
 
 		public static string GetLeaders(this SyncedTreeAttribute tree) {
-			return tree.GetString(LeadersUID);
+			return tree.GetString(LeadersGUID);
 		}
 
 		public static double GetLookAtPitch(this Vec3d from, Vec3d toPos) {
@@ -65,9 +65,13 @@ namespace VSKingdom.Utilities {
 			return rnd.Next(low, num);
 		}
 
-		public static string GetRandom(string[] strings) {
+		public static string GetRandom(string str) {
+			return GetRandom(str.Split(", "));
+		}
+
+		public static string GetRandom(string[] sta) {
 			Random rnd = new Random();
-			return strings[rnd.Next(0, strings.Length - 1)];
+			return sta[rnd.Next(0, sta.Length - 1)];
 		}
 
 		public static string RandomGuid(string guid, int size, string[] LIST = null) {

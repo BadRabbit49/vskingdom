@@ -26,8 +26,32 @@
 		"value": [ "bandit-*", "deserter-*", "poacher-*", "looter", "hound-hunting", "hound-feral" ]
 	},
 	{
+		"file": "vskingdom:entities/knight.json",
+		"path": "/server/behaviors/9/aitasks/1/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": [ "bandit-*", "deserter-*", "poacher-*", "looter", "hound-hunting", "hound-feral" ]
+	},
+	{
+		"file": "vskingdom:entities/doctor.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": [ "bandit-*", "deserter-*", "poacher-*", "looter", "hound-hunting", "hound-feral" ]
+	},
+	{
 		"file": "vskingdom:entities/bandit.json",
 		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "outlawmod" } ],
+		"value": [ "deserter-*", "poacher-*", "looter", "hound-hunting", "hound-feral" ]
+	},
+	{
+		"file": "vskingdom:entities/bandit.json",
+		"path": "/server/behaviors/9/aitasks/1/entityCodes",
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
@@ -40,7 +64,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "feverstonewilds" } ],
-		"value": [ "direwolf-*", "golem-*", "hellboar-*", "ostrich-*", "cockatrice-*", "faunling-*", "scorpion" ]
+		"value": [ "direwolf-*", "golem-*", "hellboar-*", "ostrich-*", "cockatrice-*", "scorpion" ]
 	},
 	{
 		"file": "vskingdom:entities/knight.json",
@@ -48,11 +72,35 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "feverstonewilds" } ],
-		"value": [ "direwolf-*", "golem-*", "hellboar-*", "ostrich-*", "cockatrice-*", "faunling-*", "scorpion" ]
+		"value": [ "direwolf-*", "golem-*", "hellboar-*", "ostrich-*", "cockatrice-*", "scorpion" ]
+	},
+	{
+		"file": "vskingdom:entities/knight.json",
+		"path": "/server/behaviors/9/aitasks/1/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "direwolf-*", "golem-*", "hellboar-*", "ostrich-*", "cockatrice-*", "scorpion" ]
+	},
+	{
+		"file": "vskingdom:entities/doctor.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "direwolf-*", "golem-*", "hellboar-*", "ostrich-*", "cockatrice-*", "scorpion" ]
 	},
 	{
 		"file": "vskingdom:entities/bandit.json",
 		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "feverstonewilds" } ],
+		"value": [ "direwolf-*", "golem-*", "hellboar-*", "ostrich-*", "cockatrice-*", "faunling-*", "scorpion", "geodecrab" ]
+	},
+	{
+		"file": "vskingdom:entities/bandit.json",
+		"path": "/server/behaviors/9/aitasks/1/entityCodes",
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "feverstonewilds" } ],
@@ -76,8 +124,32 @@
 		"value": [ "ork-*", "skeleton-*", "skeletonblkgrd-*", "slime-*", "surface_skeleton-*", "surfacegoblin-*", "treant-*", "dragon-*", "cavegoblin-*", "ent-shepherd-*" ]
 	},
 	{
+		"file": "vskingdom:entities/knight.json",
+		"path": "/server/behaviors/9/aitasks/1/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "fantasycreatures" } ],
+		"value": [ "ork-*", "skeleton-*", "skeletonblkgrd-*", "slime-*", "surface_skeleton-*", "surfacegoblin-*", "treant-*", "dragon-*", "cavegoblin-*", "ent-shepherd-*" ]
+	},
+	{
+		"file": "vskingdom:entities/doctor.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "fantasycreatures" } ],
+		"value": [ "ork-*", "skeleton-*", "skeletonblkgrd-*", "slime-*", "surface_skeleton-*", "surfacegoblin-*", "treant-*", "dragon-*", "cavegoblin-*", "ent-shepherd-*" ]
+	},
+	{
 		"file": "vskingdom:entities/bandit.json",
 		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "fantasycreatures" } ],
+		"value": [ "ork-*", "skeleton-*", "skeletonblkgrd-*", "slime-*", "surface_skeleton-*", "surfacegoblin-*", "treant-*", "dragon-*", "cavegoblin-*", "ent-shepherd-*" ]
+	},
+	{
+		"file": "vskingdom:entities/bandit.json",
+		"path": "/server/behaviors/9/aitasks/1/entityCodes",
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "fantasycreatures" } ],
@@ -101,8 +173,32 @@
 		"value": [ "golem-*", "itinerant-*", "roamer-*", "rotbeast-*", "rotwalker-*", "parasitic-flies", "rotpillar", "miasma" ]
 	},
 	{
+		"file": "vskingdom:entities/knight.json",
+		"path": "/server/behaviors/9/aitasks/1/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "rustandrot" } ],
+		"value": [ "golem-*", "itinerant-*", "roamer-*", "rotbeast-*", "rotwalker-*", "parasitic-flies", "rotpillar", "miasma" ]
+	},
+	{
+		"file": "vskingdom:entities/doctor.json",
+		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "rustandrot" } ],
+		"value": [ "golem-*", "itinerant-*", "roamer-*", "rotbeast-*", "rotwalker-*", "parasitic-flies", "rotpillar", "miasma" ]
+	},
+	{
 		"file": "vskingdom:entities/bandit.json",
 		"path": "/server/behaviors/9/aitasks/0/entityCodes",
+		"side": "server",
+		"op": "addmerge",
+		"dependsOn": [ { "modid": "rustandrot" } ],
+		"value": [ "golem-*", "itinerant-*", "roamer-*", "rotbeast-*", "rotwalker-*", "parasitic-flies", "rotpillar", "miasma" ]
+	},
+	{
+		"file": "vskingdom:entities/bandit.json",
+		"path": "/server/behaviors/9/aitasks/1/entityCodes",
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "rustandrot" } ],

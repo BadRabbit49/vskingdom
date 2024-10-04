@@ -17,6 +17,24 @@ namespace VSKingdom.Utilities {
 			return "#" + hex;
 		}
 
+		public static Color ColorFromHSV(double hue, double saturation, double value) {
+			int hi = Convert.ToInt32(Math.Floor(hue / 60)) % 6;
+			double f = hue / 60 - Math.Floor(hue / 60);
+			value = value * 255;
+			int v = Convert.ToInt32(value);
+			int p = Convert.ToInt32(value * (1 - saturation));
+			int q = Convert.ToInt32(value * (1 - f * saturation));
+			int t = Convert.ToInt32(value * (1 - (1 - f) * saturation));
+			switch (hi) {
+				case 0: return Color.FromArgb(255, v, t, p);
+				case 1: return Color.FromArgb(255, q, v, p);
+				case 2: return Color.FromArgb(255, p, v, t);
+				case 3: return Color.FromArgb(255, p, q, v);
+				case 4: return Color.FromArgb(255, t, p, v);
+				default: return Color.FromArgb(255, v, p, q);
+			}
+		}
+		
 		public static string GetHexCode(string color) {
 			if (color.StartsWith('#')) {
 				char[] hex = color.Where(c => (char.IsLetterOrDigit(c) || char.IsWhiteSpace(c) || c == '-')).ToArray();

@@ -1,20 +1,12 @@
-﻿using Vintagestory.API.Common;
+﻿using System;
+using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.GameContent;
-using static VSKingdom.Constants.GlobalCodes;
-using static VSKingdom.Constants.GlobalDicts;
-using static VSKingdom.Constants.GlobalEnums;
-using static VSKingdom.Constants.GlobalPaths;
-using static VSKingdom.Constants.GlobalProps;
-using static VSKingdom.Utilities.ColoursUtil;
-using static VSKingdom.Utilities.CultureUtil;
-using static VSKingdom.Utilities.DamagesUtil;
 using static VSKingdom.Utilities.GenericUtil;
-using static VSKingdom.Utilities.KingdomUtil;
-using static VSKingdom.Utilities.ReadingUtil;
+
 namespace VSKingdom {
 	public class AiTaskSentryIdling : AiTaskBase {
 		public AiTaskSentryIdling(EntitySentry entity) : base(entity) { this.entity = entity; }
@@ -33,12 +25,16 @@ namespace VSKingdom {
 		protected float currentHours => entity.World.Calendar.HourOfDay;
 		protected float darkoutHours => (entity.World.Calendar.HoursPerDay / 24f) * 20f;
 		protected float morningHours => (entity.World.Calendar.HoursPerDay / 24f) * 5f;
+		protected float minTurnAnglePerSec;
+		protected float maxTurnAnglePerSec;
+		protected float curTurnAnglePerSec;
 		protected string currAnims;
 		protected string[] animsIdle;
 		protected string[] animsHurt;
 		protected string[] animsLate;
 		protected string[] animsCold;
 		protected string[] animsSwim;
+		protected Entity lookatEnt;
 		protected EntityBehaviorHealth healthBehavior;
 		protected EntityPartitioning partitionUtil;
 		protected AssetLocation onBlockBelowCode;
@@ -107,7 +103,7 @@ namespace VSKingdom {
 			bool doSpecial = entity.World.Rand.NextDouble() < 0.1;
 			if (entity.Swimming) {
 				currAnims = animsSwim[entity.World.Rand.Next(0, animsSwim.Length - 1)];
-			} else if (doSpecial) {
+			} else if (doSpecial && currAnims == "idle") {
 				if (currentTemps < 0) {
 					currAnims = animsCold[entity.World.Rand.Next(0, animsCold.Length - 1)];
 				} else if (currentHours > darkoutHours || currentHours < morningHours) {
@@ -139,6 +135,18 @@ namespace VSKingdom {
 				entity.ServerPos.Yaw - GameMath.PI / 4 * GlobalConstants.OverallSpeedMultiplier * turnSpeedMul,
 				entity.ServerPos.Yaw + GameMath.PI / 4 * GlobalConstants.OverallSpeedMultiplier * turnSpeedMul
 			);
+			if (entity.Properties.Server?.Attributes != null) {
+				ITreeAttribute pathfinder = entity.Properties.Server.Attributes.GetTreeAttribute("pathfinder");
+				if (pathfinder != null) {
+					minTurnAnglePerSec = pathfinder.GetFloat("minTurnAnglePerSec", 250f);
+					maxTurnAnglePerSec = pathfinder.GetFloat("maxTurnAnglePerSec", 450f);
+				}
+			} else {
+				minTurnAnglePerSec = 250f;
+				maxTurnAnglePerSec = 450f;
+			}
+			curTurnAnglePerSec = minTurnAnglePerSec + (float)entity.World.Rand.NextDouble() * (maxTurnAnglePerSec - minTurnAnglePerSec);
+			curTurnAnglePerSec *= GameMath.DEG2RAD * 50 * 0.02f;
 		}
 
 		public override bool ContinueExecute(float dt) {
@@ -148,8 +156,15 @@ namespace VSKingdom {
 					isInEntRange = InRange();
 					lastInRange = elapsedMilliseconds;
 				}
-				if (isInEntRange) {
-					return false;
+				if (isInEntRange && (lookatEnt?.Alive ?? false)) {
+					Vec3f targetVec = lookatEnt.ServerPos.XYZFloat.Sub(entity.ServerPos.XYZFloat);
+					targetVec.Set((float)(lookatEnt.ServerPos.X - entity.ServerPos.X), (float)(lookatEnt.ServerPos.Y - entity.ServerPos.Y), (float)(lookatEnt.ServerPos.Z - entity.ServerPos.Z));
+					float desiredYaw = (float)Math.Atan2(targetVec.X, targetVec.Z);
+					float yawDist = GameMath.AngleRadDistance(entity.ServerPos.Yaw, desiredYaw);
+					entity.ServerPos.Yaw += GameMath.Clamp(yawDist, -curTurnAnglePerSec * dt, curTurnAnglePerSec * dt);
+					entity.ServerPos.Yaw = entity.ServerPos.Yaw % GameMath.TWOPI;
+					isInEntRange = lookatEnt.ServerPos.SquareHorDistanceTo(entity.ServerPos.XYZ) <= 4;
+					return true;
 				}
 			}
 			if (!cancelIdling) {
@@ -163,15 +178,15 @@ namespace VSKingdom {
 
 		public override void FinishExecute(bool cancelled) {
 			cooldownUntilMs = entity.World.ElapsedMilliseconds + mincooldown + entity.World.Rand.Next(maxcooldown - mincooldown);			
-			if (currAnims != null && currAnims != "idle") {
+			if (currAnims != null && currAnims != entity.cachedData.idleAnims) {
 				entity.AnimManager.StopAnimation(currAnims);
 			}
 			if (arrowSharing) {
-				string thisKingdom = entity.WatchedAttributes.GetString("kingdomGUID");
+				string thisKingdom = entity.WatchedAttributes.GetString(KingdomGUID);
 				var sentsAround = world.GetEntitiesAround(entity.ServerPos.XYZ, 8f, 4f, match => match is EntitySentry);
 				for (int i = 0; i < sentsAround.Length; i++) {
 					try {
-						if (sentsAround[i].WatchedAttributes.GetString("kingdomGUID") != thisKingdom || sentsAround[i].Properties.Attributes["baseClass"].AsString() != "range" || !CanSeeEnt(entity, sentsAround[i])) {
+						if (sentsAround[i].WatchedAttributes.GetString(KingdomGUID) != thisKingdom || sentsAround[i].Properties.Attributes["baseClass"].AsString() != "range" || !CanSeeEnt(entity, sentsAround[i])) {
 							continue;
 						}
 						EntitySentry sentry = sentsAround[i] as EntitySentry;
@@ -191,13 +206,14 @@ namespace VSKingdom {
 		private bool InRange() {
 			bool found = false;
 			partitionUtil.WalkEntities(entity.ServerPos.XYZ, 1, delegate (Entity ent) {
-				if (!ent.Alive || ent.EntityId == entity.EntityId || !ent.IsInteractable || ent is not EntityPlayer) {
+				if (ent.Alive && ent is EntityPlayer) {
+					lookatEnt = ent;
+					found = true;
 					return true;
 				}
-				found = true;
 				return false;
 			}, EnumEntitySearchType.Creatures);
-			return found;
+			return lookatEnt != null && found;
 		}
 	}
 }

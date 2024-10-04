@@ -18,9 +18,9 @@ namespace VSKingdom.Constants {
 			{ "maltiezcrossbows:crossbow-windlass-plain", 4.3f },
 			{ "maltiezcrossbows:crossbow-repeating-plain", 4.3f },
 		};
-
+		
 		public static Dictionary<string, float> AmmunitionDamages = new Dictionary<string, float> {
-			{ "", 0f },
+			{ "", 1f },
 			{ "maltiezfirearms:bullet-lead", 16f },
 			{ "maltiezfirearms:bullet-copper", 8f },
 			{ "maltiezfirearms:bullet-steel", 10f },
@@ -29,18 +29,18 @@ namespace VSKingdom.Constants {
 			{ "maltiezfirearms:slug-steel", 40f },
 			{ "maltiezcrossbows:bolt-crude", 5f },
 			{ "maltiezcrossbows:bolt-copper", 6f },
-			{ "maltiezcrossbows:bolt-tinbronze",  7f },
+			{ "maltiezcrossbows:bolt-tinbronze", 7f },
 			{ "maltiezcrossbows:bolt-bismuthbronze", 7f },
 			{ "maltiezcrossbows:bolt-blackbronze", 7f },
-			{ "maltiezcrossbows:bolt-iron",  7f },
+			{ "maltiezcrossbows:bolt-iron", 7f },
 			{ "maltiezcrossbows:bolt-meteoriciron", 7f },
 			{ "maltiezcrossbows:bolt-steel", 9f }
 		};
 
-		public static Dictionary<string,WeaponProps> WeaponProperties = new Dictionary<string, WeaponProps> {
+		public static Dictionary<string, WeaponProperties> WeaponProperties = new Dictionary<string, WeaponProperties> {
 			// Vintage Story //
 			{
-				"", new WeaponProps {
+				"", new WeaponProperties {
 					ammoCodes = null,
 					idleAnims = "idle",
 					walkAnims = "walk",
@@ -58,7 +58,7 @@ namespace VSKingdom.Constants {
 				}
 			},
 			{
-				"game:bow", new WeaponProps {
+				"game:bow", new WeaponProperties {
 					ammoCodes = "game:arrow",
 					idleAnims = "bowidle",
 					walkAnims = "bowwalk",
@@ -76,7 +76,7 @@ namespace VSKingdom.Constants {
 				}
 			},
 			{
-				"game:sling", new WeaponProps {
+				"game:sling", new WeaponProperties {
 					ammoCodes = "game:thrownstone",
 					idleAnims = "idle",
 					walkAnims = "walk",
@@ -94,7 +94,7 @@ namespace VSKingdom.Constants {
 				}
 			},
 			{
-				"game:spear", new WeaponProps {
+				"game:spear", new WeaponProperties {
 					ammoCodes = "game:spear",
 					idleAnims = "idle",
 					walkAnims = "walk",
@@ -113,7 +113,10 @@ namespace VSKingdom.Constants {
 			},
 			// Maltiez Firearms //
 			{
-				"maltiezfirearms:pistol", new WeaponProps {
+				"maltiezfirearms:pistol", new WeaponProperties {
+					usesSmoke = true,
+					loadSpeed = 5000,
+					ammoSpeed = 4.0,
 					ammoCodes = "maltiezfirearms:bullet",
 					idleAnims = "pistolidle",
 					walkAnims = "pistolwalk",
@@ -131,7 +134,9 @@ namespace VSKingdom.Constants {
 				}
 			},
 			{
-				"maltiezfirearms:arquebus", new WeaponProps {
+				"maltiezfirearms:arquebus", new WeaponProperties {
+					usesSmoke = true,
+					loadSpeed = 8000,
 					ammoSpeed = 4.0,
 					ammoCodes = "maltiezfirearms:bullet",
 					idleAnims = "arquebusidle",
@@ -150,7 +155,9 @@ namespace VSKingdom.Constants {
 				}
 			},
 			{
-				"maltiezfirearms:musket", new WeaponProps {
+				"maltiezfirearms:musket", new WeaponProperties {
+					usesSmoke = true,
+					loadSpeed = 4000,
 					ammoSpeed = 4.0,
 					ammoCodes = "maltiezfirearms:slug",
 					idleAnims = "musketidle",
@@ -169,7 +176,10 @@ namespace VSKingdom.Constants {
 				}
 			},
 			{
-				"maltiezfirearms:carbine", new WeaponProps {
+				"maltiezfirearms:carbine", new WeaponProperties {
+					usesSmoke = true,
+					loadSpeed = 2500,
+					ammoSpeed = 4.0,
 					ammoCodes = "maltiezfirearms:slug",
 					idleAnims = "arquebusidle",
 					walkAnims = "arquebuswalk",
@@ -188,7 +198,10 @@ namespace VSKingdom.Constants {
 			},
 			// Maltiez Crossbows //
 			{
-				"maltiezcrossbows:crossbow", new WeaponProps {
+				"maltiezcrossbows:crossbow", new WeaponProperties {
+					usesSmoke = false,
+					loadSpeed = 2900,
+					ammoSpeed = 1.0,
 					ammoCodes = "maltiezcrossbows:bolt",
 					idleAnims = "arquebusidle",
 					walkAnims = "arquebuswalk",

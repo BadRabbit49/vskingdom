@@ -148,13 +148,6 @@ namespace VSKingdom {
 				MoveAnimation();
 				Retreats();
 			}
-			if (pathTraverser.Active) {
-				// Look ahead, if there is a door, open it if possible before walking through. Remember to shut afterwards if it was closed! Code courtesy of Dana!
-				entity.World.BlockAccessor.WalkBlocks(entity.ServerPos.AsBlockPos.AddCopy(-1, -1, -1), entity.ServerPos.AsBlockPos.AddCopy(1, 1, 1), (block, x, y, z) => {
-					BlockPos pos = new(x, y, z, entity.SidedPos.Dimension);
-					TryOpen(pos);
-				});
-			}
 			Vec3d vec3 = entity.ServerPos.XYZ.Add(0.0, entity.SelectionBox.Y2 / 2f, 0.0).Ahead(entity.SelectionBox.XSize / 2f, 0f, entity.ServerPos.Yaw);
 			double dist = targetEntity.SelectionBox.ToDouble().Translate(targetEntity.ServerPos.XYZ).ShortestDistanceFrom(vec3);
 			bool flag = targetEntity != null && targetEntity.Alive && !cancelSearch && pathTraverser.Active;
@@ -192,6 +185,10 @@ namespace VSKingdom {
 				return true;
 			}
 			return false;
+		}
+
+		public void DoMovePattern(EnumAttackPattern pattern) {
+			attackPattern = pattern;
 		}
 
 		public void SetTargetEnts(Entity target) {
@@ -336,7 +333,7 @@ namespace VSKingdom {
 				StopAnimation();
 				return;
 			}
-			entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = curAnimation, Code = curAnimation, MulWithWalkSpeed = true, BlendMode = EnumAnimationBlendMode.Average, EaseInSpeed = 999f, EaseOutSpeed = 1f }.Init());
+			entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = curAnimation, Code = curAnimation, MulWithWalkSpeed = true, BlendMode = EnumAnimationBlendMode.Average, EaseInSpeed = 999f, EaseOutSpeed = 999f }.Init());
 		}
 
 		private void StopAnimation() {
@@ -347,45 +344,6 @@ namespace VSKingdom {
 			entity.AnimManager.StopAnimation(new string(entity.cachedData.walkAnims));
 			entity.AnimManager.StopAnimation(new string(entity.cachedData.moveAnims));
 			entity.AnimManager.StopAnimation(new string(entity.cachedData.swimAnims));
-		}
-
-		private bool GoingDirectly(Vec3d pos1, Vec3d pos2) {
-			EntitySelection entitySel = new EntitySelection();
-			BlockSelection blockSel = new BlockSelection();
-			// Line trace to see if blocks are in the way.
-			entity.World.RayTraceForSelection(pos1.AddCopy(entity.LocalEyePos), pos2.AddCopy(entity.LocalEyePos), ref blockSel, ref entitySel);
-			// If a door is in the way, open it!
-			if (blockSel?.Block is BlockBaseDoor || blockSel?.Block is BlockDoor) {
-				return !IsLocked(blockSel.Position);
-			}
-			if (blockSel?.Block.IsLiquid() ?? false) {
-				return true;
-			}
-			return false;
-		}
-
-		private bool TryOpen(BlockPos pos) {
-			Block block = entity.World.BlockAccessor.GetBlock(pos);
-			if (IsLocked(pos)) {
-				return false;
-			}
-			Caller caller = new() { Type = EnumCallerType.Entity, Entity = entity, };
-			BlockSelection blockSelection = new(pos, BlockFacing.DOWN, block);
-			TreeAttribute activationArgs = new();
-			activationArgs.SetBool("opened", true);
-			block.Activate(entity.World, caller, blockSelection, activationArgs);
-			return true;
-		}
-
-		private bool IsLocked(BlockPos pos) {
-			ModSystemBlockReinforcement blockReinforcement = entity.Api.ModLoader.GetModSystem<ModSystemBlockReinforcement>();
-			if (!blockReinforcement.IsReinforced(pos)) {
-				return false;
-			}
-			if (entity.cachedData.leadersGUID == null) {
-				return true;
-			}
-			return blockReinforcement.IsLockedForInteract(pos, world.PlayerByUid(entity.cachedData.leadersGUID));
 		}
 
 		private bool ValidPos(Vec3d pos) {

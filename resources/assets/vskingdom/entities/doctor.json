@@ -1,5 +1,5 @@
 {
-	"code": "bandit",
+	"code": "doctor",
 	"class": "EntitySentry",
 	"variantGroups": [ { "code": "gender", "states": [ "masc", "femm" ] } ],
 	"canClimb": true,
@@ -10,19 +10,11 @@
 		"moveSpeed": 0.040,
 		"walkSpeed": 0.020,
 		"baseClass": "melee",
-		"baseState": "DESERTER",
-		"baseSides": "xxxxxxxx",
-		"weapSpawn": [ "game:blade-scrap-scrap", "game:blade-arming-ruined", "game:blade-claymore-ruined", "game:spear-scrap-scrap", "game:club-scrap-scrap", "game:club-generic-wood", "game:bow-crude", "game:bow-simple" ],
-		"ammoSpawn": [ "game:arrow-crude", "game:arrow-flint", "game:arrow-copper" ],
-		"headSpawn": [ "game:clothes-head-peasent-head-scarf", "", "", "", "" ],
-		"handSpawn": [ "game:clothes-hand-survivor", "game:clothes-hand-commoner-gloves", "game:clothes-hand-heavy-leather-gloves", "", "", "", "" ],
-		"gearSpawn": [ "game:clothes-upperbody-tattered-linen-shirt", "game:clothes-upperbody-tattered-crimson-tunic" ],
+		"baseState": "CIVILIAN",
+		"gearSpawn": [ "game:clothes-upperbody-tattered-linen-shirt" ],
 		"pantSpawn": [ "game:clothes-lowerbody-commoner-trousers", "game:clothes-lowerbody-survivor", "game:clothes-lowerbody-raw-hide-trousers" ],
-		"shoeSpawn": [ "game:clothes-foot-survivor", "game:clothes-foot-commoner-boots", "game:clothes-foot-peasent-slippers" ],
-		"helmSpawn": [ "game:clothes-armor-head-brigandine-iron", "game:armor-head-sewn-leather", "", "" ],
-		"bodySpawn": [ "game:clothes-armor-body-brigandine-iron", "game:armor-body-jerkin-leather", "", "" ],
-		"legsSpawn": [ "game:clothes-armor-body-brigandine-iron", "game:armor-legs-jerkin-leather", "", "" ],
-		"canRevive": false,
+		"shoeSpawn": [ "game:clothes-foot-survivor", "game:clothes-foot-peasent-slippers" ],
+		"canRevive": true,
 		"deathAnim": [ "dies", "dies1", "dies2" ],
 		"deathBone": [ "humanoid1", "humanoid2", "humanoid3", "humanoid4", "humanoid5", "humanoid6", "humanoid7" ],
 		"skinnableParts": [
@@ -179,10 +171,15 @@
 				"shapeTemplate": { "base": "game:entity/humanoid/seraphskinparts/face/{code}" },
 				"variants": [
 					{ "code": "angry" },
+					{ "code": "grin" },
 					{ "code": "smirk" },
+					{ "code": "kind" },
 					{ "code": "upset" },
 					{ "code": "neutral" },
-					{ "code": "serious" }
+					{ "code": "sad" },
+					{ "code": "serious" },
+					{ "code": "tired" },
+					{ "code": "very-sad" }
 				]
 			},
 			{
@@ -282,7 +279,7 @@
 			"*-masc": { "base": "vskingdom:entity/humanoid/sentry-masc" },
 			"*-femm": { "base": "vskingdom:entity/humanoid/sentry-femm" }
 		},
-		"texture": { "base": "game:entity/humanoid/seraphskinparts/body/skin1" },
+		"texture": { "base": "game:entity/humanoid/seraphskinparts/body/skin4" },
 		"behaviors": [
 			{ "code": "repulseagents" },
 			{ "code": "controlledphysics", "stepHeight": 1.2 },
@@ -324,31 +321,36 @@
 			{ "code": "health", "currenthealth": 20, "maxhealth": 20 },
 			{ "code": "extraskinnable" },
 			{ "code": "breathe" },
-			{ "code": "emotionstates", "states": [ { "code": "aggressiveondamage", "duration": 7, "chance": 1.00, "slot": 0, "priority": 2, "accumType": "noaccum" }, { "code": "fleeondamage", "duration": 3, "chance": 0.50, "slot": 2, "priority": 5, "accumType": "max", "whenHealthRelBelow": 0.15 } ] },
+			{ "code": "emotionstates", "states": [ { "code": "aggressiveondamage", "duration": 7, "chance": 0.1, "slot": 0, "priority": 2, "accumType": "noaccum" }, { "code": "fleeondamage", "duration": 3, "chance": 1.0, "slot": 2, "priority": 5, "accumType": "max", "whenHealthRelBelow": 0.95 } ] },
 			{ "code": "KingdomFullNames" },
 			{ "code": "KingdomLoyalties" },
-			{ "code": "SoldierDecayBody", "hoursToDecay": 24 },
+			{ "code": "SoldierDecayBody", "hoursToDecay": 96 },
 			{
 				"code": "taskai",
 				"aitasks": [
 					{
 						"code": "SentryAttack",
-						"priority": 2.0,
-						"entityCodes": [ "player", "archer-*", "knight-*", "doctor-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
+						"priority": 1.5,
+						"entityCodes": [ "player", "archer-*", "knight-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "looter-*", "bandit-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
 						"animations": [ "hit", "spearstabs", "swordswing", "swordsmash", "swordslash", "swordstabs" ],
 						"damageTier": 3,
-						"isBandit": true
+						"isBandit": false
 					},
 					{
-						"code": "SentryRanged",
-						"priority": 2.0,
-						"entityCodes": [ "player", "archer-*", "knight-*", "doctor-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
-						"damageTier": 3,
-						"isBandit": true
+						"code": "SentryDoctor",
+						"priority": 2.0
 					},
 					{
 						"code": "SentrySearch",
 						"priority": 1.5
+					},
+					{
+						"code": "SentryFollow",
+						"priority": 1.5
+					},
+					{
+						"code": "SentryPatrol",
+						"priority": 1.0
 					},
 					{
 						"code": "SentryWander",

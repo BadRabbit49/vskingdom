@@ -5,336 +5,336 @@
 		"path": "/server/behaviors/9/aitasks/0/entityCodesByType/*",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/bear.json",
 		"path": "/server/behaviors/9/aitasks/1/entityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/bear.json",
 		"path": "/server/behaviors/9/aitasks/2/entityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/bear.json",
 		"path": "/server/behaviors/9/aitasks/3/entityCodesByType/*",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/bear.json",
 		"path": "/server/behaviors/9/aitasks/4/entityCodesByType/*-panda",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/bear.json",
 		"path": "/server/behaviors/9/aitasks/4/entityCodesByType/*-sun",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/bear.json",
 		"path": "/server/behaviors/9/aitasks/5/entityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/bell.json",
 		"path": "/server/behaviors/6/aitasks/0/onNearbyEntityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/bell.json",
 		"path": "/server/behaviors/6/aitasks/2/stopOnNearbyEntityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/drifter.json",
 		"path": "/server/behaviors/8/aitasks/0/entityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/drifter.json",
 		"path": "/server/behaviors/8/aitasks/1/entityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/drifter.json",
 		"path": "/server/behaviors/8/aitasks/2/entityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/drifter.json",
 		"path": "/server/behaviors/8/aitasks/3/entityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/drifter.json",
 		"path": "/server/behaviors/8/aitasks/4/entityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/eidolon-immobilized.json",
 		"path": "/server/behaviors/5/aitasks/0/entityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/eidolon-immobilized.json",
 		"path": "/server/behaviors/5/aitasks/1/entityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/eidolon-immobilized.json",
 		"path": "/server/behaviors/5/aitasks/2/entityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/eidolon-immobilized.json",
 		"path": "/server/behaviors/5/aitasks/3/entityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/hyena-male.json",
 		"path": "/server/behaviors/9/aitasks/0/entityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/hyena-male.json",
 		"path": "/server/behaviors/9/aitasks/1/entityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/hyena-male.json",
 		"path": "/server/behaviors/9/aitasks/2/stopOnNearbyEntityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/hyena-male.json",
 		"path": "/server/behaviors/9/aitasks/3/entityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/hyena-male.json",
 		"path": "/server/behaviors/9/aitasks/7/stopOnNearbyEntityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/hyena-female.json",
 		"path": "/server/behaviors/10/aitasks/0/entityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/hyena-female.json",
 		"path": "/server/behaviors/10/aitasks/1/entityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/hyena-female.json",
 		"path": "/server/behaviors/10/aitasks/2/stopOnNearbyEntityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/hyena-female.json",
 		"path": "/server/behaviors/10/aitasks/3/entityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/hyena-female.json",
 		"path": "/server/behaviors/10/aitasks/8/stopOnNearbyEntityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/pig-wild-male.json",
 		"path": "/server/behaviors/9/aitasks/0/entityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/pig-wild-male.json",
 		"path": "/server/behaviors/9/aitasks/1/entityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/pig-wild-male.json",
 		"path": "/server/behaviors/9/aitasks/2/entityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/wolf-male.json",
 		"path": "/server/behaviors/9/aitasks/0/entityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/wolf-male.json",
 		"path": "/server/behaviors/9/aitasks/0/entityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/wolf-male.json",
 		"path": "/server/behaviors/9/aitasks/1/entityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/wolf-male.json",
 		"path": "/server/behaviors/9/aitasks/2/entityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/wolf-male.json",
 		"path": "/server/behaviors/9/aitasks/3/entityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/wolf-male.json",
 		"path": "/server/behaviors/9/aitasks/4/entityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/wolf-male.json",
 		"path": "/server/behaviors/9/aitasks/6/stopOnNearbyEntityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/wolf-male.json",
 		"path": "/server/behaviors/9/aitasks/11/stopOnNearbyEntityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/wolf-female.json",
 		"path": "/server/behaviors/10/aitasks/0/entityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/wolf-female.json",
 		"path": "/server/behaviors/10/aitasks/1/entityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/wolf-female.json",
 		"path": "/server/behaviors/10/aitasks/2/entityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/wolf-female.json",
 		"path": "/server/behaviors/10/aitasks/3/entityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/wolf-female.json",
 		"path": "/server/behaviors/10/aitasks/4/entityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/wolf-female.json",
 		"path": "/server/behaviors/10/aitasks/7/stopOnNearbyEntityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/wolf-female.json",
 		"path": "/server/behaviors/10/aitasks/12/stopOnNearbyEntityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/locust.json",
 		"path": "/server/behaviors/7/aitasks/0/entityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "game:entities/land/locust.json",
 		"path": "/server/behaviors/7/aitasks/2/entityCodes",
 		"side": "server",
 		"op": "addmerge",
-		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:bandit-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	// VS Village //
 	{
@@ -368,7 +368,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/bandit-axe.json",
@@ -387,7 +387,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/bandit-axe.json",
@@ -395,7 +395,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/bandit-axe.json",
@@ -403,7 +403,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/bandit-knife.json",
@@ -411,7 +411,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/bandit-knife.json",
@@ -430,7 +430,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/bandit-knife.json",
@@ -438,7 +438,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/bandit-knife.json",
@@ -446,7 +446,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/bandit-spear.json",
@@ -454,7 +454,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/bandit-spear.json",
@@ -473,7 +473,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/bandit-spear.json",
@@ -481,7 +481,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/bandit-spear.json",
@@ -489,7 +489,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/deserter-archer.json",
@@ -497,7 +497,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/deserter-archer.json",
@@ -516,7 +516,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/deserter-archer.json",
@@ -524,7 +524,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/deserter-archer.json",
@@ -532,7 +532,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/deserter-bannerman.json",
@@ -540,7 +540,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/deserter-bannerman.json",
@@ -570,7 +570,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/deserter-bannerman.json",
@@ -578,7 +578,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/deserter-footman.json",
@@ -586,7 +586,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/deserter-footman.json",
@@ -605,7 +605,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/deserter-footman.json",
@@ -613,7 +613,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/deserter-footman.json",
@@ -621,7 +621,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/deserter-footman.json",
@@ -629,7 +629,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/hound-feral.json",
@@ -637,7 +637,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/hound-feral.json",
@@ -656,7 +656,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/hound-feral.json",
@@ -664,7 +664,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/hound-feral.json",
@@ -672,7 +672,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/hound-hunting.json",
@@ -691,7 +691,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/hound-hunting.json",
@@ -699,7 +699,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/looter.json",
@@ -707,7 +707,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/looter.json",
@@ -726,7 +726,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/looter.json",
@@ -734,7 +734,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/looter.json",
@@ -742,7 +742,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/looter.json",
@@ -750,7 +750,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/poacher-archer.json",
@@ -758,7 +758,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/poacher-archer.json",
@@ -779,7 +779,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/poacher-archer.json",
@@ -787,7 +787,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": ["vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": ["vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/poacher-archer.json",
@@ -821,7 +821,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/poacher-spear.json",
@@ -829,7 +829,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/poacher-spear.json",
@@ -850,7 +850,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/poacher-spear.json",
@@ -858,7 +858,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/poacher-spear.json",
@@ -866,7 +866,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/poacher-spear.json",
@@ -887,7 +887,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/yeoman-archer.json",
@@ -895,7 +895,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/yeoman-archer.json",
@@ -916,7 +916,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/yeoman-archer.json",
@@ -937,7 +937,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	{
 		"file": "outlawmod:entities/mobs/yeoman-archer.json",
@@ -945,7 +945,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "outlawmod" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*" ]
 	},
 	// Feverstone Wilds //
 	{
@@ -954,7 +954,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "feverstonewilds" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "feverstonewilds:entities/land/cockatrice.json",
@@ -962,7 +962,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "feverstonewilds" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "feverstonewilds:entities/land/direwolf.json",
@@ -970,7 +970,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "feverstonewilds" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "feverstonewilds:entities/land/faunling.json",
@@ -978,7 +978,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "feverstonewilds" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "feverstonewilds:entities/land/faunling.json",
@@ -986,7 +986,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "feverstonewilds" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "feverstonewilds:entities/land/faunling.json",
@@ -994,7 +994,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "feverstonewilds" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "feverstonewilds:entities/land/foal.json",
@@ -1002,7 +1002,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "feverstonewilds" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "feverstonewilds:entities/land/geodecrab.json",
@@ -1010,7 +1010,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "feverstonewilds" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "feverstonewilds:entities/land/golem.json",
@@ -1018,7 +1018,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "feverstonewilds" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "feverstonewilds:entities/land/golem.json",
@@ -1026,7 +1026,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "feverstonewilds" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "feverstonewilds:entities/land/golem.json",
@@ -1034,7 +1034,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "feverstonewilds" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "feverstonewilds:entities/land/hellboar.json",
@@ -1042,7 +1042,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "feverstonewilds" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "feverstonewilds:entities/land/hellboar.json",
@@ -1050,7 +1050,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "feverstonewilds" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "feverstonewilds:entities/land/hellboar.json",
@@ -1058,7 +1058,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "feverstonewilds" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "feverstonewilds:entities/land/hellboar.json",
@@ -1066,7 +1066,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "feverstonewilds" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "feverstonewilds:entities/land/horse.json",
@@ -1074,7 +1074,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "feverstonewilds" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "feverstonewilds:entities/land/horse.json",
@@ -1082,7 +1082,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "feverstonewilds" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "feverstonewilds:entities/land/ostrich.json",
@@ -1090,7 +1090,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "feverstonewilds" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "feverstonewilds:entities/land/ostrich.json",
@@ -1098,7 +1098,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "feverstonewilds" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "feverstonewilds:entities/land/ostrich.json",
@@ -1106,7 +1106,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "feverstonewilds" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "feverstonewilds:entities/land/scorpion.json",
@@ -1114,7 +1114,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "feverstonewilds" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "feverstonewilds:entities/land/scorpion.json",
@@ -1122,7 +1122,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "feverstonewilds" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "feverstonewilds:entities/land/scorpion.json",
@@ -1130,7 +1130,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "feverstonewilds" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "feverstonewilds:entities/land/spider.json",
@@ -1138,7 +1138,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "feverstonewilds" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "feverstonewilds:entities/land/spider.json",
@@ -1146,7 +1146,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "feverstonewilds" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "feverstonewilds:entities/water/sharks.json",
@@ -1154,7 +1154,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "feverstonewilds" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "feverstonewilds:entities/water/sharks.json",
@@ -1162,7 +1162,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "feverstonewilds" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "feverstonewilds:entities/water/sharks.json",
@@ -1170,7 +1170,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "feverstonewilds" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "feverstonewilds:entities/water/sharks.json",
@@ -1178,7 +1178,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "feverstonewilds" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "feverstonewilds:entities/water/sharks.json",
@@ -1186,7 +1186,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "feverstonewilds" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "feverstonewilds:entities/water/discus.json",
@@ -1194,7 +1194,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "feverstonewilds" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "feverstonewilds:entities/water/eel.json",
@@ -1202,7 +1202,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "feverstonewilds" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "feverstonewilds:entities/water/eel.json",
@@ -1210,7 +1210,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "feverstonewilds" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "feverstonewilds:entities/water/eel.json",
@@ -1218,7 +1218,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "feverstonewilds" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	// Fantasy Creatures //
 	{
@@ -1227,7 +1227,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "fantasycreatures" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "fantasycreatures:entities/land/cavegoblin.json",
@@ -1235,7 +1235,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "fantasycreatures" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "fantasycreatures:entities/land/cavegoblin.json",
@@ -1243,7 +1243,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "fantasycreatures" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "fantasycreatures:entities/land/cavegoblin.json",
@@ -1251,7 +1251,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "fantasycreatures" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "fantasycreatures:entities/land/dragon.json",
@@ -1259,7 +1259,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "fantasycreatures" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "fantasycreatures:entities/land/dragon.json",
@@ -1267,7 +1267,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "fantasycreatures" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "fantasycreatures:entities/land/dragon.json",
@@ -1275,7 +1275,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "fantasycreatures" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "fantasycreatures:entities/land/dragon.json",
@@ -1283,7 +1283,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "fantasycreatures" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "fantasycreatures:entities/land/dragon.json",
@@ -1291,7 +1291,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "fantasycreatures" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "fantasycreatures:entities/land/dragon-flying.json",
@@ -1299,7 +1299,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "fantasycreatures" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "fantasycreatures:entities/land/ork.json",
@@ -1307,7 +1307,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "fantasycreatures" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "fantasycreatures:entities/land/ork.json",
@@ -1315,7 +1315,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "fantasycreatures" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "fantasycreatures:entities/land/ork.json",
@@ -1323,7 +1323,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "fantasycreatures" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "fantasycreatures:entities/land/skeleton.json",
@@ -1331,7 +1331,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "fantasycreatures" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "fantasycreatures:entities/land/skeleton.json",
@@ -1339,7 +1339,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "fantasycreatures" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "fantasycreatures:entities/land/skeleton.json",
@@ -1347,7 +1347,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "fantasycreatures" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "fantasycreatures:entities/land/skeleton.json",
@@ -1355,7 +1355,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "fantasycreatures" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 
 
@@ -1365,7 +1365,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "fantasycreatures" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "fantasycreatures:entities/land/skeletonblkgrd.json",
@@ -1373,7 +1373,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "fantasycreatures" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "fantasycreatures:entities/land/skeletonblkgrd.json",
@@ -1381,7 +1381,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "fantasycreatures" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 
 
@@ -1391,7 +1391,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "fantasycreatures" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "fantasycreatures:entities/land/skeleton-deserter.json",
@@ -1399,7 +1399,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "fantasycreatures" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "fantasycreatures:entities/land/skeleton-deserter.json",
@@ -1407,7 +1407,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "fantasycreatures" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "fantasycreatures:entities/land/skeleton-deserter.json",
@@ -1415,7 +1415,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "fantasycreatures" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "fantasycreatures:entities/land/surface_skeleton.json",
@@ -1423,7 +1423,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "fantasycreatures" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "fantasycreatures:entities/land/surface_skeleton.json",
@@ -1431,7 +1431,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "fantasycreatures" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "fantasycreatures:entities/land/surface_skeleton.json",
@@ -1439,7 +1439,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "fantasycreatures" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "fantasycreatures:entities/land/surface_skeleton.json",
@@ -1447,7 +1447,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "fantasycreatures" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	// Something in the Water //
 	{
@@ -1456,7 +1456,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "somethinginthewater" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "somethinginthewater:entities/water/bigshark.json",
@@ -1464,7 +1464,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "somethinginthewater" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "somethinginthewater:entities/water/bigshark.json",
@@ -1472,7 +1472,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "somethinginthewater" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "somethinginthewater:entities/water/bigshark.json",
@@ -1480,7 +1480,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "somethinginthewater" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "somethinginthewater:entities/water/shark.json",
@@ -1488,7 +1488,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "somethinginthewater" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "somethinginthewater:entities/water/shark.json",
@@ -1496,7 +1496,7 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "somethinginthewater" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	},
 	{
 		"file": "somethinginthewater:entities/water/shark.json",
@@ -1504,6 +1504,6 @@
 		"side": "server",
 		"op": "addmerge",
 		"dependsOn": [ { "modid": "somethinginthewater" } ],
-		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:bandit-*" ]
+		"value": [ "vskingdom:archer-*", "vskingdom:knight-*", "vskingdom:doctor-*", "vskingdom:bandit-*" ]
 	}
 ]

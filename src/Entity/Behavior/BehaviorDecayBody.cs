@@ -37,6 +37,17 @@ namespace VSKingdom {
 			}
 		}
 
+		public override void OnInteract(EntityAgent byEntity, ItemSlot itemslot, Vec3d hitPosition, EnumInteractMode mode, ref EnumHandling handled) {
+			if (!entity.Alive && entity.Properties.Attributes["canRevive"].AsBool(false) && !itemslot.Empty && itemslot.Itemstack.Item is ItemPoultice) {
+				entity.Revive();
+				entity.WatchedAttributes.GetTreeAttribute("health")?.SetFloat("currenthealth", itemslot.Itemstack.ItemAttributes["health"].AsFloat(1));
+				entity.WatchedAttributes.MarkPathDirty("health");
+				itemslot.TakeOut(1);
+				itemslot.MarkDirty();
+			}
+			base.OnInteract(byEntity, itemslot, hitPosition, mode, ref handled);
+		}
+
 		public override void OnGameTick(float deltaTime) {
 			base.OnGameTick(deltaTime);
 			if (!entity.Alive && TotalHoursDead + HoursDecayTime < entity.World.Calendar.TotalHours) {
@@ -45,11 +56,11 @@ namespace VSKingdom {
 		}
 
 		public void LootGear(EntitySentry killer, EntitySentry victim) {
-			if (!entity.World.Config.GetAsBool(NpcCanLoot) || killer is null || victim is null || killer.ServerPos.DistanceTo(victim.ServerPos) > 4f) {
+			if (!entity.World.Config.GetAsBool(CanLootNpcs) || killer is null || victim is null || killer.ServerPos.DistanceTo(victim.ServerPos) > 4f) {
 				return;
 			}
 			// If the entities were at war with eachother then loot will be dropped. Specifically their armor and what they had in their right hand slot.
-			if (killer.cachedData.enemiesLIST.Contains(victim.cachedData.kingdomGUID) || killer.cachedData.kingdomGUID == BanditryID) {
+			if (killer.cachedData.enemiesLIST.Contains(victim.cachedData.kingdomGUID) || killer.cachedData.kingdomGUID == BanditrysID) {
 				// If the killer can, try looting the player corpse right away, take what is better.
 				for (int i = 12; i < 14; i++) {
 					try {

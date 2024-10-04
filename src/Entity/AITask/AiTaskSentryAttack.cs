@@ -8,6 +8,7 @@ using Vintagestory.API.Util;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Datastructures;
 using Vintagestory.GameContent;
+using VSKingdom.Utilities;
 
 namespace VSKingdom {
 	public class AiTaskSentryAttack : AiTaskBaseTargetable {
@@ -86,7 +87,7 @@ namespace VSKingdom {
 			if (ent is EntityProjectile projectile && projectile.FiredBy != null) {
 				targetEntity = projectile.FiredBy;
 			}
-			if (ent.WatchedAttributes.HasAttribute(KingdomUID)) {
+			if (ent.WatchedAttributes.HasAttribute(KingdomGUID)) {
 				return IsAnEnemy(ent);
 			}
 			if (ignoreEntityCode || IsTargetEntity(ent.Code.Path)) {
@@ -200,8 +201,13 @@ namespace VSKingdom {
 		}
 
 		public override void OnEntityHurt(DamageSource source, float damage) {
-			if (damage < 1 || source == null || !IsTargetableEntity(source.GetCauseEntity(), (float)source.GetSourcePosition().DistanceTo(entity.ServerPos.XYZ))) {
+			if (damage < 1 || source?.GetCauseEntity() == null) {
 				return;
+			}
+			if (source.GetCauseEntity().WatchedAttributes.HasAttribute(KingdomGUID) && source.GetCauseEntity().WatchedAttributes.GetKingdom() == entity.cachedData.kingdomGUID) {
+				if (entity.WatchedAttributes.GetKingdom() != CommonersID) {
+					return;
+				}
 			}
 			if (source.GetCauseEntity() != null && source.Type != EnumDamageType.Heal && lastHelpedMs + 5000 < entity.World.ElapsedMilliseconds) {
 				targetEntity = source.GetCauseEntity();
@@ -255,15 +261,15 @@ namespace VSKingdom {
 
 		private bool IsAnEnemy(Entity target) {
 			if (banditPilled) {
-				return entity.cachedData.kingdomGUID != target.WatchedAttributes.GetString(KingdomUID);
+				return entity.cachedData.kingdomGUID != target.WatchedAttributes.GetString(KingdomGUID);
 			}
 			if (target is EntitySentry sentry) {
-				return entity.cachedData.enemiesLIST.Contains(sentry.cachedData.kingdomGUID) || sentry.cachedData.kingdomGUID == BanditryID;
+				return entity.cachedData.enemiesLIST.Contains(sentry.cachedData.kingdomGUID) || sentry.cachedData.kingdomGUID == BanditrysID;
 			}
 			if (target is EntityPlayer player) {
-				return entity.cachedData.outlawsLIST.Contains(player.PlayerUID) || entity.cachedData.enemiesLIST.Contains(player.WatchedAttributes.GetString(KingdomUID));
+				return entity.cachedData.outlawsLIST.Contains(player.PlayerUID) || entity.cachedData.enemiesLIST.Contains(player.WatchedAttributes.GetString(KingdomGUID));
 			}
-			return entity.cachedData.enemiesLIST.Contains(target.WatchedAttributes.GetString(KingdomUID));
+			return entity.cachedData.enemiesLIST.Contains(target.WatchedAttributes.GetString(KingdomGUID));
 		}
 
 		private bool IsTargetEntity(string testPath) {

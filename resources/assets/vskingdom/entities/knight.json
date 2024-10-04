@@ -10,9 +10,11 @@
 		"moveSpeed": 0.040,
 		"walkSpeed": 0.020,
 		"baseClass": "melee",
+		"baseState": "ENLISTED",
 		"gearSpawn": [ "game:clothes-upperbody-tattered-linen-shirt" ],
 		"pantSpawn": [ "game:clothes-lowerbody-commoner-trousers", "game:clothes-lowerbody-survivor", "game:clothes-lowerbody-raw-hide-trousers" ],
 		"shoeSpawn": [ "game:clothes-foot-survivor", "game:clothes-foot-peasent-slippers" ],
+		"canRevive": true,
 		"deathAnim": [ "dies", "dies1", "dies2" ],
 		"deathBone": [ "humanoid1", "humanoid2", "humanoid3", "humanoid4", "humanoid5", "humanoid6", "humanoid7" ],
 		"skinnableParts": [
@@ -273,8 +275,11 @@
 	},
 	"client": {
 		"renderer": "SkinnableShape",
-		"shape": { "base": "vskingdom:entity/humanoid/human" },
-		"texture": { "base": "game:entity/humanoid/seraphskinparts/body/skin1" },
+		"shapeByType": {
+			"*-masc": { "base": "vskingdom:entity/humanoid/sentry-masc" },
+			"*-femm": { "base": "vskingdom:entity/humanoid/sentry-femm" }
+		},
+		"texture": { "base": "game:entity/humanoid/seraphskinparts/body/skin8" },
 		"behaviors": [
 			{ "code": "repulseagents" },
 			{ "code": "controlledphysics", "stepHeight": 1.2 },
@@ -316,7 +321,7 @@
 			{ "code": "health", "currenthealth": 20, "maxhealth": 20 },
 			{ "code": "extraskinnable" },
 			{ "code": "breathe" },
-			{ "code": "emotionstates", "states": [ { "code": "aggressiveondamage", "duration": 7, "chance": 1.00, "slot": 0, "priority": 2, "accumType": "noaccum" }, { "code": "fleeondamage", "duration": 3, "chance": 0.50, "slot": 2, "priority": 5, "accumType": "max", "whenHealthRelBelow": 0.15 } ] },
+			{ "code": "emotionstates", "states": [ { "code": "aggressiveondamage", "duration": 7, "chance": 1.0, "slot": 0, "priority": 2, "accumType": "noaccum" }, { "code": "fleeondamage", "duration": 3, "chance": 0.5, "slot": 2, "priority": 5, "accumType": "max", "whenHealthRelBelow": 0.15 } ] },
 			{ "code": "KingdomFullNames" },
 			{ "code": "KingdomLoyalties" },
 			{ "code": "SoldierDecayBody", "hoursToDecay": 96 },
@@ -326,14 +331,14 @@
 					{
 						"code": "SentryRanged",
 						"priority": 2.0,
-						"entityCodes": [ "player", "archer-*", "knight-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "looter-*", "bandit-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
+						"entityCodes": [ "player", "archer-*", "knight-*", "doctor-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "looter-*", "bandit-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
 						"damageTier": 3,
 						"isBandit": false
 					},
 					{
 						"code": "SentryAttack",
 						"priority": 2.0,
-						"entityCodes": [ "player", "archer-*", "knight-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "looter-*", "bandit-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
+						"entityCodes": [ "player", "archer-*", "knight-*", "doctor-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "looter-*", "bandit-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
 						"animations": [ "hit", "spearstabs", "swordswing", "swordsmash", "swordslash", "swordstabs" ],
 						"damageTier": 3,
 						"isBandit": false

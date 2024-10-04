@@ -8,60 +8,12 @@ namespace VSKingdom.Utilities {
 			return Lang.Get("vskingdom:" + langKeys);
 		}
 
-		public static string GetL(string langCode, string langKeys) {
-			return Lang.GetL(langCode, "vskingdom:" + langKeys);
+		public static string GetL(string langCode, string langKeys, params object[] entryKey) {
+			return Lang.GetL(langCode, "vskingdom:" + langKeys, entryKey);
 		}
 
-		public static string Set(string langKeys, string entryKey) {
-			return Lang.Get("vskingdom:" + langKeys).Replace("[ENTRY]", entryKey);
-		}
-
-		public static string SetL(string langCode, string langKeys, string entryKey) {
-			return Lang.GetL(langCode, "vskingdom:" + langKeys).Replace("[ENTRY]", entryKey);
-		}
-
-		public static string Set(string langKeys, string entryKey1, string entryKey2 = null, string entryKey3 = null, string entryKey4 = null) {
-			return Lang.Get("vskingdom:" + langKeys)
-				.Replace("[ENTRY]", entryKey1)
-				.Replace("[ENTRY1]", entryKey1)
-				.Replace("[ENTRY2]", entryKey2)
-				.Replace("[ENTRY3]", entryKey3)
-				.Replace("[ENTRY4]", entryKey4);
-		}
-
-		public static string SetL(string langCode, string langKeys, string entryKey1, string entryKey2 = null, string entryKey3 = null, string entryKey4 = null) {
-			return Lang.GetL(langCode, "vskingdom:" + langKeys)
-				.Replace("[ENTRY]", entryKey1)
-				.Replace("[ENTRY1]", entryKey1)
-				.Replace("[ENTRY2]", entryKey2)
-				.Replace("[ENTRY3]", entryKey3)
-				.Replace("[ENTRY4]", entryKey4);
-		}
-
-		public static string Set(string langKeys, string[] entryKeys) {
-			string msg = Lang.Get("vskingdom:" + langKeys);
-			for (int i = 1; i < entryKeys.Length; i++) {
-				msg.Replace($"[ENTRY{i}]", entryKeys[i - 1]);
-			}
-			return msg;
-		}
-
-		public static string Ref(string langKeys, string langEntry1, string langEntry2 = null, string langEntry3 = null, string langEntry4 = null) {
-			return Lang.Get("vskingdom:" + langKeys)
-				.Replace("[ENTRY]", Lang.Get(langEntry1))
-				.Replace("[ENTRY1]", Lang.Get(langEntry1))
-				.Replace("[ENTRY2]", Lang.Get(langEntry2))
-				.Replace("[ENTRY3]", Lang.Get(langEntry3))
-				.Replace("[ENTRY4]", Lang.Get(langEntry4));
-		}
-
-		public static string RefL(string langCode, string langKeys, string langEntry1, string langEntry2 = null, string langEntry3 = null, string langEntry4 = null) {
-			return Lang.GetL(langCode, "vskingdom:" + langKeys)
-				.Replace("[ENTRY]", Lang.GetL(langCode, langEntry1))
-				.Replace("[ENTRY1]", Lang.GetL(langCode, langEntry1))
-				.Replace("[ENTRY2]", Lang.GetL(langCode, langEntry2))
-				.Replace("[ENTRY3]", Lang.GetL(langCode, langEntry3))
-				.Replace("[ENTRY4]", Lang.GetL(langCode, langEntry4));
+		public static string GetL(string langCode, string langKeys, string langKey2, bool translate = true) {
+			return Lang.GetL(langCode, "vskingdom:" + langKeys, translate ? Lang.GetL(langCode, "vskingdom:" + langKey2) : langKey2);
 		}
 
 		public static string Low(string fakeName) {

@@ -140,10 +140,22 @@ namespace VSKingdom {
 			burnFuel = tree.GetDouble("burnFuel");
 			ownerUID = tree.GetString("ownerUID");
 			if (tree.HasAttribute("contents") && tree.HasAttribute("itemAmnt")) {
-				contents = new ItemStack(Api.World.GetItem(new AssetLocation(tree.GetString("contents"))), tree.GetInt("itemAmnt"));
+				var itemCode = new AssetLocation(tree.GetString("contents"));
+				int itemAmnt = tree.GetInt("itemAmnt");
+				if (itemCode.Valid) {
+					contents = new ItemStack(worldAccessForResolve.GetItem(itemCode), itemAmnt);
+				}
 			}
 			if (tree.HasAttribute("entities")) {
-				entGUIDS = GetListFromString(tree.GetString("entities"));
+				var entsUids = GetListFromString(tree.GetString("entities"));
+				entGUIDS.Clear();
+				entities.Clear();
+				foreach (var entID in entsUids) {
+					if (worldAccessForResolve.GetEntityById(entID) != null && worldAccessForResolve.GetEntityById(entID) is EntitySentry sentry && sentry.Alive) {
+						entGUIDS.Add(entID);
+						entities.Add(sentry);
+					}
+				}
 			}
 			if (Api != null) {
 				contents?.ResolveBlockOrItem(Api.World);
@@ -168,7 +180,7 @@ namespace VSKingdom {
 				tree.SetString("entities", GetStringFromList(entGUIDS));
 			}
 		}
-	
+
 		public override void OnReceivedServerPacket(int packetid, byte[] data) {
 			base.OnReceivedServerPacket(packetid, data);
 			switch (packetid) {
@@ -261,7 +273,7 @@ namespace VSKingdom {
 			if (entGUIDS.Contains(ent.EntityId) || !ent.Alive) {
 				return false;
 			}
-			if (hasEnemy && ent.WatchedAttributes.HasAttribute(KingdomUID) && enemyIDs.Contains(ent.WatchedAttributes.GetString(KingdomUID))) {
+			if (hasEnemy && ent.WatchedAttributes.HasAttribute(KingdomGUID) && enemyIDs.Contains(ent.WatchedAttributes.GetString(KingdomGUID))) {
 				return true;
 			}
 			return false;
@@ -294,7 +306,7 @@ namespace VSKingdom {
 						CombustibleProperties fuelProperties = itemstack.Collectible.CombustibleProps;
 						burnFuel += Math.Clamp(fuelProperties.BurnDuration, 0, burnTime);
 					}
-					renderer?.SetContents(itemstack, (float)burnFuel, isActive, false);
+					renderer?.SetContents(itemstack, (float)burnFuel, isActive, true);
 					return true;
 				}
 			} catch (NullReferenceException e) {
@@ -342,6 +354,9 @@ namespace VSKingdom {
 				return;
 			}
 			isActive = false;
+			Api.World.PlaySoundAt(new AssetLocation("sounds/effect/extinguish"), Pos.X, Pos.Y, Pos.Z, null, EnumSoundType.Sound, -0.5f, 16f, 1);
+			renderer?.SetContents(contents, (float)burnFuel, isActive, true);
+			MarkDirty(true);
 		}
 
 		public void IgnitePost() {
@@ -349,8 +364,8 @@ namespace VSKingdom {
 				return;
 			}
 			isActive = true;
-			renderer?.SetContents(contents, (float)burnFuel, isActive, false);
-			MarkDirty();
+			renderer?.SetContents(contents, (float)burnFuel, isActive, true);
+			MarkDirty(true);
 		}
 
 		public float GetHeatStrength(IWorldAccessor world, BlockPos heatSourcePos, BlockPos heatReceiverPos) {

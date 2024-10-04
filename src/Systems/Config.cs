@@ -1,34 +1,33 @@
 ﻿using Vintagestory.API.Common;
 
 namespace VSKingdom {
-	class ModConfig {
+	class KingdomConfig {
 		private VSKingdomConfig config;
-		class RegisterConfig : ModSystem {
-			ModConfig config = new ModConfig();
 
-			public override void StartPre(ICoreAPI api) {
-				base.StartPre(api);
-				config.ReadConfig(api);
-			}
-
-			public override void Dispose() {
-				base.Dispose();
-				config = null;
-			}
+		private VSKingdomConfig LoadConfig(ICoreAPI api) {
+			return api.LoadModConfig<VSKingdomConfig>("VSKingdomConfig.json");
 		}
-		// Read values from config file.
+
+		private void MakeConfig(ICoreAPI api) {
+			api.StoreModConfig<VSKingdomConfig>(new VSKingdomConfig(api.Assets.TryGet(AssetLocation.Create(DefaultSettings)).ToObject<VSKingdomConfig>()), "VSKingdomConfig.json");
+		}
+
+		private void MakeConfig(ICoreAPI api, VSKingdomConfig prevSettings) {
+			api.StoreModConfig<VSKingdomConfig>(new VSKingdomConfig(prevSettings), "VSKingdomConfig.json");
+		}
+
 		public void ReadConfig(ICoreAPI api) {
 			try {
 				config = LoadConfig(api);
 				// Only generate new files to default when config is null.
 				if (config is null) {
-					GenerateConfig(api);
+					MakeConfig(api);
 					config = LoadConfig(api);
 				} else {
-					GenerateConfig(api, config);
+					MakeConfig(api, config);
 				}
 			} catch {
-				GenerateConfig(api);
+				MakeConfig(api);
 				config = LoadConfig(api);
 			}
 			api.World.Config.SetBool("Allowed_SentryTeamHurt", config.Allowed_SentryTeamHurt);
@@ -50,18 +49,6 @@ namespace VSKingdom {
 			api.World.Config.SetLong("Kingdom_MinCreateLevel", config.Kingdom_MinCreateLevel);
 			api.World.Config.SetLong("Kingdom_CreateCooldown", config.Kingdom_CreateCooldown);
 			api.World.Config.SetLong("Kingdom_MaxUserCreated", config.Kingdom_MaxUserCreated);
-		}
-
-		private VSKingdomConfig LoadConfig(ICoreAPI api) {
-			return api.LoadModConfig<VSKingdomConfig>("VSKingdomConfig.json");
-		}
-
-		private void GenerateConfig(ICoreAPI api) {
-			api.StoreModConfig<VSKingdomConfig>(new VSKingdomConfig(api.Assets.TryGet(AssetLocation.Create(defaultSettings)).ToObject<VSKingdomConfig>()), "VSKingdomConfig.json");
-		}
-
-		private void GenerateConfig(ICoreAPI api, VSKingdomConfig prevSettings) {
-			api.StoreModConfig<VSKingdomConfig>(new VSKingdomConfig(prevSettings), "VSKingdomConfig.json");
 		}
 	}
 

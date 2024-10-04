@@ -140,7 +140,7 @@ namespace VSKingdom {
 		// - ✔ If failed search is high, reduce wander range.
 		// - ✘ If wander ranges are not met.
 		private Vec3d LoadNextWanderTarget() {
-			bool canFallDamage = entity.Api.World.Config.GetAsBool(FallDamage);
+			bool canFallDamage = entity.Api.World.Config.GetAsBool(FallDamages);
 			int num = 9;
 			float multiplier = 1f;
 			Vec4d bestTarget = null;
@@ -256,7 +256,7 @@ namespace VSKingdom {
 				entity.AnimManager.StopAnimation(curAnimation);
 				curAnimation = new string(entity.cachedData.walkAnims);
 			}
-			entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = curAnimation, Code = curAnimation, BlendMode = EnumAnimationBlendMode.Average, MulWithWalkSpeed = true, EaseOutSpeed = 999f }.Init());
+			entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = curAnimation, Code = curAnimation, BlendMode = EnumAnimationBlendMode.Average, MulWithWalkSpeed = true, EaseInSpeed = 999f, EaseOutSpeed = 999f }.Init());
 		}
 
 		private void StopAnimation() {

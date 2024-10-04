@@ -7,12 +7,14 @@
 	"deadHitboxSize": {"x": 0.75, "y": 0.5},
 	"eyeHeight": 1.7,
 	"attributes": {
-		"moveSpeed": 0.040,
-		"walkSpeed": 0.020,
+		"moveSpeed": 0.044,
+		"walkSpeed": 0.022,
 		"baseClass": "range",
+		"baseState": "ENLISTED",
 		"gearSpawn": [ "game:clothes-upperbody-tattered-linen-shirt" ],
-		"pantSpawn": [ "game:clothes-lowerbody-commoner-trousers", "game:clothes-lowerbody-survivor" ],
+		"pantSpawn": [ "game:clothes-lowerbody-commoner-trousers", "game:clothes-lowerbody-survivor", "game:clothes-lowerbody-raw-hide-trousers" ],
 		"shoeSpawn": [ "game:clothes-foot-survivor", "game:clothes-foot-peasent-slippers" ],
+		"canRevive": true,
 		"deathAnim": [ "dies", "dies1", "dies2" ],
 		"deathBone": [ "humanoid1", "humanoid2", "humanoid3", "humanoid4", "humanoid5", "humanoid6", "humanoid7" ],
 		"skinnableParts": [
@@ -273,8 +275,11 @@
 	},
 	"client": {
 		"renderer": "SkinnableShape",
-		"shape": { "base": "vskingdom:entity/humanoid/human" },
-		"texture": { "base": "game:entity/humanoid/seraphskinparts/body/skin1" },
+		"shapeByType": {
+			"*-masc": { "base": "vskingdom:entity/humanoid/sentry-masc" },
+			"*-femm": { "base": "vskingdom:entity/humanoid/sentry-femm" }
+		},
+		"texture": { "base": "game:entity/humanoid/seraphskinparts/body/skin11" },
 		"behaviors": [
 			{ "code": "repulseagents" },
 			{ "code": "controlledphysics", "stepHeight": 1.2 },
@@ -301,7 +306,7 @@
 			{
 				"code": "hurt",
 				"animation": "hurt",
-				"blendMode": "AddAverage",
+				"blendMode": "Add",
 				"animationSpeed": 3
 			}
 		]
@@ -326,14 +331,14 @@
 					{
 						"code": "SentryRanged",
 						"priority": 2.0,
-						"entityCodes": [ "player", "archer-*", "knight-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "looter-*", "bandit-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
+						"entityCodes": [ "player", "archer-*", "knight-*", "doctor-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "looter-*", "bandit-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
 						"damageTier": 3,
 						"isBandit": false
 					},
 					{
 						"code": "SentryAttack",
 						"priority": 2.0,
-						"entityCodes": [ "player", "archer-*", "knight-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "looter-*", "bandit-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
+						"entityCodes": [ "player", "archer-*", "knight-*", "doctor-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "looter-*", "bandit-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
 						"animations": [ "hit", "spearstabs", "swordswing", "swordsmash", "swordslash", "swordstabs" ],
 						"damageTier": 3,
 						"isBandit": false

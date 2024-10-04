@@ -2,13 +2,22 @@
 	"code": "people",
 	"class": "ItemPeople",
 	"maxstacksize": 1,
+	"durability": 100,
 	"variantgroups": [
-		{ "code": "type", "states": [ "archer", "knight", "bandit" ] },
+		{ "code": "type", "states": [ "archer", "knight", "doctor", "bandit" ] },
 		{ "code": "gender", "states": [ "masc", "femm" ] }
 	],
 	"attributes": { "handbook": { "excludeByType": { "*-bandit-*": true } } },
-	"shapeByType": { "*": { "base": "vskingdom:entity/humanoid/human" } },
-	"texturesByType": { "*": { "skin": { "base": "game:entity/humanoid/seraphskinparts/body/skin1" } } },
+	"shapeByType": {
+		"*-masc": { "base": "vskingdom:entity/humanoid/sentry-masc" },
+		"*-femm": { "base": "vskingdom:entity/humanoid/sentry-femm" }
+	},
+	"texturesByType": {
+		"archer-*": { "seraph": { "base": "game:entity/humanoid/seraphskinparts/body/skin11" } },
+		"knight-*": { "seraph": { "base": "game:entity/humanoid/seraphskinparts/body/skin8" } },
+		"doctor-*": { "seraph": { "base": "game:entity/humanoid/seraphskinparts/body/skin4" } },
+		"bandit-*": { "seraph": { "base": "game:entity/humanoid/seraphskinparts/body/skin5" } }
+	},
 	"creativeinventory": {
 		"general": [ "*" ],
 		"creatures": [ "*" ],
@@ -25,10 +34,18 @@
 		"translation": { "x": 0.05, "y": -0.3, "z": 0 },
 		"rotation": { "x": 165, "y": 76, "z": -180 }
 	},
-	"tpHandTransform": {
-		"translation": { "x": -0.6, "y": -1.1, "z": -0.4 },
-		"rotation": { "x": -85, "y": -10, "z": 90 },
-		"origin": { "x": 0.6, "y": 1.2, "z": 0.5 },
-		"scale": 1
+	"tpHandTransformByType": {
+		"*-masc": {
+			"translation": { "x": -0.6, "y": -1.1, "z": -0.4 },
+			"rotation": { "x": -85, "y": -10, "z": 90 },
+			"origin": { "x": 0.6, "y": 1.2, "z": 0.5 },
+			"scale": 1
+		},
+		"*-femm": {
+			"translation": { "x": -0.6, "y": -0.9, "z": -0.4 },
+			"rotation": { "x": -85, "y": -10, "z": 90 },
+			"origin": { "x": 0.6, "y": 1.2, "z": 0.5 },
+			"scale": 1
+		}
 	}
 }

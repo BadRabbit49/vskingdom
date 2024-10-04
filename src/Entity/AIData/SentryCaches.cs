@@ -58,12 +58,12 @@ namespace VSKingdom {
 		public string loadAnims { get; set; } = "load";
 		public string bashAnims { get; set; } = "bash";
 		public string stabAnims { get; set; } = "stab";
-		public string kingdomGUID { get; set; } = CommonerID;
-		public string cultureGUID { get; set; } = SeraphimID;
+		public string kingdomGUID { get; set; } = CommonersID;
+		public string cultureGUID { get; set; } = SeraphimsID;
 		public string leadersGUID { get; set; } = null;
 		public string recruitINFO { get; set; } = "CIVILIAN";
-		public string[] enemiesLIST { get; set; } = new string[] { BanditryID };
-		public string[] friendsLIST { get; set; } = new string[] { CommonerID };
+		public string[] enemiesLIST { get; set; } = new string[] { BanditrysID };
+		public string[] friendsLIST { get; set; } = new string[] { CommonersID };
 		public string[] outlawsLIST { get; set; } = new string[] { null };
 
 		public void UpdateLoyalty(Entity entity) {
@@ -88,8 +88,8 @@ namespace VSKingdom {
 				ammoCodes = (_ammoCode?.Domain + ":" + _ammoCode?.FirstCodePart()) ?? "";
 			}
 			string _searchFor = usesRange ? weapCodes : "";
-			if (WeaponProperties.ContainsKey(_searchFor)) {
-				var _weapClass = WeaponProperties[_searchFor];
+			if (Constants.GlobalProps.WeaponProperties.ContainsKey(_searchFor)) {
+				var _weapClass = Constants.GlobalProps.WeaponProperties[_searchFor];
 				string[] _weapAnims = _weapClass.allCodes;
 				idleAnims = _weapAnims[0];
 				walkAnims = _weapAnims[1];
@@ -106,7 +106,7 @@ namespace VSKingdom {
 		}
 
 		public void UpdateReloads(IInventory gearInv) {
-			weapReady = usesMelee || (!gearInv[16].Empty && !gearInv[18].Empty && WeaponProperties[weapCodes].ammoCodes == ammoCodes);
+			weapReady = usesMelee || (!gearInv[16].Empty && !gearInv[18].Empty && Constants.GlobalProps.WeaponProperties[weapCodes].ammoCodes == ammoCodes);
 		}
 
 		public void UpdateEnemies(string[] codes) {

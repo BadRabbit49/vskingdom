@@ -12,6 +12,10 @@ using Vintagestory.API.Util;
 using Vintagestory.GameContent;
 using static VSKingdom.Utilities.GenericUtil;
 using static VSKingdom.Utilities.ReadingUtil;
+using Vintagestory.Common;
+using System.Xml.Linq;
+using System.Drawing;
+using VSKingdom.Utilities;
 
 namespace VSKingdom {
 	public class ItemPeople : Item {
@@ -45,6 +49,8 @@ namespace VSKingdom {
 			}
 			Entity entity = byEntity.World.ClassRegistry.CreateEntity(properties);
 			EntitySentry sentry = entity as EntitySentry;
+			ItemStack itemstack = slot.Itemstack;
+			JsonObject attributes = Attributes;
 			if (entity is null) {
 				return;
 			}
@@ -55,33 +61,38 @@ namespace VSKingdom {
 			entity.Pos.SetFrom(entity.ServerPos);
 			entity.PositionBeforeFalling.Set(entity.ServerPos.X, entity.ServerPos.Y, entity.ServerPos.Z);
 			entity.Attributes.SetString("origin", "playerplaced");
-			JsonObject attributes = Attributes;
 			if (attributes != null && attributes.IsTrue("setGuardedEntityAttribute")) {
 				entity.WatchedAttributes.SetLong("guardedEntityId", byEntity.EntityId);
 			}
 			if (!player.Entity.WatchedAttributes.HasAttribute("followerEntityUids")) {
 				player.Entity.WatchedAttributes.SetAttribute("followerEntityUids", new LongArrayAttribute(new long[] { }));
 			}
+
+			bool inheritedParts = itemstack.Attributes.HasAttribute("appliedParts");
+			bool inheritedNames = itemstack.Attributes.HasAttribute("nametagParts");
+			bool inheritedGears = itemstack.Attributes.HasAttribute("entInventory");
+			bool didTransitions = itemstack.Attributes.HasAttribute("gender") && itemstack.Attributes.GetString("gender") != entity.Code.EndVariant();
+
 			if (api.Side == EnumAppSide.Server) {
 				// Change variabels depending on if the entity is a bandit or not. Bandits have no leaders.
-				bool isBandit = properties.Attributes["baseSides"].AsString(CommonerID) == BanditryID;
-				bool isCrouch = player.Entity.ServerControls.Sneak;
+				bool _isBandit = properties.Attributes["baseSides"].AsString(CommonersID) == BanditrysID;
+				bool _isCrouch = player.Entity.ServerControls.Sneak;
 				string _entityClass = properties.Attributes["baseClass"].AsString("melee").ToLower();
-				string _entityState = isBandit ? EnlistedStatus.DESERTER.ToString() : EnlistedStatus.CIVILIAN.ToString();
-				string firstName = null;
-				string famlyName = null;
-				string _kingdomGuid = isBandit ? BanditryID : byEntity.WatchedAttributes.GetString("kingdomGUID", CommonerID);
-				string _cultureGuid = isBandit && isCrouch ? SeraphimID : byEntity.WatchedAttributes.GetString("cultureGUID", SeraphimID);
-				string _leadersGuid = isBandit ? null : player.PlayerUID;
+				string _entityState = _isBandit ? EnlistedStatus.DESERTER.ToString() : EnlistedStatus.CIVILIAN.ToString();
+				string _firstName = null;
+				string _famlyName = null;
+				string _kingdomGuid = _isBandit ? BanditrysID : byEntity.WatchedAttributes.GetString("kingdomGUID", CommonersID);
+				string _cultureGuid = _isBandit && _isCrouch ? SeraphimsID : byEntity.WatchedAttributes.GetString("cultureGUID", SeraphimsID);
+				string _leadersGuid = _isBandit ? null : player.PlayerUID;
 				string _kingdomName = null;
 				string _cultureName = null;
 				string _leadersName = _leadersGuid != null ? player.PlayerName : null;
 				double _outpostSize = 6;
 				BlockPos _outpostXyzd = entity.ServerPos.AsBlockPos;
 				string[] _kingdomCOLOURS = new string[] { "#ffffff", "#ffffff", "#ffffff" };
-				string[] mascNames = Open(api.World.Config.GetAsString("BasicMascNames"));
-				string[] femmNames = Open(api.World.Config.GetAsString("BasicFemmNames"));
-				string[] lastNames = Open(api.World.Config.GetAsString("BasicLastNames"));
+				string[] _mascNames = Open(api.World.Config.GetAsString("BasicMascNames"));
+				string[] _femmNames = Open(api.World.Config.GetAsString("BasicFemmNames"));
+				string[] _lastNames = Open(api.World.Config.GetAsString("BasicLastNames"));
 				string[] _kingdomENEMIES = new string[] { };
 				string[] _kingdomFRIENDS = new string[] { };
 				string[] _kingdomOUTLAWS = new string[] { };
@@ -93,9 +104,9 @@ namespace VSKingdom {
 
 				if (byCulture != null) {
 					_cultureName = byCulture.CultureNAME;
-					mascNames = byCulture.MFirstNames.Count > 0 ? byCulture.MFirstNames.ToArray() : mascNames;
-					femmNames = byCulture.FFirstNames.Count > 0 ? byCulture.FFirstNames.ToArray() : femmNames;
-					lastNames = byCulture.FamilyNames.Count > 0 ? byCulture.FamilyNames.ToArray() : lastNames;
+					_mascNames = byCulture.MFirstNames.Count > 0 ? byCulture.MFirstNames.ToArray() : _mascNames;
+					_femmNames = byCulture.FFirstNames.Count > 0 ? byCulture.FFirstNames.ToArray() : _femmNames;
+					_lastNames = byCulture.FamilyNames.Count > 0 ? byCulture.FamilyNames.ToArray() : _lastNames;
 				}
 
 				// Grab kingdom data from server file.
@@ -112,9 +123,10 @@ namespace VSKingdom {
 				}
 
 				// Setup skins stuff!
-				if (byCulture != null && byCulture?.CultureGUID != SeraphimID) {
+				if (byCulture != null && byCulture?.CultureGUID != SeraphimsID) {
 					// Editing the "skinConfig" tree here and changing it to what we want.
 					var entitySkinParts = entity.WatchedAttributes.GetOrAddTreeAttribute("skinConfig").GetOrAddTreeAttribute("appliedParts");
+					var congentialParts = inheritedParts ? itemstack.Attributes.GetTreeAttribute("appliedParts") : null;
 					string[] skinColors = byCulture.SkinColours.ToArray<string>();
 					string[] eyesColors = byCulture.EyesColours.ToArray<string>();
 					string[] hairColors = byCulture.HairColours.ToArray<string>();
@@ -124,21 +136,21 @@ namespace VSKingdom {
 					string[] faceBeards = byCulture.FacesBeards.ToArray<string>();
 					string[] underwears = new string[] { "breeches", "leotard", "twopiece" };
 					string[] expression = new string[] { "angry", "grin", "smirk", "kind", "upset", "neutral", "sad", "serious", "tired", "very-sad" };
-					entitySkinParts.SetString("baseskin", skinColors[api.World.Rand.Next(0, skinColors.Length - 1)]);
-					entitySkinParts.SetString("eyecolor", eyesColors[api.World.Rand.Next(0, eyesColors.Length - 1)]);
-					entitySkinParts.SetString("haircolor", hairColors[api.World.Rand.Next(0, hairColors.Length - 1)]);
-					entitySkinParts.SetString("hairbase", hairStyles[api.World.Rand.Next(0, hairStyles.Length - 1)]);
-					entitySkinParts.SetString("hairextra", hairExtras[api.World.Rand.Next(0, hairExtras.Length - 1)]);
+					entitySkinParts.SetString("baseskin", inheritedParts ? congentialParts.GetString("baseskin") : skinColors[api.World.Rand.Next(0, skinColors.Length - 1)]);
+					entitySkinParts.SetString("eyecolor", inheritedParts ? congentialParts.GetString("eyecolor") : eyesColors[api.World.Rand.Next(0, eyesColors.Length - 1)]);
+					entitySkinParts.SetString("haircolor", inheritedParts ? congentialParts.GetString("haircolor") : hairColors[api.World.Rand.Next(0, hairColors.Length - 1)]);
+					entitySkinParts.SetString("hairbase", inheritedParts && !didTransitions ? congentialParts.GetString("hairbase") : hairStyles[api.World.Rand.Next(0, hairStyles.Length - 1)]);
+					entitySkinParts.SetString("hairextra", inheritedParts && !didTransitions ? congentialParts.GetString("hairextra") : hairExtras[api.World.Rand.Next(0, hairExtras.Length - 1)]);
 					if (entity.Code.EndVariant() == "masc") {
-						entitySkinParts.SetString("mustache", faceStyles[api.World.Rand.Next(0, faceStyles.Length - 1)]);
-						entitySkinParts.SetString("beard", faceBeards[api.World.Rand.Next(0, faceBeards.Length - 1)]);
-						entitySkinParts.SetString("underwear", underwears[api.World.Rand.Next(0, 1)]);
+						entitySkinParts.SetString("mustache", inheritedParts && !didTransitions ? congentialParts.GetString("mustache") : faceStyles[api.World.Rand.Next(0, faceStyles.Length - 1)]);
+						entitySkinParts.SetString("beard", inheritedParts && !didTransitions ? congentialParts.GetString("beard") : faceBeards[api.World.Rand.Next(0, faceBeards.Length - 1)]);
+						entitySkinParts.SetString("underwear", inheritedParts && !didTransitions ? congentialParts.GetString("underwear") : underwears[api.World.Rand.Next(0, 1)]);
 					} else if (entity.Code.EndVariant() == "femm") {
 						entitySkinParts.SetString("mustache", "none");
 						entitySkinParts.SetString("beard", "none");
 						entitySkinParts.SetString("underwear", underwears[api.World.Rand.Next(1, 2)]);
 					}
-					entitySkinParts.SetString("facialexpression", expression[api.World.Rand.Next(1, expression.Length - 1)]);
+					entitySkinParts.SetString("facialexpression", inheritedParts ? congentialParts.GetString("facialexpression") : expression[api.World.Rand.Next(1, expression.Length - 1)]);
 				}
 
 				// Setup outpost stuff!
@@ -157,22 +169,24 @@ namespace VSKingdom {
 				}
 
 				// Setup corpses stuff!
-				entity.WatchedAttributes.SetString("deathAnimation", "dies");
-				entity.WatchedAttributes.SetString("deathSkeletons", "humanoid1");
+				entity.WatchedAttributes.SetString("deathAnimation", GetRandom(properties.Attributes["deathAnim"].AsArray<string>(new string[] { "dies" })));
+				entity.WatchedAttributes.SetString("deathSkeletons", GetRandom(properties.Attributes["deathBone"].AsArray<string>(new string[] { "humanoid1" })));
 
 				// Setup nametag stuff!
+				var nametagTree = new TreeAttribute();
+				var congentialNames = inheritedParts ? itemstack.Attributes.GetTreeAttribute("appliedNames") : null;
 				switch (entity.Code.EndVariant()) {
-					case "masc": firstName = mascNames[api.World.Rand.Next(0, mascNames.Length - 1)]; break;
-					case "femm": firstName = femmNames[api.World.Rand.Next(0, femmNames.Length - 1)]; break;
-					default: firstName = mascNames[api.World.Rand.Next(0, mascNames.Length - 1)]; break;
+					case "masc": _firstName = inheritedNames && !didTransitions ? congentialNames?.GetString("name") : _mascNames[api.World.Rand.Next(0, _mascNames.Length - 1)]; break;
+					case "femm": _firstName = inheritedNames && !didTransitions ? congentialNames?.GetString("name") : _femmNames[api.World.Rand.Next(0, _femmNames.Length - 1)]; break;
+					default: _firstName = inheritedNames ? congentialNames?.GetString("name") :GetRandom(_mascNames.Concat(_femmNames).ToArray()); break;
 				}
-				famlyName = lastNames[api.World.Rand.Next(0, lastNames.Length - 1)];
-				ITreeAttribute nametagTree = new TreeAttribute();
-				nametagTree.SetString("name", firstName);
-				nametagTree.SetString("last", famlyName);
-				nametagTree.SetString("full", $"{firstName} {famlyName}");
-				nametagTree.SetBool("showtagonlywhentargeted", api.World.Config.GetAsBool(SentryTags, true));
-				nametagTree.SetInt("renderRange", (int)api.World.Config.GetLong(RenderTags, 500));
+				_famlyName = inheritedNames ? congentialNames?.GetString("last") : _lastNames[api.World.Rand.Next(0, _lastNames.Length - 1)];
+
+				nametagTree.SetString("name", _firstName);
+				nametagTree.SetString("last", _famlyName);
+				nametagTree.SetString("full", $"{_firstName} {_famlyName}");
+				nametagTree.SetBool("showtagonlywhentargeted", api.World.Config.GetAsBool(SentryTagOn, true));
+				nametagTree.SetInt("renderRange", (int)api.World.Config.GetLong(RenderTagDs, 500));
 				entity.WatchedAttributes.SetAttribute("nametag", nametagTree);
 
 				// Setup loyalty stuff!
@@ -226,26 +240,81 @@ namespace VSKingdom {
 				};
 			}
 
+			// Setup health stuff!
+			int durability = GetMaxDurability(itemstack);
+			if (durability > 1 && (itemstack.Collectible.GetRemainingDurability(itemstack) * durability) != durability) {
+				float health = entity.WatchedAttributes.GetOrAddTreeAttribute("health").GetFloat("basemaxhealth", 20) * GetRemainingDurability(slot.Itemstack);
+				entity.WatchedAttributes.GetOrAddTreeAttribute("health").SetFloat("currenthealth", health);
+				entity.WatchedAttributes.MarkPathDirty("health");
+			}
+
 			// SPAWNING ENTITY //
 			byEntity.World.SpawnEntity(entity);
 
-			for (int i = 0; i < dressCodes.Length; i++) {
-				string code = dressCodes[i] + "Spawn";
-				if (!properties.Attributes[code].Exists) { continue; }
-				try {
-					var item = api.World.GetItem(new AssetLocation(GetRandom(properties.Attributes[code].AsArray<string>(null))));
-					ItemStack itemstack = new ItemStack(item, 1);
-					if (i == 18 && sentry.GearInventory[16].Itemstack.Item is ItemBow) {
-						itemstack = new ItemStack(item, GetRandom(item.MaxStackSize, 5));
-					}
-					var newstack = byEntity.World.SpawnItemEntity(itemstack, entity.ServerPos.XYZ) as EntityItem;
-					sentry.GearInventory[i].Itemstack = newstack?.Itemstack;
-					newstack.Die(EnumDespawnReason.PickedUp, null);
-					sentry.GearInvSlotModified(i);
-				} catch { }
+			// Load clothing onto entity!
+			var savedInventory = inheritedGears ? itemstack.Attributes.GetTreeAttribute("entInventory") : null;
+			for (int i = 0; i < GearsDressCodes.Length; i++) {
+				string spawnCode = GearsDressCodes[i] + (inheritedGears ? "Stack" : "Spawn");
+				if (inheritedGears && savedInventory.HasAttribute(spawnCode)) {
+					try {
+						sentry.GearInventory[i].Itemstack = savedInventory.GetItemstack(spawnCode)?.Clone();
+						sentry.GearInvSlotModified(i);
+					} catch { }
+				} else if (properties.Attributes[spawnCode].Exists) {
+					try {
+						var _items = api.World.GetItem(new AssetLocation(GetRandom(properties.Attributes[spawnCode].AsArray<string>(null))));
+						ItemStack _stack = new ItemStack(_items, 1);
+						if (i == 18 && sentry.GearInventory[16].Itemstack.Item is ItemBow) {
+							_stack = new ItemStack(_items, GetRandom(_items.MaxStackSize, 5));
+						}
+						var newstack = byEntity.World.SpawnItemEntity(_stack, entity.ServerPos.XYZ) as EntityItem;
+						sentry.GearInventory[i].Itemstack = newstack?.Itemstack;
+						newstack.Die(EnumDespawnReason.PickedUp, null);
+						sentry.GearInvSlotModified(i);
+					} catch { }
+				}
 			}
 
 			handHandling = EnumHandHandling.PreventDefaultAction;
+		}
+
+		public override void OnCreatedByCrafting(ItemSlot[] allInputslots, ItemSlot outputSlot, GridRecipe byRecipe) {
+			base.OnCreatedByCrafting(allInputslots, outputSlot, byRecipe);
+			ItemStack itemstack = null;
+			bool usingOldPeople = false;
+			foreach (ItemSlot itemSlot in allInputslots) {
+				if (itemSlot.Empty) {
+					continue;
+				}
+				if (itemSlot.Itemstack?.Item is ItemPeople oldPeople) {
+					usingOldPeople = true;
+					itemstack = itemSlot.Itemstack;
+				}
+			}
+			if (usingOldPeople && itemstack != null) {
+				if (itemstack.Attributes.HasAttribute("appliedParts")) {
+					var prvPartTree = itemstack.Attributes.GetTreeAttribute("appliedParts");
+					var newPartTree = outputSlot.Itemstack.Attributes.GetOrAddTreeAttribute("appliedParts");
+					foreach (var part in prvPartTree) {
+						newPartTree.SetString(new string(part.Key), prvPartTree.GetString(part.Key));
+					}
+				}
+				if (itemstack.Attributes.HasAttribute("appliedNames")) {
+					var prvNameTree = itemstack.Attributes.GetTreeAttribute("appliedNames");
+					var newNameTree = outputSlot.Itemstack.Attributes.GetOrAddTreeAttribute("appliedNames");
+					foreach (var name in prvNameTree) {
+						newNameTree.SetString(new string(name.Key), prvNameTree.GetString(name.Key));
+					}
+				}
+				if (itemstack.Attributes.HasAttribute("entInventory")) {
+					var prvGearTree = itemstack.Attributes.GetTreeAttribute("entInventory");
+					var newGearTree = outputSlot.Itemstack.Attributes.GetOrAddTreeAttribute("entInventory");
+					foreach (var gear in prvGearTree) {
+						newGearTree.SetItemstack(new string(gear.Key), prvGearTree.GetItemstack(gear.Key));
+					}
+				}
+				outputSlot.Itemstack.Item.Textures["seraph"] = itemstack.Item.Textures["seraph"].Clone();
+			}
 		}
 
 		public override string GetHeldTpIdleAnimation(ItemSlot activeHotbarSlot, Entity byEntity, EnumHand hand) {
@@ -264,7 +333,43 @@ namespace VSKingdom {
 		}
 
 		public override void GetHeldItemInfo(ItemSlot inSlot, StringBuilder dsc, IWorldAccessor world, bool withDebugInfo) {
-			base.GetHeldItemInfo(inSlot, dsc, world, withDebugInfo);
+			ItemStack itemstack = inSlot.Itemstack;
+			if (itemstack.Attributes.HasAttribute("appliedNames")) {
+				var nametree = itemstack.Attributes.GetTreeAttribute("appliedNames");
+				dsc.AppendLine($"{nametree.GetString("name")} {nametree.GetString("last")}");
+			}
+			int maxDurability = GetMaxDurability(itemstack);
+			if (maxDurability > 1) {
+				dsc.AppendLine($"<font color=\"#ff8888\">Health: {itemstack.Collectible.GetRemainingDurability(itemstack)}%</font>");
+			}
+			if (itemstack.Attributes.HasAttribute("entInventory")) {
+				var geartree = itemstack.Attributes.GetTreeAttribute("entInventory");
+				for (int i = 0; i < GearsDressCodes.Length; i++) {
+					string stackCode = GearsDressCodes[i] + "Stack";
+					if (geartree.HasAttribute(stackCode)) {
+						/** Not important enough to cause a crash or for me to fix. **/
+						try { dsc.AppendLine(GetInventoryGear(geartree, stackCode)); } catch { }
+					}
+				}
+			}
+		}
+
+		private static string GetInventoryGear(ITreeAttribute inventory, string slotName) {
+			if (inventory.HasAttribute(slotName) && inventory.GetItemstack(slotName) != null) {
+				var itemstack = inventory.GetItemstack(slotName);
+				int durability = itemstack.Attributes.HasAttribute("durability") ? itemstack.Item.GetRemainingDurability(itemstack) : 100;
+				int itemAmount = itemstack.StackSize;
+				string percentage = ColorTranslator.ToHtml(ColoursUtil.ColorFromHSV(Math.Clamp((double)durability, 0, 100), 0.4, 1));
+				string itemEnding = "";
+				if (durability < 100) {
+					itemEnding += $" (<font color=\"{percentage}\">{durability}%</font>)";
+				}
+				if (itemAmount > 1) {
+					itemEnding += $" ({itemAmount}x)";
+				}
+				return $"{inventory.GetItemstack(slotName)?.Item?.GetHeldItemName(itemstack) ?? "unknown"}{itemEnding}";
+			}
+			return "null";
 		}
 	}
 }

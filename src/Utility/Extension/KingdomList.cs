@@ -12,8 +12,8 @@ namespace VSKingdom.Extension {
 		}
 
 		public static bool PartOfKingdom(this List<Kingdom> kingdomList, IPlayer player) {
-			string kingdomGUID = player.Entity.WatchedAttributes.GetString("kingdomGUID", CommonerID);
-			if (kingdomGUID == null || kingdomGUID == CommonerID || kingdomGUID == BanditryID || kingdomList.Count == 0) {
+			string kingdomGUID = player.Entity.WatchedAttributes.GetString("kingdomGUID", CommonersID);
+			if (kingdomGUID == null || kingdomGUID == CommonersID || kingdomGUID == BanditrysID || kingdomList.Count == 0) {
 				return false;
 			}
 			for (int k = 0; k < kingdomList.Count; k++) {

@@ -98,24 +98,16 @@ namespace VSKingdom {
 			} else {
 				idleUntilMs = entity.World.ElapsedMilliseconds + minduration + entity.World.Rand.Next(maxduration - minduration);
 			}
-			entity.IdleSoundChanceModifier = 0f;
-			currAnims = entity.cachedData.idleAnims;
-			bool doSpecial = entity.World.Rand.NextDouble() < 0.1;
-			if (entity.Swimming) {
-				currAnims = animsSwim[entity.World.Rand.Next(0, animsSwim.Length - 1)];
-			} else if (doSpecial && currAnims == "idle") {
+			if (entity.World.Rand.NextDouble() < 0.1) {
 				if (currentTemps < 0) {
-					currAnims = animsCold[entity.World.Rand.Next(0, animsCold.Length - 1)];
+					entity.AnimManager.StartAnimation(currAnims = animsCold[entity.World.Rand.Next(0, animsCold.Length - 1)]);
 				} else if (currentHours > darkoutHours || currentHours < morningHours) {
-					currAnims = animsLate[entity.World.Rand.Next(0, animsLate.Length - 1)];
+					entity.AnimManager.StartAnimation(currAnims = animsLate[entity.World.Rand.Next(0, animsLate.Length - 1)]);
 				} else if (healthBehavior?.Health < healthBehavior?.MaxHealth / 4f) {
-					currAnims = animsHurt[entity.World.Rand.Next(0, animsHurt.Length - 1)];
+					entity.AnimManager.StartAnimation(currAnims = animsHurt[entity.World.Rand.Next(0, animsHurt.Length - 1)]);
 				} else {
-					currAnims = animsIdle[entity.World.Rand.Next(0, animsIdle.Length - 1)];
-				}	
-			}
-			if (currAnims != null) {
-				entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = currAnims, Code = currAnims, SupressDefaultAnimation = true }.Init());
+					entity.AnimManager.StartAnimation(currAnims = animsIdle[entity.World.Rand.Next(0, animsIdle.Length - 1)]);
+				}
 			}
 			idleUntilMs = entity.World.ElapsedMilliseconds + minduration + entity.World.Rand.Next(maxduration - minduration);
 			if (!(sound != null) || !(entity.World.Rand.NextDouble() <= (double)soundChance)) {
@@ -178,7 +170,7 @@ namespace VSKingdom {
 
 		public override void FinishExecute(bool cancelled) {
 			cooldownUntilMs = entity.World.ElapsedMilliseconds + mincooldown + entity.World.Rand.Next(maxcooldown - mincooldown);			
-			if (currAnims != null && currAnims != entity.cachedData.idleAnims) {
+			if (currAnims != null) {
 				entity.AnimManager.StopAnimation(currAnims);
 			}
 			if (arrowSharing) {
@@ -205,7 +197,7 @@ namespace VSKingdom {
 
 		private bool InRange() {
 			bool found = false;
-			partitionUtil.WalkEntities(entity.ServerPos.XYZ, 1, delegate (Entity ent) {
+			partitionUtil.WalkEntities(entity.ServerPos.XYZ, 2, delegate (Entity ent) {
 				if (ent.Alive && ent is EntityPlayer) {
 					lookatEnt = ent;
 					found = true;

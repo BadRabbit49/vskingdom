@@ -238,7 +238,16 @@ namespace VSKingdom {
 				return false;
 			}
 			entity.AnimManager.StopAnimation(lastAnimCode);
-			entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = currAnimCode, Code = currAnimCode }.Init());
+			entity.AnimManager.StartAnimation(new AnimationMetaData() {
+				Animation = currAnimCode,
+				Code = currAnimCode,
+				ElementWeight = new Dictionary<string, float> {
+					{ "ItemAnchor", 10f },
+					{ "UpperArmR", 10f },
+					{ "LowerArmR", 10f },
+					{ "UpperTorso", 2f }
+				}
+			}.Init());
 			entity.World.PlaySoundAt(sound, entity, null, true, soundRange);
 			float damage = entity.RightHandItemSlot?.Itemstack?.Item?.AttackPower ?? 1f;
 			bool alive = targetEntity.Alive;

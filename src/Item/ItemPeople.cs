@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Text;
+using System.Drawing;
 using System.Collections.Generic;
 using Vintagestory.API.Client;
 using Vintagestory.API.Server;
@@ -10,12 +11,11 @@ using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
 using Vintagestory.GameContent;
+using static VSKingdom.Utilities.ColoursUtil;
 using static VSKingdom.Utilities.GenericUtil;
 using static VSKingdom.Utilities.ReadingUtil;
-using Vintagestory.Common;
-using System.Xml.Linq;
-using System.Drawing;
-using VSKingdom.Utilities;
+using static System.Net.Mime.MediaTypeNames;
+using Vintagestory.API.Config;
 
 namespace VSKingdom {
 	public class ItemPeople : Item {
@@ -123,7 +123,7 @@ namespace VSKingdom {
 				}
 
 				// Setup skins stuff!
-				if (byCulture != null && byCulture?.CultureGUID != SeraphimsID) {
+				if (inheritedParts || (byCulture != null && byCulture?.CultureGUID != SeraphimsID)) {
 					// Editing the "skinConfig" tree here and changing it to what we want.
 					var entitySkinParts = entity.WatchedAttributes.GetOrAddTreeAttribute("skinConfig").GetOrAddTreeAttribute("appliedParts");
 					var congentialParts = inheritedParts ? itemstack.Attributes.GetTreeAttribute("appliedParts") : null;
@@ -223,12 +223,6 @@ namespace VSKingdom {
 					walkSpeed = properties.Attributes["walkSpeed"].AsFloat(0.020f),
 					postRange = properties.Attributes["postRange"].AsFloat(6.0f),
 					weapRange = properties.Attributes["weapRange"].AsFloat(1.5f),
-					idleAnims = properties.Attributes["idleAnims"].AsString("idle").ToLower(),
-					walkAnims = properties.Attributes["walkAnims"].AsString("walk").ToLower(),
-					moveAnims = properties.Attributes["moveAnims"].AsString("move").ToLower(),
-					duckAnims = properties.Attributes["duckAnims"].AsString("duck").ToLower(),
-					swimAnims = properties.Attributes["swimAnims"].AsString("swim").ToLower(),
-					jumpAnims = properties.Attributes["jumpAnims"].AsString("jump").ToLower(),
 					postBlock = _outpostXyzd.ToVec3d(),
 					kingdomGUID = _kingdomGuid,
 					cultureGUID = _cultureGuid,
@@ -313,7 +307,7 @@ namespace VSKingdom {
 						newGearTree.SetItemstack(new string(gear.Key), prvGearTree.GetItemstack(gear.Key));
 					}
 				}
-				outputSlot.Itemstack.Item.Textures["seraph"] = itemstack.Item.Textures["seraph"].Clone();
+				outputSlot.Itemstack.Item.Textures["skin"] = itemstack.Item.Textures["skin"].Clone();
 			}
 		}
 
@@ -359,7 +353,7 @@ namespace VSKingdom {
 				var itemstack = inventory.GetItemstack(slotName);
 				int durability = itemstack.Attributes.HasAttribute("durability") ? itemstack.Item.GetRemainingDurability(itemstack) : 100;
 				int itemAmount = itemstack.StackSize;
-				string percentage = ColorTranslator.ToHtml(ColoursUtil.ColorFromHSV(Math.Clamp((double)durability, 0, 100), 0.4, 1));
+				string percentage = ColorTranslator.ToHtml(ColorFromHSV(Math.Clamp((double)durability, 0, 100), 0.4, 1));
 				string itemEnding = "";
 				if (durability < 100) {
 					itemEnding += $" (<font color=\"{percentage}\">{durability}%</font>)";
@@ -367,7 +361,7 @@ namespace VSKingdom {
 				if (itemAmount > 1) {
 					itemEnding += $" ({itemAmount}x)";
 				}
-				return $"{inventory.GetItemstack(slotName)?.Item?.GetHeldItemName(itemstack) ?? "unknown"}{itemEnding}";
+				return $"{Lang.Get(itemstack.Item?.Code?.Domain + ":item-" + itemstack.Item?.Code.Path) ?? "unknown"}{itemEnding}";
 			}
 			return "null";
 		}

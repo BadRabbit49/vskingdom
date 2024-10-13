@@ -24,8 +24,6 @@ namespace VSKingdom {
 		protected float patrolChance;
 		protected float patrolHeight;
 		protected float targetRanges;
-		protected float curMoveSpeed;
-		protected string curAnimation;
 		protected Int32 currentStepAt;
 		protected Vec3d currentTarget;
 		protected float currentHours { get => world.Calendar.HourOfDay; }
@@ -39,7 +37,6 @@ namespace VSKingdom {
 			this.targetRanges = taskConfig["targetRanges"].AsFloat(0.12f);
 			this.patrolHeight = taskConfig["patrolHeight"].AsFloat(7f);
 			this.patrolChance = taskConfig["patrolChance"].AsFloat(0.15f);
-			this.curMoveSpeed = taskConfig["curMoveSpeed"].AsFloat(0.03f);
 			this.whenNotInEmotionState = taskConfig["whenNotInEmotionState"].AsString("aggressiveondamage|fleeondamage");
 		}
 
@@ -70,11 +67,10 @@ namespace VSKingdom {
 			}
 			currentStepAt = closestPoint;
 			currentTarget = entity.ruleOrder[6] ? outpostBlock : LoadNextVec3d();
-			MoveAnimation();
 			if (GoingDirectly(entity.ServerPos.XYZ, currentTarget) && !DangerousLine(currentTarget)) {
-				bool ok = pathTraverser.WalkTowards(currentTarget, curMoveSpeed, targetRanges, OnGoals, OnStuck);
+				bool ok = pathTraverser.WalkTowards(currentTarget, 0.04f, targetRanges, OnGoals, OnStuck);
 			} else {
-				bool on = pathTraverser.NavigateTo(currentTarget, curMoveSpeed, targetRanges, OnGoals, OnStuck);
+				bool on = pathTraverser.NavigateTo(currentTarget, 0.04f, targetRanges, OnGoals, OnStuck);
 			}
 		}
 
@@ -116,7 +112,6 @@ namespace VSKingdom {
 			});
 			// Stop for a second and wait. After cooldown, see plot to next area.
 			if (ReachedTarget()) {
-				StopAnimation();
 				pathTraverser.Stop();
 				currentStepAt++;
 				currentTarget = LoadNextVec3d();
@@ -129,11 +124,10 @@ namespace VSKingdom {
 					return true;
 				}
 				pauseByOnGoal = false;
-				MoveAnimation();
 				if (GoingDirectly(entity.ServerPos.XYZ, currentTarget) && !DangerousLine(currentTarget)) {
-					bool go = pathTraverser.WalkTowards(currentTarget, curMoveSpeed, targetRanges, OnGoals, OnStuck);
+					bool go = pathTraverser.WalkTowards(currentTarget, 0.04f, targetRanges, OnGoals, OnStuck);
 				} else {
-					bool no = pathTraverser.NavigateTo(currentTarget, curMoveSpeed, targetRanges, OnGoals, OnStuck);
+					bool no = pathTraverser.NavigateTo(currentTarget, 0.04f, targetRanges, OnGoals, OnStuck);
 				}
 			}
 			return entity.ruleOrder[5];
@@ -141,13 +135,11 @@ namespace VSKingdom {
 
 		public override void FinishExecute(bool cancelled) {
 			cooldownUntilMs = entity.World.ElapsedMilliseconds + mincooldown + entity.World.Rand.Next(maxcooldown - mincooldown);
-			StopAnimation();
 		}
 
 		public void PauseExecute(EntityAgent entity) {
 			cancelPatrols = true;
 			pauseByPlayer = true;
-			MoveAnimation();
 			pauseEntityId = entity.EntityId;
 			lastPausingMs = entity.World.ElapsedMilliseconds;
 		}
@@ -167,7 +159,6 @@ namespace VSKingdom {
 
 		private void OnStuck() {
 			cancelPatrols = true;
-			StopAnimation();
 		}
 
 		private void OnGoals() {
@@ -194,31 +185,6 @@ namespace VSKingdom {
 			SentryOrdersToServer updatedOrders = new SentryOrdersToServer() { entityUID = entity.EntityId, returning = false, usedorder = false };
 			IServerPlayer nearestPlayer = entity.ServerAPI.World.NearestPlayer(entity.ServerPos.X, entity.ServerPos.Y, entity.ServerPos.Z) as IServerPlayer;
 			entity.ServerAPI?.Network.GetChannel("sentrynetwork").SendPacket<SentryOrdersToServer>(updatedOrders, nearestPlayer);
-		}
-
-		private void MoveAnimation() {
-			if (cancelPatrols) {
-				StopAnimation();
-				return;
-			} else if (entity.Swimming) {
-				curMoveSpeed = entity.cachedData.walkSpeed * GlobalConstants.WaterDrag;
-				entity.AnimManager.StopAnimation(curAnimation);
-				curAnimation = new string(entity.cachedData.swimAnims);
-			} else {
-				curMoveSpeed = entity.cachedData.walkSpeed;
-				entity.AnimManager.StopAnimation(curAnimation);
-				curAnimation = new string(entity.cachedData.walkAnims);
-			}
-			entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = curAnimation, Code = curAnimation, BlendMode = EnumAnimationBlendMode.Average, MulWithWalkSpeed = true, EaseOutSpeed = 999 }.Init());
-		}
-
-		private void StopAnimation() {
-			curMoveSpeed = 0;
-			if (curAnimation != null) {
-				entity.AnimManager.StopAnimation(curAnimation);
-			}
-			entity.AnimManager.StopAnimation(entity.cachedData.walkAnims);
-			entity.AnimManager.StopAnimation(entity.cachedData.swimAnims);
 		}
 
 		private bool DangerousLine(Vec3d pos) {

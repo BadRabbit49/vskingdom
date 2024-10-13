@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Reflection;
 using System.Collections.Generic;
 using Vintagestory.API.Client;
 using Vintagestory.API.Server;
@@ -19,12 +20,14 @@ namespace VSKingdom {
 	public class EntitySentry : EntityHumanoid {
 		public EntitySentry() { }
 		public virtual bool[] ruleOrder { get; set; }
+		public virtual bool[] passenger { get; set; }
 		public virtual string inventory => "gear-" + EntityId;
 		public virtual SentryTalkUtils sentryTalk { get; set; }
 		public virtual SentryDataCache cachedData { get; set; }
 		public virtual ClientDataCache clientData { get; set; }
 		public virtual InventorySentry gearInv { get; set; }
-		public virtual InvSentryDialog InventoryDialog { get; set; }
+		public virtual InvSentryDialog gearDialog { get; set; }
+		public virtual SentryTraverser pathfinder { get; set; }
 		public override ItemSlot LeftHandItemSlot => gearInv[15];
 		public override ItemSlot RightHandItemSlot => gearInv[16];
 		public virtual ItemSlot BackItemSlot => gearInv[17];
@@ -55,17 +58,26 @@ namespace VSKingdom {
 			if (api is ICoreServerAPI sapi) {
 				ServerAPI = sapi;
 				ruleOrder = new bool[7] { true, false, true, true, false, false, false };
+				passenger = new bool[2] { false, false };
 				WatchedAttributes.RegisterModifiedListener("inventory", ReadInventoryFromAttributes);
 				WatchedAttributes.RegisterModifiedListener("mountedOn", updateMountedState);
 				if (WatchedAttributes["mountedOn"] != null) {
 					MountedOn = World.ClassRegistry.CreateMountable(WatchedAttributes["mountedOn"] as TreeAttribute);
 					if (MountedOn != null) {
 						TryMount(MountedOn);
+						passenger = new bool[2] { true, MountedOn.CanControl };
 					}
 				}
 				if (cachedData is null) {
 					cachedData = new SentryDataCache();
 				}
+				var taskBehaviors = GetBehavior<EntityBehaviorTaskAI>();
+				var pathTraverser = new SentryTraverser(this);
+				taskBehaviors.PathTraverser = pathTraverser;
+				taskBehaviors.TaskManager.AllTasks.ForEach(task => typeof(AiTaskBase)
+					.GetField("pathTraverser", BindingFlags.Instance | BindingFlags.NonPublic)
+					.SetValue(task, pathTraverser));
+				this.pathfinder = pathTraverser;
 				GetBehavior<EntityBehaviorHealth>().onDamaged += (dmg, dmgSource) => handleDamaged(World.Api, this, dmg, dmgSource);
 				ReadInventoryFromAttributes();
 			}
@@ -85,12 +97,6 @@ namespace VSKingdom {
 					walkSpeed = Properties.Attributes["walkSpeed"].AsFloat(0.02f),
 					postRange = Properties.Attributes["postRange"].AsFloat(6.0f),
 					weapRange = Properties.Attributes["weapRange"].AsFloat(1.5f),
-					idleAnims = Properties.Attributes["idleAnims"].AsString("idle").ToLower(),
-					walkAnims = Properties.Attributes["walkAnims"].AsString("walk").ToLower(),
-					moveAnims = Properties.Attributes["moveAnims"].AsString("move").ToLower(),
-					duckAnims = Properties.Attributes["duckAnims"].AsString("duck").ToLower(),
-					swimAnims = Properties.Attributes["swimAnims"].AsString("swim").ToLower(),
-					jumpAnims = Properties.Attributes["jumpAnims"].AsString("jump").ToLower(),
 					postBlock = WatchedAttributes.GetBlockPos("postBlock").ToVec3d(),
 					kingdomGUID = WatchedAttributes.GetString(KingdomGUID),
 					cultureGUID = WatchedAttributes.GetString(CultureGUID),
@@ -100,8 +106,6 @@ namespace VSKingdom {
 					friendsLIST = (previousExists ? cachedData.friendsLIST : new string[] { CommonersID }),
 					outlawsLIST = (previousExists ? cachedData.outlawsLIST : new string[] { })
 				};
-				UpdateStats();
-				UpdateTasks();
 			}
 			if (Api.Side == EnumAppSide.Client) {
 				bool previousExists = clientData != null;
@@ -120,6 +124,8 @@ namespace VSKingdom {
 				update.leadersGUID = WatchedAttributes.GetString(LeadersGUID);
 				ClientAPI.Network.GetChannel("sentrynetwork").SendPacket(update);
 			}
+			UpdateStats();
+			UpdateTasks();
 		}
 
 		public override string GetInfoText() {
@@ -172,6 +178,7 @@ namespace VSKingdom {
 		}
 
 		public override WorldInteraction[] GetInteractionHelp(IClientWorldAccessor world, EntitySelection es, IClientPlayer player) {
+			List<WorldInteraction> interactions = new List<WorldInteraction>();
 			if (!Alive) {
 				List<ItemStack> bandages = new List<ItemStack>();
 				for (int i = 0; i < VanillaBandages.Length; i++) {
@@ -180,13 +187,33 @@ namespace VSKingdom {
 						bandages.Add(new ItemStack(item));
 					}
 				}
-				return new WorldInteraction[] {
-					new WorldInteraction () {
-						ActionLangCode = "vskingdom:entries-keyword-revive",
+				interactions.Add(new WorldInteraction() {
+					ActionLangCode = "vskingdom:entries-keyword-revive",
+					MouseButton = EnumMouseButton.Right,
+					RequireFreeHand = false,
+					Itemstacks = bandages.ToArray()
+				});
+			}
+			if (WatchedAttributes.GetString(LeadersGUID) == player.PlayerUID) {
+				if (WatchedAttributes.GetBool(OrderWander) && WatchedAttributes.GetBool(OrderFollow) && WatchedAttributes.GetBool(OrderEngage) &&
+					WatchedAttributes.GetBool(OrderPursue) && WatchedAttributes.GetBool(OrderShifts) && WatchedAttributes.GetBool(OrderPatrol)) {
+					interactions.Add(new WorldInteraction() {
+						ActionLangCode = "game:blockhelp-ingotmold-pickup",
 						MouseButton = EnumMouseButton.Right,
-						Itemstacks = bandages.ToArray()
-					}
-				};
+						RequireFreeHand = false,
+						HotKeyCode = "shift",
+						Itemstacks = new ItemStack[1] { new ItemStack(world.GetItem(new AssetLocation("game:firewood"))) }
+					});
+				}
+				interactions.Add(new WorldInteraction() {
+					ActionLangCode = "Inventory",
+					MouseButton = EnumMouseButton.Right,
+					RequireFreeHand = true,
+					HotKeyCode = "shift"
+				});
+			}
+			if (interactions.Count > 0) {
+				return interactions.ToArray();
 			}
 			return base.GetInteractionHelp(world, es, player);
 		}
@@ -295,36 +322,11 @@ namespace VSKingdom {
 					WatchedAttributes.SetString(KingdomGUID, theirKingdom);
 					return;
 				}
-				// TRY TO RALLY!
-				if (Alive && kingdomGuid != null && kingdomGuid == theirKingdom && itemslot?.Itemstack?.Item is ItemBanner) {
-					if (!player.WatchedAttributes.HasAttribute("followerEntityUids")) {
-						ServerAPI?.World.PlayerByUid(player.PlayerUID).Entity.WatchedAttributes.SetAttribute("followerEntityUids", new LongArrayAttribute(new long[] { }));
-					}
-					var followed = (player.WatchedAttributes.GetAttribute("followerEntityUids") as LongArrayAttribute)?.value?.ToList<long>();
-					var sentries = World.GetEntitiesAround(ServerPos.XYZ, 16f, 8f, entity => (entity is EntitySentry sentry && sentry.WatchedAttributes.GetString(KingdomGUID) == theirKingdom));
-					foreach (EntitySentry sentry in sentries) {
-						sentry.WatchedAttributes.SetLong("guardedEntityId", player.EntityId);
-						sentry.WatchedAttributes.SetBool(OrderFollow, true);
-						sentry.ruleOrder[1] = true;
-						sentry.GetBehavior<EntityBehaviorTaskAI>()?.TaskManager.GetTask<AiTaskSentryFollow>()?.StartExecute();
-						if (!followed.Contains(sentry.EntityId)) {
-							followed.Add(sentry.EntityId);
-						}
-						ServerAPI?.Network.GetChannel("sentrynetwork").SendPacket(new SentryUpdateToServer() {
-							entityUID = sentry.EntityId,
-							kingdomGUID = sentry.WatchedAttributes.GetString(KingdomGUID),
-							cultureGUID = sentry.WatchedAttributes.GetString(CultureGUID),
-							leadersGUID = sentry.WatchedAttributes.GetString(LeadersGUID)
-						}, player.Player as IServerPlayer);
-					}
-					player.WatchedAttributes.SetAttribute("followerEntityUids", new LongArrayAttribute(followed.ToArray<long>()));
-					return;
-				}
 			}
 		}
 
 		public override void OnEntityDespawn(EntityDespawnData despawn) {
-			InventoryDialog?.TryClose();
+			gearDialog?.TryClose();
 			base.OnEntityDespawn(despawn);
 		}
 
@@ -333,7 +335,6 @@ namespace VSKingdom {
 			for (int i = 0; i < GearInventory.Count; i++) {
 				addGearToShape(GearInventory[i], entityShape, shapePathForLogging);
 			}
-			AnimManager.HeadController = new EntityHeadController(AnimManager, this, entityShape);
 		}
 
 		public override void OnReceivedClientPacket(IServerPlayer player, int packetid, byte[] data) {
@@ -360,7 +361,7 @@ namespace VSKingdom {
 					return;
 				case 1506:
 					(World as IClientWorldAccessor).Player.InventoryManager.CloseInventory(GearInventory);
-					InventoryDialog?.TryClose();
+					gearDialog?.TryClose();
 					return;
 			}
 		}
@@ -378,6 +379,13 @@ namespace VSKingdom {
 			try { gearInv.ToTreeAttributes(GetInventoryTree()); } catch (NullReferenceException) { }
 		}
 
+		public override bool TryMount(IMountable onmount) {
+			bool mounted = base.TryMount(onmount);
+			bool driving = mounted ? onmount.CanControl : false;
+			passenger = new bool[2] { mounted, driving };
+			return mounted;
+		}
+
 		public override bool ShouldReceiveDamage(DamageSource damageSource, float damage) {
 			if (damageSource.GetCauseEntity() is EntityHumanoid attacker) {
 				if (attacker is EntityPlayer player && WatchedAttributes.GetString(LeadersGUID) == player.PlayerUID) {
@@ -390,7 +398,7 @@ namespace VSKingdom {
 			}
 			return base.ShouldReceiveDamage(damageSource, damage);
 		}
-
+		
 		public override void Die(EnumDespawnReason reason = EnumDespawnReason.Death, DamageSource damageSourceForDeath = null) {
 			if (!Alive) { return; }
 			if (reason != 0) {
@@ -401,6 +409,7 @@ namespace VSKingdom {
 			controls.FlyVector.Set(0.0, 0.0, 0.0);
 			ClimbingOnFace = null;
 			TryUnmount();
+			passenger = new bool[2] { false, false };
 			if (reason == EnumDespawnReason.Removed) {
 				if (HasBehavior<EntityBehaviorDecayBody>()) {
 					RemoveBehavior(GetBehavior<EntityBehaviorDecayBody>());
@@ -464,7 +473,7 @@ namespace VSKingdom {
 		}
 
 		public override void Revive() {
-			this.Alive = true;
+			Alive = true;
 			ReceiveDamage(new DamageSource { SourceEntity = this, CauseEntity = this, Source = EnumDamageSource.Revive, Type = EnumDamageType.Heal }, 9999f);
 			AnimManager.StopAnimation(new string(WatchedAttributes.GetString("deathAnimation")));
 			AnimManager.StartAnimation(new string(WatchedAttributes.GetString("deathAnimation").Replace("dies", "ress")));
@@ -504,17 +513,17 @@ namespace VSKingdom {
 			// If on server-side, not client, send the packetid on the channel.
 			if (Api is ICoreServerAPI sapi) {
 				sapi.Network.BroadcastEntityPacket(EntityId, 1504, SerializerUtil.ToBytes((w) => tree.ToBytes(w)));
-				UpdateStats(slotId);
 			}
+			UpdateStats(slotId);
 		}
 
 		public virtual void ToggleInventoryDialog(IPlayer player) {
 			if (Api.Side != EnumAppSide.Client) { return; }
-			if (InventoryDialog is null) {
-				InventoryDialog = new InvSentryDialog(gearInv, this, ClientAPI);
-				InventoryDialog.OnClosed += OnInventoryDialogClosed;
+			if (gearDialog is null) {
+				gearDialog = new InvSentryDialog(gearInv, this, ClientAPI);
+				gearDialog.OnClosed += OnInventoryDialogClosed;
 			}
-			if (!InventoryDialog.TryOpen()) {
+			if (!gearDialog.TryOpen()) {
 				return;
 			}
 			player.InventoryManager.OpenInventory(GearInventory);
@@ -524,8 +533,8 @@ namespace VSKingdom {
 		public virtual void OnInventoryDialogClosed() {
 			ClientAPI.World.Player.InventoryManager.CloseInventory(GearInventory);
 			ClientAPI.Network.SendEntityPacket(EntityId, 1506);
-			InventoryDialog?.Dispose();
-			InventoryDialog = null;
+			gearDialog?.Dispose();
+			gearDialog = null;
 		}
 
 		public virtual void ReadInventoryFromAttributes() {
@@ -540,50 +549,47 @@ namespace VSKingdom {
 			if (Api.Side == EnumAppSide.Client) { return; }
 			try {
 				bool updateAll = (slotId == null);
-				bool hasWeapon = !RightHandItemSlot.Empty;
-				bool hasRanged = hasWeapon && AllowedWeaponry.Contains(RightHandItemSlot.Itemstack.Item.Code.FirstCodePart());
-				float massTotal = 0;
-				float healTotal = 0;
-				float walkSpeed = Properties.Attributes["walkSpeed"].AsFloat(0.020f);
-				float moveSpeed = Properties.Attributes["moveSpeed"].AsFloat(0.040f);
-				if (updateAll || (slotId == 16 || slotId == 18)) {
-					cachedData.usesRange = hasRanged;
-					cachedData.usesMelee = !hasRanged;
+				if (updateAll || slotId == 16 || slotId == 18) {
+					bool hasWeapon = !RightHandItemSlot.Empty;
+					cachedData.usesRange = hasWeapon && AllowedWeaponry.Contains(RightHandItemSlot.Itemstack.Item.Code.FirstCodePart());
+					cachedData.usesMelee = !hasWeapon || RightHandItemSlot?.Itemstack?.Collectible?.DamagedBy?.Length > 0;
 					cachedData.UpdateWeapons(this.GearInventory);
 					cachedData.UpdateReloads(this.GearInventory);
+					pathfinder.curIdleAnims = cachedData.idleAnims;
+					pathfinder.curWalkAnims = cachedData.walkAnims;
+					pathfinder.curMoveAnims = cachedData.moveAnims;
+					pathfinder.curSwimAnims = cachedData.swimAnims;
 					cachedData.weapRange = hasWeapon ? RightHandItemSlot.Itemstack.Collectible.AttackRange : GlobalConstants.DefaultAttackRange;
 					cachedData.recruitINFO = new string(hasWeapon ? "ENLISTED" : Properties.Attributes["baseState"].AsString("CIVILIAN"));
 				}
 				if (updateAll || (slotId != 16 && slotId != 18)) {
+					float massTotal = 0;
+					float healTotal = 0;
+					float walkSpeed = Properties.Attributes["walkSpeed"].AsFloat(0.020f);
+					float moveSpeed = Properties.Attributes["moveSpeed"].AsFloat(0.040f);
 					for (int i = 0; i < gearInv.Count; i++) {
 						if (!gearInv[i].Empty && gearInv[i].Itemstack.Item is ItemWearable armor) {
 							massTotal += (armor.StatModifers?.walkSpeed ?? 0);
 							healTotal += (armor.StatModifers?.healingeffectivness ?? 0);
 						}
 					}
-					cachedData.healRates = Math.Clamp((1f - (1f * healTotal)), 0f, 2f);
-					cachedData.walkSpeed = Math.Clamp((walkSpeed + (walkSpeed * massTotal)), 0f, walkSpeed * 2f);
-					cachedData.moveSpeed = Math.Clamp((moveSpeed + (moveSpeed * massTotal)), 0f, moveSpeed * 2f);
+					cachedData.healRates = Math.Clamp(1f - (1f * healTotal), 0f, 2f);
+					cachedData.walkSpeed = Math.Clamp(walkSpeed + (walkSpeed * massTotal), 0f, walkSpeed * 2f);
+					cachedData.moveSpeed = Math.Clamp(moveSpeed + (moveSpeed * massTotal), 0f, moveSpeed * 2f);
 				}
 				if (updateAll) {
 					if (Api.World.BlockAccessor.GetBlockEntity(WatchedAttributes.GetBlockPos("postBlock")) is BlockEntityPost post) {
 						WatchedAttributes.SetDouble("postRange", cachedData.postRange = (float)post.areasize);
-						WatchedAttributes.SetBlockPos("postBlock", post.Pos);
 					} else {
 						WatchedAttributes.SetDouble("postRange", cachedData.postRange = 6f);
+						WatchedAttributes.SetBlockPos("postBlock", ServerPos.AsBlockPos.Copy());
 					}
 				}
 			} catch (NullReferenceException e) {
 				World.Logger.Error(e.ToString());
 			}
 		}
-
-		public virtual void Skeletalize() {
-			if (Api.Side != EnumAppSide.Client && !Alive && gearInv.Empty && HasBehavior<EntityBehaviorDecayBody>()) {
-				GetBehavior<EntityBehaviorDecayBody>()?.DecayNow(this);
-			}
-		}
-
+		
 		public virtual void UpdateInfos(byte[] data) {
 			SentryUpdateToEntity update = SerializerUtil.Deserialize<SentryUpdateToEntity>(data);
 			if (update.kingdomGUID != null) { WatchedAttributes.SetString(KingdomGUID, new string(update.kingdomGUID)); }
@@ -592,6 +598,15 @@ namespace VSKingdom {
 			if (Api.Side == EnumAppSide.Client) {
 				clientData.UpdateLoyalty(update.kingdomNAME, update.cultureNAME, update.leadersNAME);
 				clientData.UpdateColours(update.coloursHEXA, update.coloursHEXB, update.coloursHEXC);
+			}
+		}
+
+		public virtual void UpdateTrees(byte[] data) {
+			TreeAttribute tree = new TreeAttribute();
+			SerializerUtil.FromBytes(data, (r) => tree.FromBytes(r));
+			gearInv.FromTreeAttributes(tree);
+			foreach (var slot in gearInv) {
+				slot.OnItemSlotModified(slot.Itemstack);
 			}
 		}
 
@@ -607,12 +622,9 @@ namespace VSKingdom {
 			};
 		}
 
-		public virtual void UpdateTrees(byte[] data) {
-			TreeAttribute tree = new TreeAttribute();
-			SerializerUtil.FromBytes(data, (r) => tree.FromBytes(r));
-			gearInv.FromTreeAttributes(tree);
-			foreach (var slot in gearInv) {
-				slot.OnItemSlotModified(slot.Itemstack);
+		public virtual void Skeletalize() {
+			if (Api.Side != EnumAppSide.Client && !Alive && gearInv.Empty && HasBehavior<EntityBehaviorDecayBody>()) {
+				GetBehavior<EntityBehaviorDecayBody>()?.DecayNow(this);
 			}
 		}
 	}

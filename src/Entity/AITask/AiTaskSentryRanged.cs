@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Collections.Generic;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Util;
@@ -8,6 +7,7 @@ using Vintagestory.API.MathTools;
 using Vintagestory.API.Datastructures;
 using Vintagestory.GameContent;
 using VSKingdom.Utilities;
+using System.Collections.Generic;
 
 namespace VSKingdom {
 	public class AiTaskSentryRanged : AiTaskBaseTargetable {
@@ -115,12 +115,28 @@ namespace VSKingdom {
 			drawWeapMeta = new AnimationMetaData() {
 				Code = new string(entity.cachedData.drawAnims),
 				Animation = new string(entity.cachedData.drawAnims),
-				BlendMode = EnumAnimationBlendMode.Average
+				BlendMode = EnumAnimationBlendMode.Average,
+				ElementWeight = new Dictionary<string, float> {
+					{ "UpperTorso", 5f },
+					{ "ItemAnchor", 10f },
+					{ "UpperArmR", 10f },
+					{ "LowerArmR", 10f },
+					{ "UpperArmL", 10f },
+					{ "LowerArmL", 10f },
+				}
 			};
 			fireWeapMeta = new AnimationMetaData() {
 				Code = new string(entity.cachedData.fireAnims),
 				Animation = new string(entity.cachedData.fireAnims),
-				BlendMode = EnumAnimationBlendMode.Average
+				BlendMode = EnumAnimationBlendMode.Average,
+				ElementWeight = new Dictionary<string, float> {
+					{ "UpperTorso", 5f },
+					{ "ItemAnchor", 10f },
+					{ "UpperArmR", 10f },
+					{ "LowerArmR", 10f },
+					{ "UpperArmL", 10f },
+					{ "LowerArmL", 10f },
+				}
 			};
 			loadWeapMeta = new AnimationMetaData() {
 				Code = new string(entity.cachedData.loadAnims),
@@ -245,24 +261,16 @@ namespace VSKingdom {
 		private bool FireProjectile() {
 			bool infiniteAmmo = entity.Api.World.Config.GetAsBool(NpcInfAmmos);
 			bool isModdedAmmo = ammoLocation.Domain != "game" && CompatibleRange.Contains(ammoLocation.Domain);
-			EntityProperties properties = entity.World.GetEntityType(ammoLocation);
-			EntityProjectile projectile = (EntityProjectile)entity.World.ClassRegistry.CreateEntity(properties);
 			WeaponProperties weaponprop = Constants.GlobalProps.WeaponProperties[entity.cachedData.weapCodes];
-			// Get damage according to type of projectile.	
-			if (isModdedAmmo) {
-				projectile = (EntityProjectile)entity.World.ClassRegistry.CreateEntity(properties);
-				projectile.SetCollisionBox(0.2f, 0.2f);
-				projectile.Properties.Class = "ItemArrow";
-				projectile.Damage = (float)AmmunitionDamages[ammoLocation.ToString()] * (float)WeaponMultipliers[weapLocation.ToString()];
-			} else {
-				projectile.Damage = entity.AmmoItemSlot.Itemstack.Collectible.Attributes["damage"].AsFloat() + entity.RightHandItemSlot.Itemstack.Collectible.Attributes["damage"].AsFloat();
-			}
-
+			EntityProperties properties = entity.World.GetEntityType(isModdedAmmo ? new AssetLocation(weaponprop.ammoShape) : ammoLocation);
+			EntityProjectile projectile = (EntityProjectile)entity.World.ClassRegistry.CreateEntity(properties);
+			// Get damage according to type of projectile.
 			projectile.ProjectileStack = new ItemStack(entity.World.GetItem(ammoLocation));
 			projectile.FiredBy = entity;
 			projectile.World = entity.World;
 			projectile.DropOnImpactChance = infiniteAmmo ? 0 : 1f - (entity.AmmoItemSlot.Itemstack.ItemAttributes["breakChanceOnImpact"].AsFloat(0.5f));
-			
+			projectile.Damage = isModdedAmmo ? (float)AmmunitionDamages[ammoLocation.ToString()] * (float)WeaponMultipliers[weapLocation.ToString()] :
+				entity.AmmoItemSlot.Itemstack.Collectible.Attributes["damage"].AsFloat() + entity.RightHandItemSlot.Itemstack.Collectible.Attributes["damage"].AsFloat();
 			// Adjust projectile position and velocity to be used.
 			Vec3d aheadPos = entity.ServerPos.AheadCopy(0.25).XYZ.AddCopy(0, entity.LocalEyePos.Y, 0);
 			Vec3d tagetPos = targetEntity.ServerPos.XYZ.AddCopy(0, targetEntity.LocalEyePos.Y, 0);
@@ -322,26 +330,16 @@ namespace VSKingdom {
 			return false;
 		}
 
-		private void RenderVariants(int variant) {
-			if (entity.RightHandItemSlot?.Itemstack?.Attributes.HasAttribute("renderVariant") ?? false) {
-				entity.RightHandItemSlot.Itemstack.Attributes.SetInt("renderVariant", variant);
-				entity.RightHandItemSlot.MarkDirty();
-			}
-		}
-
 		private void SpawnParticles() {
 			Int32 smokeColours = ColorUtil.ToRgba(100, 245, 245, 245);
 			Vec3d gunBarrelPos = entity.ServerPos.XYZ.AddCopy(entity.LocalEyePos);
 			Vec3d gunTrailsPos = entity.ServerPos.XYZ.AddCopy(entity.LocalEyePos).AheadCopy(6, entity.ServerPos.Pitch, entity.ServerPos.Yaw + GameMath.PIHALF);
-			//entity.ServerPos.AheadCopy(-6).XYZ.AddCopy(entity.LocalEyePos);
 			Vec3f minTrailsVel = new Vec3f(1f, 0f, 0f);
 			Vec3f maxTrailsVel = new Vec3f(1f, 0f, 0f);
 			var smoke = new SimpleParticleProperties(5f, 40f, smokeColours, gunBarrelPos, gunTrailsPos, minTrailsVel, maxTrailsVel, rand.Next(4, 10), 0f, 1f, 6f, EnumParticleModel.Quad);
 			smoke.ShouldDieInLiquid = true;
 			smoke.ShouldSwimOnLiquid = true;
-			smoke.WindAffected = true;
-			smoke.OpacityEvolve = EvolvingNatFloat.create(EnumTransformFunction.LINEAR, -16f);
-			smoke.WindAffectednes = 3f;
+			smoke.OpacityEvolve = EvolvingNatFloat.create(EnumTransformFunction.LINEAR, -2f);
 			entity.World.SpawnParticles(smoke);
 		}
 
@@ -358,6 +356,13 @@ namespace VSKingdom {
 			}
 			// Don't waste ammunition by shooting at the hecking ground.
 			return bSelect?.Block == null;
+		}
+
+		private void RenderVariants(int variant) {
+			if (entity.RightHandItemSlot?.Itemstack?.Attributes.HasAttribute("renderVariant") ?? false) {
+				entity.RightHandItemSlot.Itemstack.Attributes.SetInt("renderVariant", variant);
+				entity.RightHandItemSlot.MarkDirty();
+			}
 		}
 	}
 }

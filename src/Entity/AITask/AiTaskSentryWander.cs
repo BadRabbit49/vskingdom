@@ -18,9 +18,7 @@ namespace VSKingdom {
 		protected long checkCooldown;
 		protected float wanderChance;
 		protected float targetRanges;
-		protected float curMoveSpeed;
 		protected float maxSquareDis;
-		protected string curAnimation;
 		protected Vec3d curTargetPos;
 		protected NatFloat wanderRangeHor = NatFloat.createStrongerInvexp(3, 40);
 		protected NatFloat wanderRangeVer = NatFloat.createStrongerInvexp(3, 10);
@@ -35,7 +33,6 @@ namespace VSKingdom {
 			this.checkCooldown = taskConfig["checkCooldown"].AsInt(1500);
 			this.targetRanges = taskConfig["targetRanges"].AsFloat(0.12f);
 			this.wanderChance = taskConfig["wanderChance"].AsFloat(0.15f);
-			this.curMoveSpeed = taskConfig["curMoveSpeed"].AsFloat(0.03f);
 			this.whenNotInEmotionState = taskConfig["whenNotInEmotionState"].AsString("aggressiveondamage|fleeondamage");
 		}
 
@@ -70,8 +67,7 @@ namespace VSKingdom {
 			cancelWanders = false;
 			wanderRangeHor = NatFloat.createInvexp(1f, wanderRange);
 			wanderRangeVer = NatFloat.createInvexp(1f, wanderRange / 2f);
-			MoveAnimation();
-			bool ok = pathTraverser.WalkTowards(curTargetPos, curMoveSpeed, targetRanges, OnGoals, OnStuck);
+			bool ok = pathTraverser.WalkTowards(curTargetPos, 0.02f, targetRanges, OnGoals, OnStuck);
 		}
 
 		public override bool ContinueExecute(float dt) {
@@ -99,7 +95,6 @@ namespace VSKingdom {
 
 		public override void FinishExecute(bool cancelled) {
 			cooldownUntilMs = entity.World.ElapsedMilliseconds + mincooldown + entity.World.Rand.Next(maxcooldown - mincooldown);
-			StopAnimation();
 			if (entity.ruleOrder[6] && entity.ServerPos.SquareDistanceTo(entity.cachedData.postBlock) < maxSquareDis) {
 				HasReturnedTo();
 			}
@@ -107,7 +102,6 @@ namespace VSKingdom {
 
 		public virtual void PauseExecute(EntityAgent entity) {
 			cancelWanders = true;
-			MoveAnimation();
 		}
 
 		private Vec3d LeaveTheWatersTarget() {
@@ -215,7 +209,6 @@ namespace VSKingdom {
 		private void OnStuck() {
 			cancelWanders = true;
 			failedWanders++;
-			StopAnimation();
 		}
 
 		private void OnGoals() {
@@ -241,31 +234,6 @@ namespace VSKingdom {
 			SentryOrdersToServer updatedOrders = new SentryOrdersToServer() { entityUID = entity.EntityId, returning = false, usedorder = false };
 			IServerPlayer nearestPlayer = entity.ServerAPI.World.NearestPlayer(entity.ServerPos.X, entity.ServerPos.Y, entity.ServerPos.Z) as IServerPlayer;
 			entity.ServerAPI?.Network.GetChannel("sentrynetwork").SendPacket<SentryOrdersToServer>(updatedOrders, nearestPlayer);
-		}
-
-		private void MoveAnimation() {
-			if (cancelWanders) {
-				StopAnimation();
-				return;
-			} else if (entity.Swimming) {
-				curMoveSpeed = entity.cachedData.walkSpeed * GlobalConstants.WaterDrag;
-				entity.AnimManager.StopAnimation(curAnimation);
-				curAnimation = new string(entity.cachedData.swimAnims);
-			} else {
-				curMoveSpeed = entity.cachedData.walkSpeed;
-				entity.AnimManager.StopAnimation(curAnimation);
-				curAnimation = new string(entity.cachedData.walkAnims);
-			}
-			entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = curAnimation, Code = curAnimation, BlendMode = EnumAnimationBlendMode.Average, MulWithWalkSpeed = true, EaseInSpeed = 999f, EaseOutSpeed = 999f }.Init());
-		}
-
-		private void StopAnimation() {
-			curMoveSpeed = 0;
-			if (curAnimation != null) {
-				entity.AnimManager.StopAnimation(curAnimation);
-			}
-			entity.AnimManager.StopAnimation(entity.cachedData.walkAnims);
-			entity.AnimManager.StopAnimation(entity.cachedData.swimAnims);
 		}
 	}
 }

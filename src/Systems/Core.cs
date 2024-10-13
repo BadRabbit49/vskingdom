@@ -26,7 +26,6 @@ using static VSKingdom.Extension.KingdomListExtension;
 using static VSKingdom.Extension.CultureListExtension;
 using static VSKingdom.Extension.ServerExtension;
 using static VSKingdom.Extension.StringExtension;
-using VSKingdom.Utilities;
 
 namespace VSKingdom {
 	public class VSKingdom : ModSystem {
@@ -177,6 +176,9 @@ namespace VSKingdom {
 			serverAPI.WorldManager.SaveGame.StoreData("cultureData", SerializerUtil.Serialize(cultureData.Cultures.Values.ToList()));
 			kingdomList = kingdomData.Kingdoms.Values.ToList();
 			cultureList = cultureData.Cultures.Values.ToList();
+			serverAPI.World.Config.SetString("BasicMascNames", String.Join(", ", cultureList[0].MFirstNames.ToArray()));
+			serverAPI.World.Config.SetString("BasicFemmNames", String.Join(", ", cultureList[0].FFirstNames.ToArray()));
+			serverAPI.World.Config.SetString("BasicLastNames", String.Join(", ", cultureList[0].FamilyNames.ToArray()));
 		}
 
 		private void CleanupData() {
@@ -1402,7 +1404,8 @@ public class WeaponProperties {
 	public bool usesSmoke = false;
 	public long loadSpeed = 1200L;
 	public double ammoSpeed = 1.0d;
-	public string ammoCodes = null;	
+	public string ammoCodes = null;
+	public string ammoShape = null;
 	public string idleAnims = "idle";
 	public string walkAnims = "walk";
 	public string moveAnims = "move";
@@ -1412,11 +1415,10 @@ public class WeaponProperties {
 	public string drawAnims = "draw";
 	public string fireAnims = "fire";
 	public string loadAnims = "load";
-	public string bashAnims = "bash";
 	public string stabAnims = "bash";
 	public AssetLocation[] drawAudio = { };
 	public AssetLocation[] fireAudio = { };
-	public string[] allCodes => new string[11] { idleAnims, walkAnims, moveAnims, duckAnims, swimAnims, jumpAnims, drawAnims, fireAnims, loadAnims, bashAnims, stabAnims };
+	public string[] allCodes => new string[10] { idleAnims, walkAnims, moveAnims, duckAnims, swimAnims, jumpAnims, drawAnims, fireAnims, loadAnims, stabAnims };
 }
 [ProtoContract(ImplicitFields = ImplicitFields.AllPublic)]
 public class ClassPrivileges {

@@ -208,7 +208,7 @@ namespace VSKingdom {
 					break;
 				case "orderFollow":
 					newOrders.following = toggle;
-					newOrders.attribute = string.Join(',', "l", "guardedEntityId", (toggle ? player.EntityId : 0).ToString());
+					newOrders.attribute = string.Join(',', "s", "guardedPlayerUid", (toggle ? player.PlayerUID : "").ToString());
 					newOrders.usedorder = true;
 					break;
 				case "orderEngage":

@@ -342,7 +342,7 @@ namespace VSKingdom {
 			smoke.OpacityEvolve = EvolvingNatFloat.create(EnumTransformFunction.LINEAR, -2f);
 			entity.World.SpawnParticles(smoke);
 		}
-
+		
 		private bool NothinInTheWay() {
 			var eSelect = new EntitySelection();
 			var bSelect = new BlockSelection();

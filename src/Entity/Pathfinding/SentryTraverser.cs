@@ -25,22 +25,21 @@ namespace VSKingdom {
 		public Single minTurnAngle;
 		public Single maxTurnAngle;
 		public Single distChecksMs;
-		public Single curPosDistSq;
-		public Single prvDistToPos;
 		public Single prvPosAccums;
+		public Single prvPosDistSq;
+		public Single curPosDistSq;
 		public Single curMoveSpeed;
-		public string curIdleAnims = "idle";
-		public string curWalkAnims = "walk";
-		public string curMoveAnims = "move";
-		public string curDuckAnims = "duck";
-		public string curSwimAnims = "swim";
-		public string curJumpAnims = "jump";
-		public string curFallAnims = "fall";
-		public string curSeatAnims = "seat";
-		public string curAnimation;
-		public PathfindSystem systemsPathfinder;
-		public PathfinderTask asyncSearchObject;
-		public PathfindingAsync asyncPathfinder;
+		public String curIdleAnims = "idle";
+		public String curWalkAnims = "walk";
+		public String curMoveAnims = "move";
+		public String curDuckAnims = "duck";
+		public String curSwimAnims = "swim";
+		public String curJumpAnims = "jump";
+		public String curAnimation;
+		private PathfindSystem systemsPathfinder;
+		private PathfinderTask asyncSearchObject;
+		private PathfindingAsync asyncPathfinder;
+		private ModSystemBlockReinforcement reinforceSystem;
 		public override Vec3d CurrentTarget { get => curWaypoints[curWaypoints.Count - 1]; }
 		public override bool Ready { get => curWaypoints != null && asyncSearchObject == null; }
 
@@ -55,6 +54,7 @@ namespace VSKingdom {
 			}
 			this.systemsPathfinder = entity.World.Api.ModLoader.GetModSystem<PathfindSystem>();
 			this.asyncPathfinder = entity.World.Api.ModLoader.GetModSystem<PathfindingAsync>();
+			this.reinforceSystem = entity.Api.ModLoader.GetModSystem<ModSystemBlockReinforcement>();
 		}
 
 		public PathfinderTask PreparePathfinderTask(BlockPos startBlockPos, BlockPos targetBlockPos, int searchDepth = 999, int mhdistanceTolerance = 0) {
@@ -68,10 +68,11 @@ namespace VSKingdom {
 
 		public override bool NavigateTo(Vec3d target, float movingSpeed, float targetDistance, Action OnGoals, Action OnStuck, bool giveUpWhenNoPath = false, int searchDepth = 10000, int mhdistanceTolerance = 0) {
 			this.target = target;
-			this.targetDistance = targetDistance;
+			this.targetDistance = targetDistance * 0.9f;
 			this.OnStuck = OnStuck;
 			this.OnGoals = OnGoals;
 			CalcMovement();
+			CalcAnimated();
 			BlockPos startBlockPos = entity.ServerPos.AsBlockPos;
 			if (entity.World.BlockAccessor.IsNotTraversable(startBlockPos)) {
 				PathsNotFound();
@@ -86,11 +87,12 @@ namespace VSKingdom {
 				return false;
 			}
 			this.target = target;
-			this.targetDistance = targetDistance;
+			this.targetDistance = targetDistance * 0.9f;
 			this.NoPaths = onNoPath;
 			this.OnGoals = OnGoals;
 			this.OnStuck = OnStuck;
 			CalcMovement();
+			CalcAnimated();
 			BlockPos startBlockPos = entity.ServerPos.AsBlockPos;
 			if (entity.World.BlockAccessor.IsNotTraversable(startBlockPos)) {
 				PathsNotFound();
@@ -103,9 +105,13 @@ namespace VSKingdom {
 		public override bool WalkTowards(Vec3d target, float movingSpeed, float targetDistance, Action OnGoals, Action OnStuck) {
 			curWaypoints = new List<Vec3d>();
 			curWaypoints.Add(target);
-			bool walked = base.WalkTowards(target, movingSpeed, targetDistance, OnGoals, OnStuck);
+			this.target = target;
+			this.targetDistance = targetDistance * 0.9f;
+			this.OnGoals = OnGoals;
+			this.OnStuck = OnStuck;
 			CalcMovement();
-			return walked;
+			CalcAnimated();
+			return base.WalkTowards(target, movingSpeed, targetDistance * 0.9f, OnGoals, OnStuck);
 		}
 
 		protected override bool BeginGo() {
@@ -128,7 +134,7 @@ namespace VSKingdom {
 
 		public override void Stop() {
 			for (int i = (curWaypoints?.Count ?? 0) - 1; i >= 0 && i >= waypointsUntil - 1; i--) {
-				ToggleDoor(curWaypoints[i].AsBlockPos, true);
+				ToggleDoors(curWaypoints[i].AsBlockPos, false);
 			}
 			StopControls();
 			StopMovement();
@@ -161,7 +167,7 @@ namespace VSKingdom {
 				waypointsPrvMs = entity.World.ElapsedMilliseconds;
 				target = curWaypoints[Math.Min(curWaypoints.Count - 1, waypointsUntil)];
 				if (waypointsUntil > 2) {
-					ToggleDoor(curWaypoints[waypointsUntil - 3].AsBlockPos, true);
+					ToggleDoors(curWaypoints[waypointsUntil - 3].AsBlockPos, true);
 				}
 				controls.Sneak = target.Y < entity.ServerPos.Y && target.X == entity.ServerPos.X && target.Z == entity.ServerPos.Z;
 			} else {
@@ -188,14 +194,14 @@ namespace VSKingdom {
 			distChecksMs += dt;
 			if (distChecksMs > 2) {
 				distChecksMs = 0;
-				if (Math.Abs(curPosDistSq - prvDistToPos) < 0.1) {
+				if (Math.Abs(curPosDistSq - prvPosDistSq) < 0.1) {
 					stuck = true;
 					stuckCounter += 30;
 				} else if (!stuck) {
 					stuckCounter = 0;
 				}
 				// Only reset the stuckCounter in same tick as doing this test; otherwise the stuckCounter gets set to 0 every 2 or 3 ticks even if the entity collided horizontally (because motion vecs get set to 0 after the collision, so won't collide in the successive tick).
-				prvDistToPos = curPosDistSq;
+				prvPosDistSq = curPosDistSq;
 			}
 			if (stuck) {
 				stuckCounter++;
@@ -225,7 +231,7 @@ namespace VSKingdom {
 			controls.WalkVector.Set(sinYaw, GameMath.Clamp(curTargetVec.Y, -1, 1), cosYaw);
 			controls.WalkVector.Mul(nowMoveSpeed / Math.Max(1, Math.Abs(yawDist) * 3));
 			CalcControls();
-			CalcMovement();
+			CalcAnimated();
 			// Make it walk along the wall, but not walk into the wall, which causes it to climb
 			if (entity.Properties.RotateModelOnClimb && entity.Controls.IsClimbing && entity.ClimbingIntoFace != null && entity.Alive) {
 				BlockFacing facing = entity.ClimbingIntoFace;
@@ -242,7 +248,7 @@ namespace VSKingdom {
 			if (entity.Swimming) {
 				controls.FlyVector.Set(controls.WalkVector);
 				Vec3d pos = entity.Pos.XYZ;
-				Block inblock = entity.World.BlockAccessor.GetBlock(new BlockPos((int)pos.X, (int)(pos.Y), (int)pos.Z, entity.SidedPos.Dimension), BlockLayersAccess.Fluid);
+				Block inblock = entity.World.BlockAccessor.GetBlock(new BlockPos(pos.XInt, pos.YInt, pos.ZInt, entity.SidedPos.Dimension), BlockLayersAccess.Fluid);
 				Block aboveblock = entity.World.BlockAccessor.GetBlock(new BlockPos((int)pos.X, (int)(pos.Y + 1), (int)pos.Z, entity.SidedPos.Dimension), BlockLayersAccess.Fluid);
 				float waterY = (int)pos.Y + inblock.LiquidLevel / 8f + (aboveblock.IsLiquid() ? 9 / 8f : 0);
 				float bottomSubmergedness = waterY - (float)pos.Y;
@@ -253,14 +259,6 @@ namespace VSKingdom {
 					controls.FlyVector.Y = 0.05f;
 				}
 			}
-		}
-
-		private bool IsFallingFar() {
-			if (entity.OnGround && !entity.FeetInLiquid) {
-				entity.Api.Logger.Notification("EntityMotion is: " + entity.ServerPos.Motion.Y);
-				return true;
-			}
-			return false;
 		}
 
 		private bool IsNearTarget(int waypointOffset, ref bool nearHorizontally) {
@@ -282,31 +280,26 @@ namespace VSKingdom {
 			return curPosDistSq < targetDistance * targetDistance;
 		}
 
-		private bool ToggleDoor(BlockPos pos, bool wasOpen) {
-			if (pos.HorizontalManhattenDistance(entity.ServerPos.AsBlockPos) > 3) {
-				return false;
-			}
-			var doorBehavior = BlockBehaviorDoor.getDoorAt(entity.World, pos);
-			if (doorBehavior != null && doorBehavior.Opened == wasOpen) {
-				doorBehavior.ToggleDoorState(null, !wasOpen);
-				return true; // TryLock(doorBehavior.Pos); Check if the Ai can even open this with their mommy or daddy's credit card permissions.
-			}
-			if (entity.World.BlockAccessor.GetBlock(pos) is BlockBaseDoor doorBlock && doorBlock.IsOpened() == wasOpen) {
-				doorBlock.OnBlockInteractStart(entity.World, null, new BlockSelection(pos, BlockFacing.UP, doorBlock));
-				return true;
-			}
-			return false;
-		}
-
-		private bool TryLock(BlockPos pos) {
-			ModSystemBlockReinforcement blockReinforcement = entity.Api.ModLoader.GetModSystem<ModSystemBlockReinforcement>();
-			if (blockReinforcement is null || !blockReinforcement.IsReinforced(pos)) {
+		private bool CanBeOpened(BlockPos pos) {
+			if (!reinforceSystem.IsReinforced(pos)) {
 				return true;
 			}
 			if (!entity.WatchedAttributes.HasAttribute(LeadersGUID)) {
 				return false;
 			}
-			return !blockReinforcement.IsLockedForInteract(pos, entity.World.PlayerByUid(entity.WatchedAttributes.GetString(LeadersGUID)));
+			return !reinforceSystem.IsLockedForInteract(pos, entity.World.PlayerByUid(entity.WatchedAttributes.GetString(LeadersGUID)));
+		}
+
+		private void ToggleDoors(BlockPos pos, bool toggleOpen) {
+			if (pos.HorizontalManhattenDistance(entity.ServerPos.AsBlockPos) > 3) {
+				return;
+			}
+			var doorBehavior = BlockBehaviorDoor.getDoorAt(entity.World, pos);
+			if (doorBehavior != null && doorBehavior.Opened != toggleOpen && CanBeOpened(pos)) {
+				// doorBehavior.Opened == false;
+				// true
+				doorBehavior.ToggleDoorState(null, !toggleOpen);
+			}
 		}
 
 		private void FindPath(BlockPos startBlockPos, BlockPos targetBlockPos, int searchDepth, int mhdistanceTolerance = 0) {
@@ -369,57 +362,62 @@ namespace VSKingdom {
 			entity.Controls.Right = false;
 			entity.Controls.Backward = false;
 			entity.Controls.Left = false;
-			entity.Controls.Sprint = false;
+			if (!entity.ruleOrder[1]) {
+				entity.Controls.Sprint = false;
+			}
 			entity.ServerControls.SetFrom(entity.Controls);
 		}
 
 		private void CalcControls() {
-			if (!Active) {
+			if (!Active || curMoveSpeed == 0) {
 				StopControls();
 				return;
 			}
 			Vec3d vector = entity?.Controls.WalkVector ?? entity?.ServerControls.WalkVector;
-			bool xPos = vector.X > 0;
-			bool yPos = vector.Y > 0;
-			entity.Controls.Forward = xPos;
-			entity.Controls.Right = yPos;
-			entity.Controls.Backward = !xPos && vector.X < 0;
-			entity.Controls.Left = !yPos && vector.Y < 0;
-			entity.Controls.Sprint = curPosDistSq > 30f;
+			bool xPos = vector.X > 0.1f;
+			bool yPos = vector.Y > 0.1f;
+			bool xNeg = vector.X < -0.1f;
+			bool yNeg = vector.Y < -0.1f;
+			entity.Controls.Forward = xPos && !xNeg;
+			entity.Controls.Backward = !xPos && xNeg;
+			entity.Controls.Right = yPos && !yNeg;
+			entity.Controls.Left = !yPos && yNeg;
+			if (!entity.ruleOrder[1] || curPosDistSq > 81f) {
+				entity.Controls.Sprint = xPos && curPosDistSq > 36f;
+			}
 			entity.ServerControls.SetFrom(entity.Controls);
 		}
 
 		private void CalcMovement() {
+			Single speed = entity.cachedData.walkSpeed;
+			if (!entity.Alive || !Active) {
+				speed = 0;
+			} else if (entity.Controls.Sprint || curPosDistSq > 36f && entity.IsOnFire) {
+				speed = entity.cachedData.moveSpeed;
+			}
+			curMoveSpeed = speed * GlobalConstants.OverallSpeedMultiplier;
+		}
+
+		private void CalcAnimated() {
 			String anims = curIdleAnims;
-			Single speed = entity.cachedData.walkSpeed * GlobalConstants.OverallSpeedMultiplier;
 			if (!entity.Alive || !Active) {
 				anims = curIdleAnims;
-				speed *= 0f;
 			} else if (entity.Swimming) {
 				anims = curSwimAnims;
-				speed *= 1f;
 			} else if (entity.FeetInLiquid) {
 				anims = curWalkAnims;
-				speed *= GlobalConstants.WaterDrag;
 			} else if (entity.Controls.Sneak) {
 				anims = curDuckAnims;
-				speed *= GlobalConstants.SneakSpeedMultiplier;
 			} else if (entity.Controls.Sprint || entity.IsOnFire || entity.InLava) {
 				anims = curMoveAnims;
-				speed = entity.cachedData.moveSpeed;
-			} else if (entity.passenger[0]) {
-				anims = entity.MountedOn?.SuggestedAnimation ?? curSeatAnims;
-			} else if (entity.Controls.Right) {
-				anims = "walkside";
-				speed *= 0.95f;
-			} else if (entity.Controls.Left) {
-				anims = "walkleft";
-				speed *= 0.95f;
+			} else if (curMoveSpeed > 0) {
+				anims = curWalkAnims;
 			} else if (entity.Controls.Backward) {
 				anims = "walkback";
-				speed *= 0.95f;
-			} else if (entity.Controls.Forward) {
-				anims = curWalkAnims;
+			} else if (entity.Controls.Right) {
+				anims = "walkside";
+			} else if (entity.Controls.Left) {
+				anims = "walkleft";
 			}
 			if (!entity.AnimManager.IsAnimationActive(anims)) {
 				StopMovement();
@@ -432,13 +430,13 @@ namespace VSKingdom {
 						{ "UpperFootL", 2f },
 						{ "LowerFootR", 2f },
 						{ "LowerFootL", 2f },
+						{ "ItemAnchor", 0f }
 					},
 					MulWithWalkSpeed = true,
 					EaseInSpeed = 999f,
 					EaseOutSpeed = 999f
 				}.Init());
 			}
-			curMoveSpeed = speed;
 			curAnimation = anims;
 		}
 	}

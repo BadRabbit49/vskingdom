@@ -2054,7 +2054,7 @@
 		},
 		{
 			"name": "SpearIdle",
-			"code": "SpearIdle",
+			"code": "spearidle",
 			"quantityframes": 30,
 			"onActivityStopped": "EaseOut",
 			"onAnimationEnd": "Repeat",
@@ -2064,7 +2064,7 @@
 					"elements": {
 						"UpperArmR": { "rotationX": 11.0, "rotationY": 8.0, "rotationZ": -36.0 },
 						"LowerArmR": { "offsetX": 0.0, "offsetY": 0.3, "offsetZ": 0.0, "rotationX": 0.0, "rotationY": 0.0, "rotationZ": -30.0 },
-						"ItemAnchor": { "rotationX": 0.0, "rotationY": 0.0, "rotationZ": -83.0 }
+						"ItemAnchor": { "rotationX": 6.0, "rotationY": 0.0, "rotationZ": -64.0 }
 					}
 				}
 			]

@@ -6,12 +6,14 @@ using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.GameContent;
 using VSKingdom.Utilities;
+using Vintagestory.API.Common.Entities;
 
 namespace VSKingdom {
 	public class AiTaskSentryFollow : AiTaskStayCloseToGuardedEntity {
 		public AiTaskSentryFollow(EntitySentry entity) : base(entity) { this.entity = entity; }
 		#pragma warning disable CS0108
 		public EntitySentry entity;
+		public EntityPlayer targetEntity;
 		#pragma warning restore CS0108
 		protected bool isAPassenger;
 		protected Int32 stuckCounter;
@@ -66,6 +68,8 @@ namespace VSKingdom {
 				castCooldown = entity.World.ElapsedMilliseconds + 4000;
 				RetargetFormation();
 			}
+			entity.Controls.Sprint = targetEntity.Controls.Sprint;
+			entity.Controls.Sneak = targetEntity.Controls.Sneak;
 			double x = targetEntity.ServerPos.X + (targetOffset.X * 2);
 			double y = targetEntity.ServerPos.Y;
 			double z = targetEntity.ServerPos.Z + (targetOffset.Z * 2);
@@ -115,7 +119,7 @@ namespace VSKingdom {
 		}
 
 		public virtual void RetargetFormation() {
-			try { targetEntity = GetGuardedEntity(); } catch { return; }
+			try { targetEntity = GetGuardedPlayer(); } catch { return; }
 			if (!targetEntity.WatchedAttributes.HasAttribute("followerEntityUids")) {
 				targetEntity.WatchedAttributes.SetAttribute("followerEntityUids", new LongArrayAttribute(new long[] { entity.EntityId }));
 			}
@@ -162,6 +166,15 @@ namespace VSKingdom {
 				return false;
 			}
 			return bSelect?.Block != null;
+		}
+
+		private EntityPlayer GetGuardedPlayer() {
+			var playerID = entity.WatchedAttributes.GetString("guardedPlayerUid");
+			if (playerID != null) {
+				return entity.World.PlayerByUid(playerID)?.Entity;
+			}
+			var entityID = entity.WatchedAttributes.GetLong("guardedEntityId", 0L);
+			return entity.World.GetEntityById(entityID) as EntityPlayer;
 		}
 	}
 }

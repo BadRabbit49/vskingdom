@@ -195,8 +195,8 @@ namespace VSKingdom {
 				});
 			}
 			if (WatchedAttributes.GetString(LeadersGUID) == player.PlayerUID) {
-				if (WatchedAttributes.GetBool(OrderWander) && WatchedAttributes.GetBool(OrderFollow) && WatchedAttributes.GetBool(OrderEngage) &&
-					WatchedAttributes.GetBool(OrderPursue) && WatchedAttributes.GetBool(OrderShifts) && WatchedAttributes.GetBool(OrderPatrol)) {
+				if (!WatchedAttributes.GetBool(OrderWander) && !WatchedAttributes.GetBool(OrderFollow) && !WatchedAttributes.GetBool(OrderEngage) &&
+					!WatchedAttributes.GetBool(OrderPursue) && !WatchedAttributes.GetBool(OrderShifts) && !WatchedAttributes.GetBool(OrderPatrol)) {
 					interactions.Add(new WorldInteraction() {
 						ActionLangCode = "game:blockhelp-ingotmold-pickup",
 						MouseButton = EnumMouseButton.Right,
@@ -299,11 +299,12 @@ namespace VSKingdom {
 				GetBehavior<EntityBehaviorTaskAI>()?.TaskManager?.GetTask<AiTaskSentryWander>()?.PauseExecute(player);
 			}
 			if (!itemslot.Empty && player.Controls.Sneak) {
-				// TRY TO EQUIP!
+				// TRY TO EQUIP ARMOR!
 				if (Alive && leadersGuid != null && leadersGuid == player.PlayerUID && itemslot.Itemstack.Item is ItemWearable wearable) {
 					itemslot.TryPutInto(World, gearInv[(int)wearable.DressType]);
 					return;
 				}
+				// TRY TO EQUIP WEAPONS!
 				if (Alive && leadersGuid != null && leadersGuid == player.PlayerUID && itemslot.Itemstack.Collectible.Tool != null || itemslot.Itemstack.ItemAttributes?["toolrackTransform"].Exists == true) {
 					if (player.RightHandItemSlot.TryPutInto(byEntity.World, RightHandItemSlot) == 0) {
 						player.RightHandItemSlot.TryPutInto(byEntity.World, LeftHandItemSlot);

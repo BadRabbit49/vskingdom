@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Collections.Generic;
 using Vintagestory.API.Client;
 using Vintagestory.API.Server;
+using Vintagestory.API.Config;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Datastructures;
@@ -14,8 +15,6 @@ using Vintagestory.GameContent;
 using static VSKingdom.Utilities.ColoursUtil;
 using static VSKingdom.Utilities.GenericUtil;
 using static VSKingdom.Utilities.ReadingUtil;
-using static System.Net.Mime.MediaTypeNames;
-using Vintagestory.API.Config;
 
 namespace VSKingdom {
 	public class ItemPeople : Item {
@@ -68,10 +67,10 @@ namespace VSKingdom {
 				player.Entity.WatchedAttributes.SetAttribute("followerEntityUids", new LongArrayAttribute(new long[] { }));
 			}
 
-			bool inheritedParts = itemstack.Attributes.HasAttribute("appliedParts");
-			bool inheritedNames = itemstack.Attributes.HasAttribute("nametagParts");
-			bool inheritedGears = itemstack.Attributes.HasAttribute("entInventory");
-			bool didTransitions = itemstack.Attributes.HasAttribute("gender") && itemstack.Attributes.GetString("gender") != entity.Code.EndVariant();
+			bool inheritedParts = itemstack?.Attributes.HasAttribute("appliedParts") ?? false;
+			bool inheritedNames = itemstack?.Attributes.HasAttribute("nametagParts") ?? false;
+			bool inheritedGears = itemstack?.Attributes.HasAttribute("entInventory") ?? false;
+			bool didTransitions = (inheritedParts || inheritedNames || inheritedGears) && itemstack.Attributes.HasAttribute("gender") && itemstack.Attributes.GetString("gender") != entity.Code.EndVariant();
 
 			if (api.Side == EnumAppSide.Server) {
 				// Change variabels depending on if the entity is a bandit or not. Bandits have no leaders.

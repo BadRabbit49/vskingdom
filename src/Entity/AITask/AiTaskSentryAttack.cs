@@ -242,10 +242,10 @@ namespace VSKingdom {
 				Animation = currAnimCode,
 				Code = currAnimCode,
 				ElementWeight = new Dictionary<string, float> {
-					{ "ItemAnchor", 10f },
+					{ "ItemAnchor", 999f },
 					{ "UpperArmR", 10f },
 					{ "LowerArmR", 10f },
-					{ "UpperTorso", 2f }
+					{ "UpperTorso", 5f }
 				}
 			}.Init());
 			entity.World.PlaySoundAt(sound, entity, null, true, soundRange);

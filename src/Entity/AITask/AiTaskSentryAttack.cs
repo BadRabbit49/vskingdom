@@ -22,16 +22,18 @@ namespace VSKingdom {
 		protected bool banditPilled = false;
 		protected bool attackFinish = false;
 		protected bool usingAShield = false;
-		protected long shieldedHand = 0;
+		protected char shieldedHand = 'L';
 		protected long durationOfMs = 1500L;
-		protected long lastAttackMs;
-		protected long lastHelpedMs;
+		protected long cooldownAtMs = 0L;
+		protected long lastHelpedMs = 0L;
+		protected long nextAttackMs = 0L;
 		protected float maximumRange = 20f;
 		protected float minimumRange = 0.5f;
-		protected float curTurnAngle;
+		protected float curTurnAngle = 0f;
 		protected string lastAnimCode;
 		protected string currAnimCode;
-		protected string[] shieldAnim;
+		protected string shieldAnimsL;
+		protected string shieldAnimsR;
 		protected string[] animations;
 		protected HashSet<long> allyCaches = new HashSet<long>();
 		protected AiTaskManager tasksManager;
@@ -46,7 +48,8 @@ namespace VSKingdom {
 			base.LoadConfig(taskConfig, aiConfig);
 			this.banditPilled = taskConfig["isBandit"].AsBool(false);
 			this.animations = taskConfig["animations"]?.AsArray<string>(new string[] { "hit", "spearstabs" });
-			this.shieldAnim = taskConfig["shieldAnim"]?.AsArray<string>(new string[] { "raiseshield-left", "raiseshield-right" });
+			this.shieldAnimsL = taskConfig["shieldAnimsL"]?.AsString("raiseshield-left");
+			this.shieldAnimsR = taskConfig["shieldAnimsR"]?.AsString("raiseshield-right");
 			this.mincooldown = taskConfig["mincooldown"].AsInt(500);
 			this.maxcooldown = taskConfig["maxcooldown"].AsInt(1500);
 			this.maximumRange = taskConfig["maximumRange"].AsFloat(20f);
@@ -57,7 +60,7 @@ namespace VSKingdom {
 			if (!entity.cachedData.usesMelee || !entity.cachedData.weapReady || !entity.ruleOrder[2]) {
 				return false;
 			}
-			if (cooldownUntilMs > entity.World.ElapsedMilliseconds || entity.World.ElapsedMilliseconds - lastAttackMs < durationOfMs) {
+			if (cooldownUntilMs > entity.World.ElapsedMilliseconds || entity.World.ElapsedMilliseconds - cooldownAtMs < durationOfMs) {
 				return false;
 			}
 			if (entity.World.ElapsedMilliseconds - attackedByEntityMs > 30000) {
@@ -76,7 +79,7 @@ namespace VSKingdom {
 					targetEntity = targetList[rand.Next(0, targetList.Length - 1)];
 				}
 			}
-			lastAttackMs = entity.World.ElapsedMilliseconds;
+			cooldownAtMs = entity.World.ElapsedMilliseconds;
 			return targetEntity?.Alive ?? false;
 		}
 
@@ -113,14 +116,13 @@ namespace VSKingdom {
 					case 2: sound = new AssetLocation("game:sounds/player/strike2"); break;
 				}
 			}
-			if (entity.LeftHandItemSlot.Empty && entity.RightHandItemSlot.Empty) {
-				usingAShield = false;
-			} else if (!entity.LeftHandItemSlot.Empty && entity.LeftHandItemSlot.Itemstack?.Item is ItemShield) {
+			usingAShield = false;
+			if (!entity.LeftHandItemSlot.Empty && entity.LeftHandItemSlot.Itemstack?.Item is ItemShield) {
 				usingAShield = true;
-				shieldedHand = 0;
+				shieldedHand = 'L';
 			} else if (!entity.RightHandItemSlot.Empty && entity.LeftHandItemSlot.Itemstack?.Item is ItemShield) {
 				usingAShield = true;
-				shieldedHand = 1;
+				shieldedHand = 'R';
 			}
 			cancelAttack = false;
 			animsRunning = false;
@@ -143,11 +145,9 @@ namespace VSKingdom {
 					entity.ServerPos.Yaw %= (MathF.PI * 2f);
 					flag = Math.Abs(num) < maximumRange * (MathF.PI / 180f);
 				}
-				if (!attackFinish) {
-					attackFinish = currAnimCode != null && !entity.AnimManager.IsAnimationActive(currAnimCode);
-				}
-				animsRunning = lastAnimCode != null ? entity.AnimManager.GetAnimationState(lastAnimCode).Running : false;
-				if (!animsRunning && attackFinish && flag) {
+				animsRunning = lastAnimCode != null && entity.AnimManager.IsAnimationActive(lastAnimCode);
+				if (!animsRunning && entity.World.ElapsedMilliseconds > nextAttackMs && flag) {
+					nextAttackMs = entity.World.ElapsedMilliseconds + 1500L;
 					attackFinish = false;
 					animsRunning = AttackTarget();
 				}
@@ -159,29 +159,31 @@ namespace VSKingdom {
 						targetsRanged = (targetWeapon is ItemBow || targetWeapon is ItemSling);
 					}
 					bool shouldShield = (closeToTarget && !targetsRanged) || (!closeToTarget && targetsRanged);
-					bool animationsOn = entity.AnimManager.IsAnimationActive(shieldAnim[shieldedHand]);
+					bool animationsOn = entity.AnimManager.IsAnimationActive(shieldedHand == 'L' ? shieldAnimsL : shieldAnimsR);
 					if (shouldShield && !animationsOn) {
-						string ArmToUse = shieldedHand.Equals(0) ? "ArmL" : "ArmR";
+						string armsToUse = "Arm" + shieldedHand;
+						string codeToUse = shieldedHand == 'L' ? shieldAnimsL : shieldAnimsR;
 						entity.AnimManager.StartAnimation(new AnimationMetaData() {
-								Animation = shieldAnim[shieldedHand],
-								Code = shieldAnim[shieldedHand],
+								Animation = codeToUse,
+								Code = codeToUse,
 								BlendMode = EnumAnimationBlendMode.Add,
 								EaseInSpeed = 1f,
+								EaseOutSpeed = 999f,
 								ElementWeight = new Dictionary<string, float> {
-									{ "Upper" + ArmToUse, 100f },
-									{ "Lower" + ArmToUse, 100f }
+									{ "Upper" + armsToUse, 100f },
+									{ "Lower" + armsToUse, 100f }
 								},
 								ElementBlendMode = new Dictionary<string, EnumAnimationBlendMode> {
-									{ "Upper" + ArmToUse, EnumAnimationBlendMode.AddAverage },
-									{ "Lower" + ArmToUse, EnumAnimationBlendMode.AddAverage }
+									{ "Upper" + armsToUse, EnumAnimationBlendMode.AddAverage },
+									{ "Lower" + armsToUse, EnumAnimationBlendMode.AddAverage }
 								}
 							}.Init());
 					} else if (!shouldShield && animationsOn) {
-						entity.AnimManager.StopAnimation(shieldAnim[0]);
-						entity.AnimManager.StopAnimation(shieldAnim[1]);
+						entity.AnimManager.StopAnimation(shieldAnimsL);
+						entity.AnimManager.StopAnimation(shieldAnimsR);
 					}
 				}
-				return lastAttackMs + durationOfMs > entity.World.ElapsedMilliseconds;
+				return cooldownAtMs + durationOfMs > entity.World.ElapsedMilliseconds;
 			} catch {
 				return false;
 			}
@@ -196,13 +198,16 @@ namespace VSKingdom {
 			if (currAnimCode != null) {
 				entity.AnimManager.StopAnimation(currAnimCode);
 			}
-			entity.AnimManager.StopAnimation(shieldAnim[0]);
-			entity.AnimManager.StopAnimation(shieldAnim[1]);
+			entity.AnimManager.StopAnimation(shieldAnimsL);
+			entity.AnimManager.StopAnimation(shieldAnimsR);
 		}
 
 		public override void OnEntityHurt(DamageSource source, float damage) {
 			if (damage < 1 || source?.GetCauseEntity() == null) {
 				return;
+			}
+			if (entity.World.Rand.Next(100) < 20) {
+				entity.PlayEntitySound("hurt" + entity.World.Rand.Next(1, 2));
 			}
 			if (source.GetCauseEntity().WatchedAttributes.HasAttribute(KingdomGUID) && source.GetCauseEntity().WatchedAttributes.GetKingdom() == entity.cachedData.kingdomGUID) {
 				if (entity.WatchedAttributes.GetKingdom() != CommonersID) {
@@ -241,13 +246,22 @@ namespace VSKingdom {
 			entity.AnimManager.StartAnimation(new AnimationMetaData() {
 				Animation = currAnimCode,
 				Code = currAnimCode,
+				BlendMode = EnumAnimationBlendMode.AddAverage,
 				ElementWeight = new Dictionary<string, float> {
-					{ "ItemAnchor", 999f },
+					{ "UpperTorso", 5f },
+					{ "ItemAnchor", 100f },
 					{ "UpperArmR", 10f },
 					{ "LowerArmR", 10f },
-					{ "UpperTorso", 5f }
+					{ "UpperArmL", 10f },
+					{ "LowerArmL", 10f }
+				},
+				ElementBlendMode = new Dictionary<string, EnumAnimationBlendMode> {
+					{ "ItemAnchor", EnumAnimationBlendMode.Add }
 				}
 			}.Init());
+			if (entity.World.Rand.Next(100) < 25) {
+				entity.PlayEntitySound("stabs");
+			}
 			entity.World.PlaySoundAt(sound, entity, null, true, soundRange);
 			float damage = entity.RightHandItemSlot?.Itemstack?.Item?.AttackPower ?? 1f;
 			bool alive = targetEntity.Alive;
@@ -263,6 +277,9 @@ namespace VSKingdom {
 				searchTask.ResetsTargets();
 				searchTask.StopMovements();
 				cancelAttack = true;
+				if (entity.World.Rand.Next(100) < 5) {
+					entity.PlayEntitySound("laugh");
+				}
 				return false;
 			}
 			return true;

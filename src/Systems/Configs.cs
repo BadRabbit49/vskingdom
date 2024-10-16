@@ -1,19 +1,19 @@
 ﻿using Vintagestory.API.Common;
 
 namespace VSKingdom {
-	class KingdomConfig {
-		private VSKingdomConfig config;
+	class KingdomConfigs {
+		private VSKingdomConfigs config;
 
-		private VSKingdomConfig LoadConfig(ICoreAPI api) {
-			return api.LoadModConfig<VSKingdomConfig>("VSKingdomConfig.json");
+		private VSKingdomConfigs LoadConfig(ICoreAPI api) {
+			return api.LoadModConfig<VSKingdomConfigs>("VSKingdomConfig.json");
 		}
 
 		private void MakeConfig(ICoreAPI api) {
-			api.StoreModConfig<VSKingdomConfig>(new VSKingdomConfig(api.Assets.TryGet(AssetLocation.Create(DefaultSettings)).ToObject<VSKingdomConfig>()), "VSKingdomConfig.json");
+			api.StoreModConfig<VSKingdomConfigs>(new VSKingdomConfigs(api.Assets.TryGet(AssetLocation.Create(DefaultSettings)).ToObject<VSKingdomConfigs>()), "VSKingdomConfig.json");
 		}
 
-		private void MakeConfig(ICoreAPI api, VSKingdomConfig prevSettings) {
-			api.StoreModConfig<VSKingdomConfig>(new VSKingdomConfig(prevSettings), "VSKingdomConfig.json");
+		private void MakeConfig(ICoreAPI api, VSKingdomConfigs prevSettings) {
+			api.StoreModConfig<VSKingdomConfigs>(new VSKingdomConfigs(prevSettings), "VSKingdomConfig.json");
 		}
 
 		public void ReadConfig(ICoreAPI api) {
@@ -52,8 +52,8 @@ namespace VSKingdom {
 		}
 	}
 
-	class VSKingdomConfig {
-		public VSKingdomConfig() { }
+	class VSKingdomConfigs {
+		public VSKingdomConfigs() { }
 		// Default Settings for Configuration.
 		public bool Allowed_SentryTeamHurt { get; set; } = true;
 		public bool Allowed_SentryTripping { get; set; } = true;
@@ -75,7 +75,7 @@ namespace VSKingdom {
 		public long Kingdom_CreateCooldown { get; set; } = -1;
 		public long Kingdom_MaxUserCreated { get; set; } = -1;
 		// Loaded Previous Configuration if exists.
-		public VSKingdomConfig(VSKingdomConfig prev) {
+		public VSKingdomConfigs(VSKingdomConfigs prev) {
 			Allowed_SentryTeamHurt = prev.Allowed_SentryTeamHurt;
 			Allowed_SentryTripping = prev.Allowed_SentryTripping;
 			Allowed_SentryDrowning = prev.Allowed_SentryDrowning;

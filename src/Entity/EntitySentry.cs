@@ -49,10 +49,12 @@ namespace VSKingdom {
 			} else {
 				gearInv.LateInitialize(inventory, api);
 			}
+			if (sentryTalk is null) {
+				sentryTalk = new SentryTalkUtils(api, this);
+			}
 			// Register stuff for client-side api.
 			if (api is ICoreClientAPI capi) {
 				ClientAPI = capi;
-				sentryTalk = new SentryTalkUtils(capi, this);
 			}
 			// Register listeners if api is on server.
 			if (api is ICoreServerAPI sapi) {
@@ -208,8 +210,8 @@ namespace VSKingdom {
 				interactions.Add(new WorldInteraction() {
 					ActionLangCode = "Inventory",
 					MouseButton = EnumMouseButton.Right,
-					RequireFreeHand = true,
-					HotKeyCode = "shift"
+					HotKeyCode = "shift",
+					Itemstacks = null
 				});
 			}
 			if (interactions.Count > 0) {
@@ -220,7 +222,7 @@ namespace VSKingdom {
 
 		public override void OnInteract(EntityAgent byEntity, ItemSlot itemslot, Vec3d hitPosition, EnumInteractMode mode) {
 			base.OnInteract(byEntity, itemslot, hitPosition, mode);
-			if (mode != EnumInteractMode.Interact && byEntity is not EntityPlayer) {
+			if (mode != EnumInteractMode.Interact || byEntity is not EntityPlayer || !byEntity.Controls.RightMouseDown) {
 				return;
 			}
 			EntityPlayer player = byEntity as EntityPlayer;
@@ -275,9 +277,8 @@ namespace VSKingdom {
 				Die(EnumDespawnReason.Removed);
 				return;
 			}
-			if (IsTheLeader && byEntity.Controls.RightMouseDown && byEntity.RightHandItemSlot.Empty && byEntity.Pos.DistanceTo(Pos) < 1.2) {
+			if (IsTheLeader && byEntity.RightHandItemSlot.Empty && byEntity.Pos.DistanceTo(Pos) < 1.2) {
 				AiTaskManager tmgr = GetBehavior<EntityBehaviorTaskAI>()?.TaskManager;
-				tmgr?.StopTask(typeof(AiTaskSentryIdling));
 				tmgr?.StopTask(typeof(AiTaskSentrySearch));
 				tmgr?.StopTask(typeof(AiTaskSentryWander));
 			}
@@ -292,6 +293,7 @@ namespace VSKingdom {
 			}
 			if ((IsTheLeader || LootingBody) && player.Controls.Sneak && itemslot.Empty) {
 				ToggleInventoryDialog(player.Player);
+				PlayEntitySound("meets", player.Player);
 				return;
 			}
 			if (Alive && leadersGuid != null && leadersGuid == player.PlayerUID && Api.Side == EnumAppSide.Server) {
@@ -399,7 +401,7 @@ namespace VSKingdom {
 			}
 			return base.ShouldReceiveDamage(damageSource, damage);
 		}
-		
+
 		public override void Die(EnumDespawnReason reason = EnumDespawnReason.Death, DamageSource damageSourceForDeath = null) {
 			if (!Alive) { return; }
 			if (reason != 0) {
@@ -475,7 +477,7 @@ namespace VSKingdom {
 
 		public override void Revive() {
 			Alive = true;
-			ReceiveDamage(new DamageSource { SourceEntity = this, CauseEntity = this, Source = EnumDamageSource.Revive, Type = EnumDamageType.Heal }, 9999f);
+			ReceiveDamage(new DamageSource { SourceEntity = this, CauseEntity = this, Source = EnumDamageSource.Revive, Type = EnumDamageType.Heal }, 1f);
 			AnimManager.StopAnimation(new string(WatchedAttributes.GetString("deathAnimation")));
 			AnimManager.StartAnimation(new string(WatchedAttributes.GetString("deathAnimation").Replace("dies", "ress")));
 			IsOnFire = false;
@@ -489,12 +491,20 @@ namespace VSKingdom {
 			}
 		}
 
-		public override void PlayEntitySound(string type, IPlayer dualCallByPlayer = null, bool randomizePitch = true, float range = 24) {
-			switch (type) {
-				case "hurt": sentryTalk?.Talk(EnumTalkType.Hurt2); return;
+		public override void PlayEntitySound(string sound, IPlayer dualCallByPlayer = null, bool randomizePitch = true, float range = 24) {
+			switch (sound) {
+				case "idle1": sentryTalk?.Talk(EnumTalkType.Idle); return;
+				case "idle2": sentryTalk?.Talk(EnumTalkType.IdleShort); return;
+				case "hurt1": sentryTalk?.Talk(EnumTalkType.Hurt); return;
+				case "hurt2": sentryTalk?.Talk(EnumTalkType.Hurt2); return;
+				case "meets": sentryTalk?.Talk(EnumTalkType.Meet); return;
+				case "argue": sentryTalk?.Talk(EnumTalkType.Complain); return;
+				case "laugh": sentryTalk?.Talk(EnumTalkType.Laugh); return;
+				case "stabs": sentryTalk?.Talk(EnumTalkType.Thrust); return;
+				case "leave": sentryTalk?.Talk(EnumTalkType.Goodbye); return;
 				case "death": sentryTalk?.Talk(EnumTalkType.Death); return;
 			}
-			base.PlayEntitySound(type, dualCallByPlayer, randomizePitch, range);
+			base.PlayEntitySound(sound, dualCallByPlayer, randomizePitch, range);
 		}
 
 		public virtual ITreeAttribute GetInventoryTree() {
@@ -536,6 +546,7 @@ namespace VSKingdom {
 			ClientAPI.Network.SendEntityPacket(EntityId, 1506);
 			gearDialog?.Dispose();
 			gearDialog = null;
+			PlayEntitySound("leave");
 		}
 
 		public virtual void ReadInventoryFromAttributes() {

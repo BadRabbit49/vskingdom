@@ -16,9 +16,8 @@ namespace VSKingdom {
 		#pragma warning restore CS0108
 		protected bool cancelDoctor = false;
 		protected bool animsRunning = false;
-		protected bool attackFinish = false;
 		protected bool needToRevive = false;
-		protected long durationOfMs = 1500L;
+		protected long durationOfMs = 8000L;
 		protected long lastHealedMs;
 		protected float maximumRange = 20f;
 		protected float minimumRange = 0.5f;
@@ -57,8 +56,10 @@ namespace VSKingdom {
 			if (ent is null || ent == entity || !ent.Alive) {
 				return false;
 			}
-			if (ent.WatchedAttributes.HasAttribute(KingdomGUID) && !IsAnEnemy(ent)) {
-				return ent.Alive;
+			if (ent.WatchedAttributes.HasAttribute(KingdomGUID) && !IsAnEnemy(ent) && ent.WatchedAttributes.HasAttribute("health")) {
+				var healthTree = targetEntity.WatchedAttributes.GetTreeAttribute("health");
+				float curHealth = healthTree.GetFloat("currenthealth") / healthTree.GetFloat("basemaxhealth");
+				return !ent.Alive || curHealth < 0.5f;
 			}
 			return false;
 		}
@@ -68,7 +69,6 @@ namespace VSKingdom {
 			lastAnimCode = currAnimCode;
 			cancelDoctor = false;
 			animsRunning = false;
-			attackFinish = true;
 			needToRevive = !targetEntity?.Alive ?? false;
 			curTurnAngle = pathTraverser.curTurnRadPerSec;
 			searchTask.SetTargetEnts(targetEntity);
@@ -95,12 +95,8 @@ namespace VSKingdom {
 				entity.ServerPos.Yaw += GameMath.Clamp(num, (0f - curTurnAngle) * dt * GlobalConstants.OverallSpeedMultiplier, curTurnAngle * dt * GlobalConstants.OverallSpeedMultiplier);
 				entity.ServerPos.Yaw %= (MathF.PI * 2f);
 				bool flag = Math.Abs(num) < maximumRange * (MathF.PI / 180f);
-				if (!attackFinish) {
-					attackFinish = currAnimCode != null && !entity.AnimManager.IsAnimationActive(currAnimCode);
-				}
 				animsRunning = lastAnimCode != null ? entity.AnimManager.GetAnimationState(lastAnimCode).Running : false;
-				if (!animsRunning && attackFinish && flag) {
-					attackFinish = false;
+				if (!animsRunning && flag) {
 					animsRunning = TendToTarget();
 					targetEntity.Revive();
 				}

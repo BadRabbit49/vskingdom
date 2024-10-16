@@ -6,10 +6,10 @@ using Vintagestory.API.Datastructures;
 using Vintagestory.GameContent;
 
 namespace VSKingdom {
-	public class BandagePatch {
+	public class KingdomPatches {
 
 		public static void Patch(Harmony harmony) {
-			harmony.Patch(methodInfo(), prefix: new HarmonyMethod(typeof(BandagePatch).GetMethod("Prefix", BindingFlags.Static | BindingFlags.Public)));
+			harmony.Patch(methodInfo(), prefix: new HarmonyMethod(typeof(KingdomPatches).GetMethod("Prefix", BindingFlags.Static | BindingFlags.Public)));
 		}
 
 		public static void Unpatch(Harmony harmony) {

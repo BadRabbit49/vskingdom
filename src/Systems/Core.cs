@@ -30,7 +30,7 @@ using static VSKingdom.Extension.StringExtension;
 namespace VSKingdom {
 	public class VSKingdom : ModSystem {
 		private Harmony harmony = new Harmony("badrabbit49.vskingdom");
-		private KingdomConfig config = new KingdomConfig();
+		private KingdomConfigs config = new KingdomConfigs();
 
 		private List<Kingdom> kingdomList;
 		private List<Culture> cultureList;
@@ -66,7 +66,7 @@ namespace VSKingdom {
 			AiTaskRegistry.Register<AiTaskSentrySearch>("SentrySearch");
 			AiTaskRegistry.Register<AiTaskSentryWander>("SentryWander");
 			// Patches //
-			BandagePatch.Patch(harmony);
+			KingdomPatches.Patch(harmony);
 			if (!Harmony.HasAnyPatches("badrabbit49.vskingdom")) {
 				harmony.PatchAll();
 			}

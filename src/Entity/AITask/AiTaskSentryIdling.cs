@@ -101,10 +101,19 @@ namespace VSKingdom {
 			if (entity.World.Rand.NextDouble() < 0.1) {
 				if (currentTemps < 0) {
 					entity.AnimManager.StartAnimation(currAnims = animsCold[entity.World.Rand.Next(0, animsCold.Length - 1)]);
+					if (entity.World.Rand.Next(100) < 30) {
+						entity.PlayEntitySound("argue");
+					}
 				} else if (currentHours > darkoutHours || currentHours < morningHours) {
 					entity.AnimManager.StartAnimation(currAnims = animsLate[entity.World.Rand.Next(0, animsLate.Length - 1)]);
+					if (entity.World.Rand.NextDouble() < 0.0001) {
+						entity.PlayEntitySound("idle" + entity.World.Rand.Next(1, 2));
+					}
 				} else if (healthBehavior?.Health < healthBehavior?.MaxHealth / 4f) {
 					entity.AnimManager.StartAnimation(currAnims = animsHurt[entity.World.Rand.Next(0, animsHurt.Length - 1)]);
+					if (entity.World.Rand.Next(100) < 10) {
+						entity.PlayEntitySound("argue");
+					}
 				} else {
 					entity.AnimManager.StartAnimation(currAnims = animsIdle[entity.World.Rand.Next(0, animsIdle.Length - 1)]);
 				}

@@ -6,6 +6,7 @@ using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 using Vintagestory.Essentials;
 using Vintagestory.GameContent;
+using VSEssentialsMod.Entity.AI.Task;
 
 namespace VSKingdom {
 	public class SentryTraverser : PathTraverserBase {
@@ -29,6 +30,7 @@ namespace VSKingdom {
 		public Single prvPosDistSq;
 		public Single curPosDistSq;
 		public Single curMoveSpeed;
+		public Double distToTarget;
 		public String curIdleAnims = "idle";
 		public String curWalkAnims = "walk";
 		public String curMoveAnims = "move";
@@ -40,9 +42,11 @@ namespace VSKingdom {
 		private PathfinderTask asyncSearchObject;
 		private PathfindingAsync asyncPathfinder;
 		private ModSystemBlockReinforcement reinforceSystem;
-		public override Vec3d CurrentTarget { get => curWaypoints[curWaypoints.Count - 1]; }
+		private EntityBehaviorEmotionStates emotionalStates;
+		public bool forcesSprint = false;
 		public override bool Ready { get => curWaypoints != null && asyncSearchObject == null; }
-
+		public override Vec3d CurrentTarget { get => curWaypoints[curWaypoints.Count - 1]; }
+		
 		public SentryTraverser(EntitySentry entity) : base(entity) {
 			this.entity = entity;
 			if (entity?.Properties.Server?.Attributes?.GetTreeAttribute("pathfinder") != null) {
@@ -55,6 +59,7 @@ namespace VSKingdom {
 			this.systemsPathfinder = entity.World.Api.ModLoader.GetModSystem<PathfindSystem>();
 			this.asyncPathfinder = entity.World.Api.ModLoader.GetModSystem<PathfindingAsync>();
 			this.reinforceSystem = entity.Api.ModLoader.GetModSystem<ModSystemBlockReinforcement>();
+			this.emotionalStates = entity.GetBehavior<EntityBehaviorEmotionStates>();
 		}
 
 		public PathfinderTask PreparePathfinderTask(BlockPos startBlockPos, BlockPos targetBlockPos, int searchDepth = 999, int mhdistanceTolerance = 0) {
@@ -71,6 +76,7 @@ namespace VSKingdom {
 			this.targetDistance = targetDistance * 0.9f;
 			this.OnStuck = OnStuck;
 			this.OnGoals = OnGoals;
+			this.forcesSprint = movingSpeed >= entity.cachedData.moveSpeed;
 			CalcMovement();
 			CalcAnimated();
 			BlockPos startBlockPos = entity.ServerPos.AsBlockPos;
@@ -91,6 +97,7 @@ namespace VSKingdom {
 			this.NoPaths = onNoPath;
 			this.OnGoals = OnGoals;
 			this.OnStuck = OnStuck;
+			this.forcesSprint = movingSpeed >= entity.cachedData.moveSpeed;
 			CalcMovement();
 			CalcAnimated();
 			BlockPos startBlockPos = entity.ServerPos.AsBlockPos;
@@ -109,9 +116,9 @@ namespace VSKingdom {
 			this.targetDistance = targetDistance * 0.9f;
 			this.OnGoals = OnGoals;
 			this.OnStuck = OnStuck;
+			this.forcesSprint = movingSpeed >= entity.cachedData.moveSpeed;
 			CalcMovement();
-			CalcAnimated();
-			return base.WalkTowards(target, movingSpeed, targetDistance * 0.9f, OnGoals, OnStuck);
+			return base.WalkTowards(target, curMoveSpeed, targetDistance * 0.9f, OnGoals, OnStuck);
 		}
 
 		protected override bool BeginGo() {
@@ -130,15 +137,19 @@ namespace VSKingdom {
 			distChecksMs = 0;
 			prvPosAccums = 0;
 			waypointsUntil = curWaypoints.Count - 1;
+			forcesSprint = curMoveSpeed >= entity.cachedData.moveSpeed;
 		}
 
 		public override void Stop() {
 			for (int i = (curWaypoints?.Count ?? 0) - 1; i >= 0 && i >= waypointsUntil - 1; i--) {
 				ToggleDoors(curWaypoints[i].AsBlockPos, false);
 			}
-			StopControls();
-			StopMovement();
 			Active = false;
+			distToTarget = 0;
+			forcesSprint = false;
+			CalcMovement();
+			CalcControls();
+			CalcAnimated();
 			stuckCounter = 0;
 			distChecksMs = 0;
 			prvPosAccums = 0;
@@ -211,14 +222,15 @@ namespace VSKingdom {
 				OnStuck?.Invoke();
 				return;
 			}
+			distToTarget = entity.ServerPos.SquareHorDistanceTo(target);
 			curTargetVec.Set((float)(target.X - entity.ServerPos.X), (float)(target.Y - entity.ServerPos.Y), (float)(target.Z - entity.ServerPos.Z));
 			curTargetVec.Normalize();
+			CalcMovement();
 			float desiredYaw = 0;
+			float nowMoveSpeed = curMoveSpeed;
 			if (curPosDistSq >= 0.01) {
 				desiredYaw = (float)Math.Atan2(curTargetVec.X, curTargetVec.Z);
 			}
-			CalcMovement();
-			float nowMoveSpeed = curMoveSpeed;
 			if (curPosDistSq < 1) {
 				nowMoveSpeed = Math.Max(0.005f, curMoveSpeed * Math.Max(curPosDistSq, 0.2f));
 			}
@@ -287,7 +299,11 @@ namespace VSKingdom {
 			if (!entity.WatchedAttributes.HasAttribute(LeadersGUID)) {
 				return false;
 			}
-			return !reinforceSystem.IsLockedForInteract(pos, entity.World.PlayerByUid(entity.WatchedAttributes.GetString(LeadersGUID)));
+			IPlayer leader = entity.Api.World.PlayerByUid(new string(entity.WatchedAttributes.GetString(LeadersGUID)));
+			if (leader != null) {
+				return !reinforceSystem.IsLockedForInteract(pos, leader);
+			}
+			return false;
 		}
 
 		private void ToggleDoors(BlockPos pos, bool toggleOpen) {
@@ -297,8 +313,7 @@ namespace VSKingdom {
 			var doorBehavior = BlockBehaviorDoor.getDoorAt(entity.World, pos);
 			if (doorBehavior != null && doorBehavior.Opened != toggleOpen && CanBeOpened(pos)) {
 				// doorBehavior.Opened == false;
-				// true
-				doorBehavior.ToggleDoorState(null, !toggleOpen);
+				doorBehavior.ToggleDoorState(null, toggleOpen);
 			}
 		}
 
@@ -382,17 +397,17 @@ namespace VSKingdom {
 			entity.Controls.Backward = !xPos && xNeg;
 			entity.Controls.Right = yPos && !yNeg;
 			entity.Controls.Left = !yPos && yNeg;
-			if (!entity.ruleOrder[1] || curPosDistSq > 81f) {
-				entity.Controls.Sprint = xPos && curPosDistSq > 36f;
+			if (!entity.ruleOrder[1] || entity.ServerPos.HorDistanceTo(target) > 81f) {
+				entity.Controls.Sprint = xPos && entity.ServerPos.HorDistanceTo(target) > 36f;
 			}
 			entity.ServerControls.SetFrom(entity.Controls);
 		}
 
 		private void CalcMovement() {
 			Single speed = entity.cachedData.walkSpeed;
-			if (!entity.Alive || !Active) {
+			if (!entity.Alive || !Active || distToTarget <= targetDistance * targetDistance) {
 				speed = 0;
-			} else if (entity.Controls.Sprint || curPosDistSq > 36f && entity.IsOnFire) {
+			} else if (entity.Controls.Sprint || forcesSprint || (distToTarget > 36f)) {
 				speed = entity.cachedData.moveSpeed;
 			}
 			curMoveSpeed = speed * GlobalConstants.OverallSpeedMultiplier;
@@ -400,15 +415,15 @@ namespace VSKingdom {
 
 		private void CalcAnimated() {
 			String anims = curIdleAnims;
-			if (!entity.Alive || !Active) {
-				anims = curIdleAnims;
+			if (!entity.Alive || !Active || curMoveSpeed < 0.005f) {
+				entity.AnimManager.StopAnimation(curAnimation);
 			} else if (entity.Swimming) {
 				anims = curSwimAnims;
 			} else if (entity.FeetInLiquid) {
 				anims = curWalkAnims;
 			} else if (entity.Controls.Sneak) {
 				anims = curDuckAnims;
-			} else if (entity.Controls.Sprint || entity.IsOnFire || entity.InLava) {
+			} else if (entity.Controls.Sprint || forcesSprint || entity.IsOnFire) {
 				anims = curMoveAnims;
 			} else if (curMoveSpeed > 0) {
 				anims = curWalkAnims;

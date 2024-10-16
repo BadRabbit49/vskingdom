@@ -6,7 +6,6 @@ using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.GameContent;
 using VSKingdom.Utilities;
-using Vintagestory.API.Common.Entities;
 
 namespace VSKingdom {
 	public class AiTaskSentryFollow : AiTaskStayCloseToGuardedEntity {
@@ -81,12 +80,12 @@ namespace VSKingdom {
 				if (player.MountedOn.MountSupplier != null && player.MountedOn.MountSupplier is EntityBoat boat && boat.Seats.Length > 1) {
 					foreach (var seat in boat.Seats) {
 						if (seat.Passenger is null && entity.TryMount(seat)) {
+							pathTraverser.Stop();
 							seat.Passenger = entity;
 							seat.PassengerEntityIdForInit = entity.EntityId;
 							boatSeatsEnt = seat;
 							entity.AnimManager.StartAnimation(new AnimationMetaData() { Animation = seat.SuggestedAnimation, Code = seat.SuggestedAnimation, MulWithWalkSpeed = true, BlendMode = EnumAnimationBlendMode.Average, EaseInSpeed = 999f, EaseOutSpeed = 1f }.Init());
 							isAPassenger = true;
-							pathTraverser.Stop();
 							return true;
 						}
 					}

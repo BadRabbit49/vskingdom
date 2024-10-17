@@ -477,7 +477,7 @@ namespace VSKingdom {
 
 		public override void Revive() {
 			Alive = true;
-			ReceiveDamage(new DamageSource { SourceEntity = this, CauseEntity = this, Source = EnumDamageSource.Revive, Type = EnumDamageType.Heal }, 1f);
+			ReceiveDamage(new DamageSource { SourceEntity = this, CauseEntity = this, Source = EnumDamageSource.Revive, Type = EnumDamageType.Heal }, 5f);
 			AnimManager.StopAnimation(new string(WatchedAttributes.GetString("deathAnimation")));
 			AnimManager.StartAnimation(new string(WatchedAttributes.GetString("deathAnimation").Replace("dies", "ress")));
 			IsOnFire = false;

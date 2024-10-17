@@ -246,17 +246,19 @@ namespace VSKingdom {
 			entity.AnimManager.StartAnimation(new AnimationMetaData() {
 				Animation = currAnimCode,
 				Code = currAnimCode,
-				BlendMode = EnumAnimationBlendMode.AddAverage,
+				BlendMode = EnumAnimationBlendMode.Add,
 				ElementWeight = new Dictionary<string, float> {
-					{ "UpperTorso", 5f },
 					{ "ItemAnchor", 100f },
+					{ "UpperTorso", 5f },
 					{ "UpperArmR", 10f },
 					{ "LowerArmR", 10f },
 					{ "UpperArmL", 10f },
 					{ "LowerArmL", 10f }
 				},
 				ElementBlendMode = new Dictionary<string, EnumAnimationBlendMode> {
-					{ "ItemAnchor", EnumAnimationBlendMode.Add }
+					{ "ItemAnchor", EnumAnimationBlendMode.Add },
+					{ "UpperTorso", EnumAnimationBlendMode.AddAverage },
+					{ "LowerTorso", EnumAnimationBlendMode.AddAverage }
 				}
 			}.Init());
 			if (entity.World.Rand.Next(100) < 25) {

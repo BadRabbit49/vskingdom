@@ -18,7 +18,7 @@ namespace VSKingdom {
 		protected Int32 stuckCounter;
 		protected Int64 castCooldown;
 		protected EntityBoatSeat boatSeatsEnt;
-		protected float  followsRange { get => entity.WatchedAttributes.GetFloat("followRange", 2f); }
+		protected float followsRange { get => entity.WatchedAttributes.GetFloat("followRange", 2f); }
 		protected Vec3d curTargetPos { get => pathTraverser.CurrentTarget.Clone(); }
 		protected long[] getFollowers { get => (targetEntity.WatchedAttributes.GetAttribute("followerEntityUids") as LongArrayAttribute)?.value; }
 
@@ -67,8 +67,6 @@ namespace VSKingdom {
 				castCooldown = entity.World.ElapsedMilliseconds + 4000;
 				RetargetFormation();
 			}
-			entity.Controls.Sprint = targetEntity.Controls.Sprint;
-			entity.Controls.Sneak = targetEntity.Controls.Sneak;
 			double x = targetEntity.ServerPos.X + (targetOffset.X * 2);
 			double y = targetEntity.ServerPos.Y;
 			double z = targetEntity.ServerPos.Z + (targetOffset.Z * 2);
@@ -95,7 +93,8 @@ namespace VSKingdom {
 				tryTeleport();
 			}
 			if (!stuck) {
-				pathTraverser.NavigateTo_Async(targetEntity.ServerPos.XYZ, 0.02f, 0.5f, OnGoals, IsStuck, NoPaths);
+				entity.Controls.Sneak = targetEntity.Controls.Sneak;
+				pathTraverser.NavigateTo_Async(targetEntity.ServerPos.XYZ, targetEntity.Controls.Sprint ? 1 : entity.cachedData.walkSpeed, 0.5f, OnGoals, IsStuck, NoPaths);
 				return pathTraverser.Active;
 			}
 			return false;
@@ -104,6 +103,7 @@ namespace VSKingdom {
 		public override void FinishExecute(bool cancelled) {
 			base.FinishExecute(cancelled);
 			if (!entity.ruleOrder[1]) {
+				entity.Controls.Sneak = false;
 				List<long> followers = getFollowers.ToList();
 				followers.Remove(entity.EntityId);
 				targetEntity.WatchedAttributes.SetAttribute("followerEntityUids", new LongArrayAttribute(followers.ToArray()));

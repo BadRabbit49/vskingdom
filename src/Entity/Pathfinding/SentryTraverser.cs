@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using Vintagestory.API.MathTools;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
-using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 using Vintagestory.Essentials;
 using Vintagestory.GameContent;
@@ -42,6 +42,7 @@ namespace VSKingdom {
 		private PathfindingAsync asyncPathfinder;
 		private ModSystemBlockReinforcement reinforceSystem;
 		public bool forcedSprint = false;
+		public long checkDoorsMs;
 		public override bool Ready { get => curWaypoints != null && asyncSearchObject == null; }
 		public override Vec3d CurrentTarget { get => curWaypoints[curWaypoints.Count - 1]; }
 		
@@ -71,8 +72,8 @@ namespace VSKingdom {
 		public override bool NavigateTo(Vec3d target, float movingSpeed, float targetDistance, Action OnGoals, Action OnStuck, bool giveUpWhenNoPath = false, int searchDepth = 10000, int mhdistanceTolerance = 0) {
 			this.target = target;
 			this.targetDistance = targetDistance * 0.9f;
-			this.OnStuck = OnStuck;
 			this.OnGoals = OnGoals;
+			this.OnStuck = OnStuck;
 			this.forcedSprint = movingSpeed >= entity.cachedData.moveSpeed;
 			CalcMovement();
 			CalcAnimated();
@@ -91,9 +92,9 @@ namespace VSKingdom {
 			}
 			this.target = target;
 			this.targetDistance = targetDistance * 0.9f;
-			this.NoPaths = onNoPath;
 			this.OnGoals = OnGoals;
 			this.OnStuck = OnStuck;
+			this.NoPaths = onNoPath;
 			this.forcedSprint = movingSpeed >= entity.cachedData.moveSpeed;
 			CalcMovement();
 			CalcAnimated();
@@ -135,7 +136,6 @@ namespace VSKingdom {
 			distChecksMs = 0;
 			prvPosAccums = 0;
 			waypointsUntil = curWaypoints.Count - 1;
-			forcedSprint = curMoveSpeed >= entity.cachedData.moveSpeed;
 			CalcAnimated();
 		}
 
@@ -144,15 +144,15 @@ namespace VSKingdom {
 				ToggleDoors(curWaypoints[i].AsBlockPos, true);
 			}
 			Active = false;
+			asyncSearchObject = null;
+			// forcedSprint = false;
 			distToTarget = 0;
-			forcedSprint = false;
-			CalcMovement();
-			CalcControls();
-			CalcAnimated();
 			stuckCounter = 0;
 			distChecksMs = 0;
 			prvPosAccums = 0;
-			asyncSearchObject = null;
+			CalcMovement();
+			CalcControls();
+			CalcAnimated();
 		}
 
 		public override void OnGameTick(float dt) {
@@ -176,14 +176,9 @@ namespace VSKingdom {
 			if (nearAllDirs) {
 				waypointsUntil += offset;
 				waypointsPrvMs = entity.World.ElapsedMilliseconds;
-				target = curWaypoints[Math.Min(curWaypoints.Count - 1, waypointsUntil)];
-				if (waypointsUntil > 2) {
-					ToggleDoors(curWaypoints[waypointsUntil - 3].AsBlockPos, false);
-				}
-				controls.Sneak = target.Y < entity.ServerPos.Y && target.X == entity.ServerPos.X && target.Z == entity.ServerPos.Z;
-			} else {
-				target = curWaypoints[Math.Min(curWaypoints.Count - 1, waypointsUntil)];
 			}
+			target = curWaypoints[Math.Min(curWaypoints.Count - 1, waypointsUntil)];
+			controls.Sneak = target.Y < entity.ServerPos.Y && target.X == entity.ServerPos.X && target.Z == entity.ServerPos.Z;
 			bool onlastWaypoint = waypointsUntil == curWaypoints.Count - 1;
 			if (waypointsUntil >= curWaypoints.Count) {
 				Stop();
@@ -226,13 +221,10 @@ namespace VSKingdom {
 			curTargetVec.Set((float)(target.X - entity.ServerPos.X), (float)(target.Y - entity.ServerPos.Y), (float)(target.Z - entity.ServerPos.Z));
 			curTargetVec.Normalize();
 			CalcMovement();
-			float desiredYaw = 0;
-			if (curPosDistSq >= 0.01) {
-				desiredYaw = (float)Math.Atan2(curTargetVec.X, curTargetVec.Z);
-			}
-			if (curPosDistSq < 1) {
+			if (curPosDistSq < targetDistance * targetDistance) {
 				curMoveSpeed = Math.Max(0.005f, curMoveSpeed * Math.Max(curPosDistSq, 0.2f));
 			}
+			float desiredYaw = curPosDistSq >= 0.01 ? (float)Math.Atan2(curTargetVec.X, curTargetVec.Z) : 0;
 			float yawDist = GameMath.AngleRadDistance(entity.ServerPos.Yaw, desiredYaw);
 			float turnSpeed = curTurnRadPerSec * dt * curMoveSpeed;
 			entity.ServerPos.Yaw += GameMath.Clamp(yawDist, -turnSpeed, turnSpeed);
@@ -269,7 +261,12 @@ namespace VSKingdom {
 					controls.FlyVector.Y = 0.05f;
 				}
 			}
+			entity.Controls.SetFrom(controls);
 			CalcAnimated();
+			if (entity.World.ElapsedMilliseconds > checkDoorsMs) {
+				checkDoorsMs = entity.World.ElapsedMilliseconds + 8000;
+				ToggleDoors(entity.ServerPos.HorizontalAheadCopy(1).AsBlockPos, true);
+			}
 		}
 
 		private bool IsNearTarget(int waypointOffset, ref bool nearHorizontally) {
@@ -311,8 +308,6 @@ namespace VSKingdom {
 			}
 			var doorBehavior = BlockBehaviorDoor.getDoorAt(entity.World, pos);
 			if (doorBehavior != null && CanBeOpened(pos)) {
-				entity.Api.Logger.Notification("\nDoor is open? " + doorBehavior.Opened + "\nOpening? " + toggleOpen);
-				// doorBehavior.Opened == false;
 				doorBehavior.ToggleDoorState(null, toggleOpen);
 			}
 		}
@@ -321,7 +316,7 @@ namespace VSKingdom {
 			waypointsUntil = 0;
 			var bh = entity.GetBehavior<EntityBehaviorControlledPhysics>();
 			float stepHeight = bh == null ? 0.6f : bh.stepHeight;
-			int maxFallHeight = entity.Properties.FallDamage ? Math.Min(8, (int)Math.Round(3.51 / Math.Max(0.01, entity.Properties.FallDamageMultiplier))) - (int)(movingSpeed * 30) : 8;
+			int maxFallHeight = entity.Properties.FallDamage ? Math.Min(8, (int)Math.Round(3.51 / Math.Max(0.01, entity.Properties.FallDamageMultiplier))) - (int)(curMoveSpeed * 30) : 8;
 			newWaypoints = systemsPathfinder.FindPathAsWaypoints(startBlockPos, targetBlockPos, maxFallHeight, stepHeight, entity.CollisionBox, searchDepth, mhdistanceTolerance);
 		}
 
@@ -358,9 +353,7 @@ namespace VSKingdom {
 		}
 
 		private void StopMovement() {
-			if (entity.World.Side == EnumAppSide.Server) {
-				entity.AnimManager.AnimationsDirty = true;
-			}
+			entity.AnimManager.AnimationsDirty = true;
 			if (entity.AnimManager.ActiveAnimationsByAnimCode.Count > 0) {
 				foreach (KeyValuePair<string, AnimationMetaData> item in entity.AnimManager.ActiveAnimationsByAnimCode) {
 					if (item.Value.Code != curIdleAnims) {
@@ -378,9 +371,6 @@ namespace VSKingdom {
 			entity.Controls.Right = false;
 			entity.Controls.Backward = false;
 			entity.Controls.Left = false;
-			if (!entity.ruleOrder[1]) {
-				entity.Controls.Sprint = false;
-			}
 			entity.ServerControls.SetFrom(entity.Controls);
 		}
 
@@ -398,9 +388,6 @@ namespace VSKingdom {
 			entity.Controls.Backward = !xPos && xNeg;
 			entity.Controls.Right = yPos && !yNeg;
 			entity.Controls.Left = !yPos && yNeg;
-			if (!entity.ruleOrder[1] || entity.ServerPos.HorDistanceTo(target) > 81f) {
-				entity.Controls.Sprint = xPos && entity.ServerPos.HorDistanceTo(target) > 36f;
-			}
 			entity.ServerControls.SetFrom(entity.Controls);
 		}
 
@@ -408,7 +395,7 @@ namespace VSKingdom {
 			Single speed = entity.cachedData.walkSpeed;
 			if (!entity.Alive || !Active || distToTarget <= targetDistance * targetDistance) {
 				speed = 0;
-			} else if (entity.Controls.Sprint || forcedSprint || (distToTarget > 36f)) {
+			} else if (forcedSprint || distToTarget > 36f) {
 				speed = entity.cachedData.moveSpeed;
 			}
 			curMoveSpeed = speed * GlobalConstants.OverallSpeedMultiplier;
@@ -416,28 +403,20 @@ namespace VSKingdom {
 
 		private void CalcAnimated() {
 			String anims = curIdleAnims;
-			if (!entity.Alive || !Active || curMoveSpeed < 0.01f) {
-				entity.AnimManager.StopAnimation(curAnimation);
+			if (!Active) {
+				StopMovement();
 			} else if (entity.Swimming) {
 				anims = curSwimAnims;
 			} else if (entity.FeetInLiquid) {
 				anims = curWalkAnims;
 			} else if (entity.Controls.Sneak) {
 				anims = curDuckAnims;
-			} else if (entity.Controls.Sprint) {
-				anims = curMoveAnims;
-			} else if (entity.IsOnFire) {
-				anims = curMoveAnims;
 			} else if (forcedSprint) {
 				anims = curMoveAnims;
-			} else if (curMoveSpeed > 0.01f) {
+			} else if (entity.Controls.Forward) {
 				anims = curWalkAnims;
-			} else if (entity.Controls.Backward) {
-				anims = "walkback";
-			} else if (entity.Controls.Right) {
-				anims = "walkside";
-			} else if (entity.Controls.Left) {
-				anims = "walkleft";
+			} else if (curMoveSpeed < 0.01f) {
+				StopMovement();
 			}
 			if (!entity.AnimManager.IsAnimationActive(anims)) {
 				entity.AnimManager.StartAnimation(new AnimationMetaData() {
@@ -450,7 +429,7 @@ namespace VSKingdom {
 						{ "LowerFootR", 2f },
 						{ "LowerFootL", 2f }
 					},
-					MulWithWalkSpeed = true,
+					MulWithWalkSpeed = anims != curIdleAnims,
 					EaseInSpeed = 999f,
 					EaseOutSpeed = 999f
 				}.Init());

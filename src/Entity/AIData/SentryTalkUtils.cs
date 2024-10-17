@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Collections.Generic;
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
@@ -36,16 +36,16 @@ namespace VSKingdom {
 					stoppedSlidingSounds.Add(slidingPitchSound);
 					continue;
 				}
-				float num = (float)(capi.World.ElapsedMilliseconds - slidingPitchSound.startMs) / 1000f;
 				float length = slidingPitchSound.length;
-				float t = GameMath.Min(1f, num / length);
-				float num2 = GameMath.Lerp(slidingPitchSound.startPitch, slidingPitchSound.endPitch, t);
-				float num3 = GameMath.Lerp(slidingPitchSound.StartVolumne, slidingPitchSound.EndVolumne, t);
-				if (num > length) {
-					num3 -= (num - slidingPitchSound.length) * 5f;
+				float num0 = (float)(capi.World.ElapsedMilliseconds - slidingPitchSound.startMs) / 1000f;
+				float num1 = GameMath.Min(1f, num0 / length);
+				float num2 = GameMath.Lerp(slidingPitchSound.startPitch, slidingPitchSound.endPitch, num1);
+				float num3 = GameMath.Lerp(slidingPitchSound.StartVolumne, slidingPitchSound.EndVolumne, num1);
+				if (num0 > length) {
+					num3 -= (num0 - slidingPitchSound.length) * 5f;
 				}
 				slidingPitchSound.Vibrato = slidingPitchSound.TalkType == EnumTalkType.Death || slidingPitchSound.TalkType == EnumTalkType.Thrust;
-				if (slidingPitchSound.TalkType == EnumTalkType.Thrust && (double)num > 0.15) {
+				if (slidingPitchSound.TalkType == EnumTalkType.Thrust && (double)num0 > 0.15) {
 					slidingPitchSound.sound.Stop();
 					continue;
 				}
@@ -53,7 +53,7 @@ namespace VSKingdom {
 					slidingPitchSound.sound.FadeOutAndStop(0f);
 					continue;
 				}
-				slidingPitchSound.sound.SetPitch(num2 + (slidingPitchSound.Vibrato ? ((float)Math.Sin(num * 8f) * 0.05f) : 0f));
+				slidingPitchSound.sound.SetPitch(num2 + (slidingPitchSound.Vibrato ? ((float)Math.Sin(num0 * 8f) * 0.05f) : 0f));
 				slidingPitchSound.sound.FadeTo(num3, 0.1f, delegate { });
 			}
 			for (int i = 0; i < stoppedSlidingSounds.Count; i++) {

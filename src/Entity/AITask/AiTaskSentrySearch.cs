@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
@@ -106,7 +105,7 @@ namespace VSKingdom {
 			if (!entity.ruleOrder[3] && entity.ruleOrder[1] && followEntity != null && entity.ServerPos.SquareDistanceTo(followEntity.ServerPos) > maximumRange) {
 				return false;
 			}
-			if (currentFollowTime == 0f && world.Rand.NextDouble() < 0.25) {
+			if (currentFollowTime == 0f && world.Rand.Next(100) < 25) {
 				base.StartExecute();
 			}
 			if (entity.cachedData.usesRange && entity.ServerPos.SquareDistanceTo(targetEntity.ServerPos) < extraTargetOffset * extraTargetOffset) {
@@ -197,9 +196,9 @@ namespace VSKingdom {
 			if (cancelSearch || targetEntity == null) {
 				return;
 			}
-			int searchDepth = (world.Rand.NextDouble() < 0.05) ? 10000 : 3500;
+			int searchDepth = world.Rand.Next(3500, 10000);
 			attackPattern = EnumAttackPattern.DirectAttack;
-			pathTraverser.NavigateTo_Async(curTargetPos.OffsetCopy(rand.Next(-1, 1), 0, rand.Next(-1, 1)), 1, extraTargetOffset, OnGoals, OnStuck, DoSieged, searchDepth, 1);
+			pathTraverser.NavigateTo_Async(curTargetPos.OffsetCopy(rand.Next(-1, 1), 0, rand.Next(-1, 1)), 1, extraTargetOffset, OnGoals, OnStuck, DoSieged, searchDepth, 0);
 		}
 
 		private void DoSieged() {
@@ -251,7 +250,8 @@ namespace VSKingdom {
 					num4++;
 				}
 				if (flag) {
-					pathTraverser.NavigateTo_Async(curTargetPos, 1, entity.cachedData.weapRange, OnGoals, OnStuck, Retreats, 3500, 1);
+					int searchDepth = world.Rand.Next(3500, 10000);
+					pathTraverser.NavigateTo_Async(curTargetPos, 1, entity.cachedData.weapRange, OnGoals, OnStuck, Retreats, searchDepth, 1);
 					return;
 				}
 			}
@@ -261,16 +261,16 @@ namespace VSKingdom {
 		private void Retreats() {
 			// Unable to perform circle attack pattern, trying retreat!
 			if (!RemainInOffenseMode && (RecentlyTookDamages || RemainInRetreatMode)) {
-				updateTargetPosFleeMode(curTargetPos);
-				pathTraverser.CurrentTarget.X = curTargetPos.X;
-				pathTraverser.CurrentTarget.Y = curTargetPos.Y;
-				pathTraverser.CurrentTarget.Z = curTargetPos.Z;
-				pathTraverser.WalkTowards(curTargetPos, 1, extraTargetOffset, OnGoals, OnStuck);
+				Vec3d retreatPos = new Vec3d();
+				updateTargetPosFleeMode(retreatPos);
+				pathTraverser.CurrentTarget.X = retreatPos.X;
+				pathTraverser.CurrentTarget.Y = retreatPos.Y;
+				pathTraverser.CurrentTarget.Z = retreatPos.Z;
+				pathTraverser.WalkTowards(retreatPos, 1, extraTargetOffset, OnGoals, OnStuck);
 				if (attackPattern != EnumAttackPattern.TacticalRetreat) {
 					lastRetreatsAtMs = entity.World.ElapsedMilliseconds;
 				}
 				attackPattern = EnumAttackPattern.TacticalRetreat;
-				attackedByEntity = null;
 			}
 		}
 

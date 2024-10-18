@@ -7,8 +7,8 @@
 	"deadHitboxSize": {"x": 0.75, "y": 0.5},
 	"eyeHeight": 1.7,
 	"attributes": {
-		"moveSpeed": 0.040,
-		"walkSpeed": 0.020,
+		"moveSpeed": 0.042,
+		"walkSpeed": 0.024,
 		"weapSpawn": [ ],
 		"ammoSpawn": [ ],
 		"headSpawn": [ "", "", "", "", "" ],

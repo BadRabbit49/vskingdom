@@ -4,13 +4,14 @@
 	"maxstacksize": 1,
 	"durability": 100,
 	"variantgroups": [
-		{ "code": "type", "states": [ "archer", "knight", "doctor", "bandit" ] },
+		{ "code": "type", "states": [ "archer", "knight", "doctor", "bandit", "zombie" ] },
 		{ "code": "gender", "states": [ "masc", "femm" ] }
 	],
 	"attributes": { "handbook": { "excludeByType": { "*-bandit-*": true } } },
 	"shapeByType": {
 		"*-masc": { "base": "vskingdom:entity/humanoid/sentry-masc" },
-		"*-femm": { "base": "vskingdom:entity/humanoid/sentry-femm" }
+		"*-femm": { "base": "vskingdom:entity/humanoid/sentry-femm" },
+		"zombie-*": { "base": "vskingdom:entity/humanoid/zombie-masc" }
 	},
 	"texturesByType": {
 		"archer-*": { "skin": { "base": "game:entity/humanoid/seraphskinparts/body/skin11" } },

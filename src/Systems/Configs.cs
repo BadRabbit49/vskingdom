@@ -49,7 +49,7 @@ namespace VSKingdom {
 			api.World.Config.SetLong("Kingdom_MinCreateLevel", config.Kingdom_MinCreateLevel);
 			api.World.Config.SetLong("Kingdom_CreateCooldown", config.Kingdom_CreateCooldown);
 			api.World.Config.SetLong("Kingdom_MaxUserCreated", config.Kingdom_MaxUserCreated);
-			api.World.Config.SetLong("Zombies_EnableSpawning", config.Zombies_EnableSpawning);
+			api.World.Config.SetBool("Zombies_EnableSpawning", config.Zombies_EnableSpawning);
 		}
 	}
 

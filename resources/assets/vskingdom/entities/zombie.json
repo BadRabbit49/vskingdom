@@ -1,0 +1,256 @@
+{
+	"code": "zombie",
+	"class": "EntitySentry",
+	"variantGroups": [ { "code": "gender", "states": [ "masc", "femm" ] } ],
+	"canClimb": true,
+	"hitboxSize": { "x": 0.6, "y": 1.85 },
+	"deadHitboxSize": {"x": 0.75, "y": 0.5},
+	"eyeHeight": 1.7,
+	"attributes": {
+		"moveSpeed": 0.040,
+		"walkSpeed": 0.020,
+		"weapSpawn": [ ],
+		"ammoSpawn": [ ],
+		"headSpawn": [ "", "", "", "", "" ],
+		"handSpawn": [ "game:clothes-hand-survivor", "game:clothes-hand-commoner-gloves", "game:clothes-hand-heavy-leather-gloves", "", "", "", "" ],
+		"gearSpawn": [ "game:clothes-upperbody-tattered-linen-shirt", "game:clothes-upperbody-tattered-crimson-tunic" ],
+		"pantSpawn": [ "game:clothes-lowerbody-commoner-trousers", "game:clothes-lowerbody-survivor", "game:clothes-lowerbody-raw-hide-trousers" ],
+		"shoeSpawn": [ "game:clothes-foot-survivor", "game:clothes-foot-commoner-boots", "game:clothes-foot-peasent-slippers" ],
+		"helmSpawn": [ "game:clothes-armor-head-brigandine-iron", "game:armor-head-sewn-leather", "", "" ],
+		"bodySpawn": [ "game:clothes-armor-body-brigandine-iron", "game:armor-body-jerkin-leather", "", "" ],
+		"legsSpawn": [ "game:clothes-armor-body-brigandine-iron", "game:armor-legs-jerkin-leather", "", "" ],
+		"deathAnim": [ "dies", "dies1", "dies2" ],
+		"deathBone": [ "humanoid1", "humanoid2", "humanoid3", "humanoid4", "humanoid5", "humanoid6", "humanoid7" ],
+		"skinnableParts": [
+			{
+				"code": "baseskin",
+				"type": "texture",
+				"variants": [
+					{ "code": "skin1", "texture": "vskingdom:entity/humanoid/clockwin/skin1" }
+				]
+			}
+		]
+	},
+	"client": {
+		"renderer": "SkinnableShape",
+		"shapeByType": {
+			"*-masc": { "base": "vskingdom:entity/humanoid/zombie-masc" },
+			"*-femm": { "base": "vskingdom:entity/humanoid/zombie-masc" }
+		},
+		"texture": { "base": "game:entity/humanoid/seraphskinparts/body/skin1" },
+		"behaviors": [
+			{ "code": "repulseagents" },
+			{ "code": "controlledphysics", "stepHeight": 1.2 },
+			{ "code": "interpolateposition" },
+			{ "code": "extraskinnable" }
+		],
+		"animations": [
+			{
+				"code": "idle",
+				"animation": "idle",
+				"blendMode": "Average",
+				"triggeredBy": { "onControls": [ "Idle" ], "defaultAnim": true }
+			},
+			{
+				"code": "walk",
+				"animation": "walk",
+				"blendMode": "AddAverage",
+				"supressDefaultAnimation": true,
+				"mulWithWalkSpeed": true,
+				"triggeredBy": { "onControls": [ "Move" ], "matchesExact": true }
+			},
+			{
+				"code": "move",
+				"animation": "move",
+				"blendMode": "AddAverage",
+				"supressDefaultAnimation": true,
+				"mulWithWalkSpeed": true,
+				"triggeredBy": { "onControls": [ "SprintMode", "Move" ], "matchExact": true }
+			},
+			{
+				"code": "grab",
+				"animation": "grab",
+				"blendMode": "AddAverage",
+				"supressDefaultAnimation": true,
+				"mulWithWalkSpeed": true,
+				"triggeredBy": { "onControls": [ "SprintMode", "SneakMode", "Move" ], "matchesExact": true }
+			},
+			{
+				"code": "duck",
+				"animation": "duck",
+				"blendMode": "AddAverage",
+				"supressDefaultAnimation": true,
+				"mulWithWalkSpeed": true,
+				"triggeredBy": { "onControls": [ "SneakMode", "Move" ], "matchesExact": true }
+			},
+			{
+				"code": "duckidle",
+				"animation": "duckidle",
+				"blendMode": "AddAverage",
+				"supressDefaultAnimation": true,
+				"triggeredBy": { "onControls": [ "SneakMode", "Idle" ], "matchesExact": true }
+			},
+			{
+				"code": "swim",
+				"animation": "swim",
+				"blendMode": "AddAverage",
+				"supressDefaultAnimation": true,
+				"mulWithWalkSpeed": true,
+				"triggeredBy": { "onControls": [ "Swim", "Move" ], "matchesExact": true }
+			},
+			{
+				"code": "swimidle",
+				"animation": "swimidle",
+				"blendMode": "AddAverage",
+				"supressDefaultAnimation": true,
+				"triggeredBy": { "onControls": [ "Swim", "Idle" ], "matchesExact": true }
+			},
+			{
+				"code": "climb",
+				"animation": "climb",
+				"blendMode": "AddAverage",
+				"supressDefaultAnimation": true,
+				"mulWithWalkSpeed": true,
+				"triggeredBy": { "onControls": [ "Climb", "Move" ], "matchesExact": true }
+			},
+			{
+				"code": "climbidle",
+				"animation": "climb",
+				"blendMode": "AddAverage",
+				"animationSpeed": 0,
+				"supressDefaultAnimation": true,
+				"triggeredBy": { "onControls": [ "Climb", "Idle" ], "matchesExact": true }
+			},
+			{
+				"code": "land",
+				"animation": "land",
+				"blendMode": "AddAverage",
+				"supressDefaultAnimation": true,
+				"mulWithWalkSpeed": true,
+				"triggeredBy": { "onControls": [ "Fall" ] }
+			},
+			{
+				"code": "dies",
+				"animation": "dies",
+				"blendMode": "AddAverage",
+				"animationSpeed": 1.75,
+				"weight": 10,
+				"supressDefaultAnimation": true,
+				"triggeredBy": { "onControls": [ "Dead" ], "matchesExact": true }
+			}
+		]
+	},
+	"server": {
+		"attributes": {
+			"pathfinder": { "minTurnAnglePerSec": 720, "maxTurnAnglePerSec": 1440 }
+		},
+		"behaviors": [
+			{ "code": "repulseagents" },
+			{ "code": "controlledphysics", "stepHeight": 1.2 },
+			{ "code": "health", "currenthealth": 20, "maxhealth": 20 },
+			{ "code": "extraskinnable" },
+			{ "code": "breathe" },
+			{ "code": "emotionstates", "states": [ { "code": "aggressiveondamage", "duration": 7, "chance": 1.00, "slot": 0, "priority": 2, "accumType": "noaccum" } ] },
+			{ "code": "SoldierDecayBody", "hoursToDecay": 24 },
+			{
+				"code": "taskai",
+				"aitasks": [
+					{
+						"code": "ZombieInfect",
+						"priority": 2.0,
+						"entityCodes": [ "player", "archer-*", "bandit-*", "knight-*", "doctor-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
+						"animations": [ "hit" ],
+						"damageTier": 2
+					},
+					{
+						"code": "idle",
+						"priority": 1.2,
+						"priorityForCancel": 1.35,
+						"minduration": 4000,
+						"maxduration": 6000,
+						"chance": 0.001,
+						"initialMinCoolDown": 2000,
+						"initialMaxCoolDown": 150000,
+						"mincooldown": 300000,
+						"maxcooldown": 10000000,
+						"animation": "idle1",
+						"animationSpeed": 1.25
+					},
+					{
+						"code": "idle",
+						"priority": 1.2,
+						"priorityForCancel": 1.35,
+						"minduration": 4000,
+						"maxduration": 6000,
+						"chance": 0.001,
+						"initialMinCoolDown": 2000,
+						"initialMaxCoolDown": 150000,
+						"mincooldown": 300000,
+						"maxcooldown": 10000000,
+						"animation": "idle2"
+					},
+					{
+						"code": "wander", 
+						"priority": 1.0, 
+						"movespeed": 0.01,
+						"animationSpeed": 1.2,
+						"animation": "walk",
+						"preferredLightLevel": 15
+					},
+					{
+						"code": "wander", 
+						"priority": 0.9,
+						"priorityForCancel": 1.1,
+						"movespeed": 0.008,
+						"animationSpeed": 1.1,
+						"animation": "walk",
+						"preferredLightLevel": 15
+					},
+					{
+						"code": "getoutofwater",
+						"priority": 1.4,
+						"movespeed": 0.04,
+						"animation": "walk",
+						"animationSpeed": 1.55
+					},
+					{
+						"code": "lookaround", 
+						"priority": 0.5
+					}
+				]
+			}
+		]
+	},
+	"spawnconditions": {
+		"worldgen": {
+				"TriesPerChunk": { "avg": 0.005, "var": 0 },
+				"tryOnlySurface": true,
+				"lightLevelType": "MaxTimeOfDayLight",
+				"groupSize": { "dist": "stronginvexp", "avg": 1, "var": 0 },
+				"insideBlockCodes": [ "game:air", "game:tallgrass-*","game:snowlayer-1" ],
+				"minTemp": -30,
+				"maxTemp": 30,
+				"minRain": 0,
+				"minForestOrShrubs": 0.25
+			},
+			"runtime": {
+				"group": "hostile",
+				"tryOnlySurface": false,
+				"maxQuantity": 17,
+				"maxLightLevel": 3,
+				"chance": 0.0001,
+				"lightLevelType": "MaxTimeOfDayLight",
+				"groupSize": { "dist": "stronginvexp", "avg": 1, "var": 0 },
+				"insideBlockCodes": [ "game:tallgrass-*" ],
+				"minDistanceToPlayer": 80,
+				"minY": 0.25,
+				"maxY": 1
+			}
+		},
+	"idleSoundRange": 14,
+	"sounds": {
+		"hurt": "creature/drifter-hurt",
+		"death": "creature/drifter-death",
+		"idle": "creature/drifter-idle"
+	}
+}

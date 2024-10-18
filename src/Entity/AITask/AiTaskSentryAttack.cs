@@ -84,7 +84,7 @@ namespace VSKingdom {
 		}
 
 		public override bool IsTargetableEntity(Entity ent, float range, bool ignoreEntityCode = false) {
-			if (ent is null || ent == entity || !ent.Alive) {
+			if (!ent.Alive) {
 				return false;
 			}
 			if (ent is EntityProjectile projectile && projectile.FiredBy != null) {

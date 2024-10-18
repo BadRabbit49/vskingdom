@@ -80,7 +80,7 @@ namespace VSKingdom {
 					.GetField("pathTraverser", BindingFlags.Instance | BindingFlags.NonPublic)
 					.SetValue(task, pathTraverser));
 				this.pathfinder = pathTraverser;
-				GetBehavior<EntityBehaviorHealth>().onDamaged += (dmg, dmgSource) => handleDamaged(World.Api, this, dmg, dmgSource);
+				GetBehavior<EntityBehaviorHealth>().onDamaged += (dmg, dmgSource) => HandleDamaged(World.Api, this, dmg, dmgSource);
 				ReadInventoryFromAttributes();
 			}
 		}

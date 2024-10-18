@@ -27,10 +27,10 @@ namespace VSKingdom {
 
 		protected Vec3d entpos = new Vec3d();
 		protected InventorySentry inventory;
-		protected EntitySentry entity;
+		protected EntityAgent entity;
 		protected EntityPlayer player;
 
-		public InvSentryDialog(InventorySentry inventory, EntitySentry entity, ICoreClientAPI capi) : base(capi) {
+		public InvSentryDialog(InventorySentry inventory, EntityAgent entity, ICoreClientAPI capi) : base(capi) {
 			this.inventory = inventory;
 			this.entity = entity;
 			this.player = capi.World.Player.Entity;

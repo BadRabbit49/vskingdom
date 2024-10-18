@@ -334,7 +334,7 @@
 					{
 						"code": "SentryAttack",
 						"priority": 2.0,
-						"entityCodes": [ "player", "archer-*", "knight-*", "doctor-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
+						"entityCodes": [ "player", "archer-*", "knight-*", "doctor-*", "zombie-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
 						"animations": [ "hit", "spearstabs", "swordswing", "swordsmash", "swordslash", "swordstabs" ],
 						"damageTier": 3,
 						"isBandit": true
@@ -342,7 +342,7 @@
 					{
 						"code": "SentryRanged",
 						"priority": 2.0,
-						"entityCodes": [ "player", "archer-*", "knight-*", "doctor-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
+						"entityCodes": [ "player", "archer-*", "knight-*", "doctor-*", "zombie-*", "drifter-*", "wolf-*", "hyena-*", "locust-*", "bear-*", "yeoman-*", "poacher-*", "deserter-*", "hound-*" ],
 						"damageTier": 3,
 						"isBandit": true
 					},

@@ -9,10 +9,10 @@ using static Vintagestory.API.Common.EntityAgent;
 
 namespace VSKingdom.Utilities {
 	internal static class DamagesUtil {
-		public static float handleDamaged(ICoreAPI api, EntityAgent ent, float dmg, DamageSource src) {
+		public static float HandleDamaged(ICoreAPI api, EntityAgent ent, float dmg, DamageSource src) {
 			EnumDamageType type = src.Type;
-			// Reduce damage if ent holds a shield
-			dmg = applyShieldProtection(api, ent, dmg, src);
+			// Reduce damage if entity holds a shield.
+			dmg = ApplyShieldProtection(api, ent, dmg, src);
 			// No reason to do all this if the damage was less than 0.
 			if (dmg <= 0) {
 				return 0;
@@ -107,7 +107,7 @@ namespace VSKingdom.Utilities {
 			return dmg;
 		}
 
-		public static float applyShieldProtection(ICoreAPI api, EntityAgent ent, float damage, DamageSource dmgSource) {
+		public static float ApplyShieldProtection(ICoreAPI api, EntityAgent ent, float damage, DamageSource dmgSource) {
 			double horizontalAngleProtectionRange = 120 / 2 * GameMath.DEG2RAD;
 			ItemSlot[] shieldSlots = new ItemSlot[] { ent.LeftHandItemSlot, ent.RightHandItemSlot };
 			for (int i = 0; i < shieldSlots.Length; i++) {

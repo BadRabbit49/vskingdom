@@ -379,7 +379,7 @@ namespace VSKingdom {
 				StopControls();
 				return;
 			}
-			Vec3d vector = entity?.Controls.WalkVector ?? entity?.ServerControls.WalkVector;
+			Vec3d vector = entity.Controls?.WalkVector ?? entity.ServerControls?.WalkVector;
 			bool xPos = vector.X > 0.1f;
 			bool yPos = vector.Y > 0.1f;
 			bool xNeg = vector.X < -0.1f;

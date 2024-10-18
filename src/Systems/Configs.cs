@@ -49,6 +49,7 @@ namespace VSKingdom {
 			api.World.Config.SetLong("Kingdom_MinCreateLevel", config.Kingdom_MinCreateLevel);
 			api.World.Config.SetLong("Kingdom_CreateCooldown", config.Kingdom_CreateCooldown);
 			api.World.Config.SetLong("Kingdom_MaxUserCreated", config.Kingdom_MaxUserCreated);
+			api.World.Config.SetLong("Zombies_EnableSpawning", config.Zombies_EnableSpawning);
 		}
 	}
 
@@ -74,6 +75,7 @@ namespace VSKingdom {
 		public long Kingdom_MinCreateLevel { get; set; } = -1;
 		public long Kingdom_CreateCooldown { get; set; } = -1;
 		public long Kingdom_MaxUserCreated { get; set; } = -1;
+		public bool Zombies_EnableSpawning { get; set; } = true;
 		// Loaded Previous Configuration if exists.
 		public VSKingdomConfigs(VSKingdomConfigs prev) {
 			Allowed_SentryTeamHurt = prev.Allowed_SentryTeamHurt;
@@ -94,6 +96,7 @@ namespace VSKingdom {
 			Kingdom_MinCreateLevel = prev.Kingdom_MinCreateLevel;
 			Kingdom_CreateCooldown = prev.Kingdom_CreateCooldown;
 			Kingdom_MaxUserCreated = prev.Kingdom_MaxUserCreated;
+			Zombies_EnableSpawning = prev.Zombies_EnableSpawning;
 		}
 	}
 }

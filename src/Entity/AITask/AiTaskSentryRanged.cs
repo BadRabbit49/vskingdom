@@ -91,11 +91,11 @@ namespace VSKingdom {
 		}
 
 		public override bool IsTargetableEntity(Entity ent, float range, bool ignoreEntityCode = false) {
-			if (ent is null || ent == entity || !ent.Alive) {
+			if (ent == entity || !ent.Alive) {
 				return false;
 			}
 			if (ent is EntityProjectile projectile && projectile.FiredBy != null) {
-				targetEntity = projectile.FiredBy;
+				ent = projectile.FiredBy;
 			}
 			if (ent.WatchedAttributes.HasAttribute(KingdomGUID)) {
 				return IsAnEnemy(ent);
@@ -204,7 +204,7 @@ namespace VSKingdom {
 				renderSwitch = true;
 			}
 			// Do after aiming time is finished.
-			if (accum > releasesAtMs / 1000f && !releasedShot && !NothinInTheWay() && entity.cachedData.weapReady) {
+			if (accum > releasesAtMs / 1000f && !releasedShot && entity.cachedData.weapReady && !TracingUtil.CanHitEntity(entity, targetEntity, null, true)) {
 				releasedShot = FireProjectile();
 				// Don't play anything when the hittingSound is incorrectly set.
 				if (hittingsound != null && releasedShot) {
@@ -341,21 +341,6 @@ namespace VSKingdom {
 			smoke.ShouldSwimOnLiquid = true;
 			smoke.OpacityEvolve = EvolvingNatFloat.create(EnumTransformFunction.LINEAR, -2f);
 			entity.World.SpawnParticles(smoke);
-		}
-		
-		private bool NothinInTheWay() {
-			var eSelect = new EntitySelection();
-			var bSelect = new BlockSelection();
-			var eFilter = new EntityFilter((e) => (e.IsInteractable || e.EntityId != entity.EntityId || e.EntityId != targetEntity.EntityId));
-			var bFilter = new BlockFilter((pos, block) => (block.Replaceable < 6000));
-			// Do a line Trace into the target, see if there are any entities in the way.
-			entity.World.RayTraceForSelection(entity.ServerPos.XYZ.AddCopy(entity.LocalEyePos), targetEntity?.ServerPos.XYZ.AddCopy(targetEntity?.LocalEyePos), ref bSelect, ref eSelect, bFilter, eFilter);
-			// Make sure the target isn't obstructed by other entities, but if it IS then make sure it's okay to hit them.
-			if (eSelect?.Entity != null) {
-				return !IsTargetableEntity(eSelect?.Entity, (float)entity.ServerPos.DistanceTo(eSelect.Position));
-			}
-			// Don't waste ammunition by shooting at the hecking ground.
-			return bSelect?.Block == null;
 		}
 
 		private void RenderVariants(int variant) {

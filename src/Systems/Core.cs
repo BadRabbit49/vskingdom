@@ -51,6 +51,7 @@ namespace VSKingdom {
 			api.RegisterItemClass("ItemPeople", typeof(ItemPeople));
 			// Entity Classes //
 			api.RegisterEntity("EntitySentry", typeof(EntitySentry));
+			api.RegisterEntity("EntityZombie", typeof(EntitySentry));
 			// Entity Behaviors //
 			api.RegisterEntityBehaviorClass("KingdomFullNames", typeof(EntityBehaviorFullNames));
 			api.RegisterEntityBehaviorClass("KingdomLoyalties", typeof(EntityBehaviorLoyalties));
@@ -65,6 +66,7 @@ namespace VSKingdom {
 			AiTaskRegistry.Register<AiTaskSentryRanged>("SentryRanged");
 			AiTaskRegistry.Register<AiTaskSentrySearch>("SentrySearch");
 			AiTaskRegistry.Register<AiTaskSentryWander>("SentryWander");
+			AiTaskRegistry.Register<AiTaskZombieInfect>("ZombieInfect");
 			// Patches //
 			KingdomPatches.Patch(harmony);
 			if (!Harmony.HasAnyPatches("badrabbit49.vskingdom")) {

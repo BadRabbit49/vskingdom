@@ -206,9 +206,9 @@ namespace VSKingdom {
 			if (cancelSearch || targetEntity == null) {
 				return;
 			}
+			int searchDepth = world.Rand.Next(1500, 3500);
 			attackPattern = EnumAttackPattern.BesiegeTarget;
-			
-			pathTraverser.NavigateTo_Async(curTargetPos, 1, extraTargetOffset, OnGoals, OnStuck, DoCircle, 3500, 3);
+			pathTraverser.NavigateTo_Async(curTargetPos, 1, extraTargetOffset, OnGoals, OnStuck, DoCircle, searchDepth, 3);
 		}
 
 		private void DoCircle() {

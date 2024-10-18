@@ -7,6 +7,8 @@
 	"item-creature-knight-femm": "Knight",
 	"item-creature-doctor-masc": "Doctor",
 	"item-creature-doctor-femm": "Doctor",
+	"item-creature-zombie-masc": "Zombie",
+	"item-creature-zombie-femm": "Zombie",
 	"item-people-archer-masc": "Male Archer",
 	"item-people-archer-femm": "Female Archer",
 	"item-people-bandit-masc": "Male Bandit",
@@ -15,6 +17,8 @@
 	"item-people-knight-femm": "Female Knight",
 	"item-people-doctor-masc": "Male Doctor",
 	"item-people-doctor-femm": "Female Doctor",
+	"item-undead-zombie-masc": "Male Zombie",
+	"item-undead-zombie-femm": "Female Zombie",
 	"item-dead-creature-archer-masc": "Dead Archer",
 	"item-dead-creature-archer-femm": "Dead Archer",
 	"item-dead-creature-bandit-masc": "Dead Bandit",
@@ -23,7 +27,9 @@
 	"item-dead-creature-knight-femm": "Dead Knight",
 	"item-dead-creature-doctor-masc": "Dead Doctor",
 	"item-dead-creature-doctor-femm": "Dead Doctor",
-	
+	"item-dead-creature-zombie-masc": "Dead Zombie",
+	"item-dead-creature-zombie-femm": "Dead Zombie",
+
 	"block-body-*": "Remains",
 	"block-post-lead-*": "Lead Outpost",
 	"block-post-copper-*": "Copper Outpost",

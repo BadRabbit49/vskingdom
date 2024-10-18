@@ -1,22 +1,15 @@
 ﻿{
 	"code": "people",
-	"class": "ItemPeople",
+	"class": "ItemCreature",
 	"maxstacksize": 1,
 	"durability": 100,
 	"variantgroups": [
-		{ "code": "type", "states": [ "archer", "knight", "doctor", "bandit" ] },
+		{ "code": "type", "states": [ "zombie" ] },
 		{ "code": "gender", "states": [ "masc", "femm" ] }
 	],
-	"attributes": { "handbook": { "excludeByType": { "*-bandit-*": true } } },
+	"attributes": { "handbook": { "include": false } },
 	"shapeByType": {
-		"*-masc": { "base": "vskingdom:entity/humanoid/sentry-masc" },
-		"*-femm": { "base": "vskingdom:entity/humanoid/sentry-femm" }
-	},
-	"texturesByType": {
-		"archer-*": { "skin": { "base": "game:entity/humanoid/seraphskinparts/body/skin11" } },
-		"knight-*": { "skin": { "base": "game:entity/humanoid/seraphskinparts/body/skin8" } },
-		"doctor-*": { "skin": { "base": "game:entity/humanoid/seraphskinparts/body/skin4" } },
-		"bandit-*": { "skin": { "base": "game:entity/humanoid/seraphskinparts/body/skin5" } }
+		"zombie-*": { "base": "vskingdom:entity/humanoid/zombie-masc" }
 	},
 	"creativeinventory": {
 		"general": [ "*" ],

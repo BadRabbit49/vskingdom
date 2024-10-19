@@ -1,6 +1,6 @@
 ﻿{
-	"code": "people",
-	"class": "ItemCreature",
+	"code": "undead",
+	"class": "ItemUndead",
 	"maxstacksize": 1,
 	"durability": 100,
 	"variantgroups": [
@@ -9,7 +9,12 @@
 	],
 	"attributes": { "handbook": { "include": false } },
 	"shapeByType": {
-		"zombie-*": { "base": "vskingdom:entity/humanoid/zombie-masc" }
+		"undead-zombie-masc": { "base": "vskingdom:entity/humanoid/zombie-masc" },
+		"undead-zombie-femm": { "base": "vskingdom:entity/humanoid/zombie-masc" }
+	},
+	"texturesByType": {
+		"undead-zombie-masc": { "skin": { "base": "vskingdom:entity/humanoid/clockwin/skin1" } },
+		"undead-zombie-femm": { "skin": { "base": "vskingdom:entity/humanoid/clockwin/skin1" } }
 	},
 	"creativeinventory": {
 		"general": [ "*" ],

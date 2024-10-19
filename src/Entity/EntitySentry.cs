@@ -222,10 +222,13 @@ namespace VSKingdom {
 
 		public override void OnInteract(EntityAgent byEntity, ItemSlot itemslot, Vec3d hitPosition, EnumInteractMode mode) {
 			base.OnInteract(byEntity, itemslot, hitPosition, mode);
-			if (mode != EnumInteractMode.Interact || byEntity is not EntityPlayer || !byEntity.Controls.RightMouseDown) {
+			if (mode != EnumInteractMode.Interact || byEntity is not EntityPlayer) {
 				return;
 			}
 			EntityPlayer player = byEntity as EntityPlayer;
+			if (!player.Controls.RightMouseDown) {
+				return;
+			}
 			string theirKingdom = player.WatchedAttributes.GetString(KingdomGUID);
 			string kingdomGuid = WatchedAttributes.GetString(KingdomGUID);
 			string cultureGuid = WatchedAttributes.GetString(CultureGUID);

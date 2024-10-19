@@ -13,10 +13,10 @@
 		"*-femm": { "base": "vskingdom:entity/humanoid/sentry-femm" }
 	},
 	"texturesByType": {
-		"archer-*": { "skin": { "base": "game:entity/humanoid/seraphskinparts/body/skin11" } },
-		"knight-*": { "skin": { "base": "game:entity/humanoid/seraphskinparts/body/skin8" } },
-		"doctor-*": { "skin": { "base": "game:entity/humanoid/seraphskinparts/body/skin4" } },
-		"bandit-*": { "skin": { "base": "game:entity/humanoid/seraphskinparts/body/skin5" } }
+		"people-archer-*": { "skin": { "base": "game:entity/humanoid/seraphskinparts/body/skin11" } },
+		"people-knight-*": { "skin": { "base": "game:entity/humanoid/seraphskinparts/body/skin8" } },
+		"people-doctor-*": { "skin": { "base": "game:entity/humanoid/seraphskinparts/body/skin4" } },
+		"people-bandit-*": { "skin": { "base": "game:entity/humanoid/seraphskinparts/body/skin5" } }
 	},
 	"creativeinventory": {
 		"general": [ "*" ],

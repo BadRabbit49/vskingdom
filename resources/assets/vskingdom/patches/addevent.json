@@ -12,5 +12,19 @@
       "path": "/enabled",
       "value": true,
       "condition": { "when": "Zombies_EnableSpawning", "isValue": "true" }
+  },
+  {
+      "file": "itemtypes/undead.json",
+      "op": "add",
+      "path": "/enabled",
+      "value": false,
+      "condition": { "when": "Zombies_EnableSpawning", "isValue": "false" }
+  },
+  {
+      "file": "itemtypes/undead.json",
+      "op": "add",
+      "path": "/enabled",
+      "value": true,
+      "condition": { "when": "Zombies_EnableSpawning", "isValue": "true" }
   }
 ]

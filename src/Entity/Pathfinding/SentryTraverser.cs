@@ -45,7 +45,7 @@ namespace VSKingdom {
 		public long checkDoorsMs;
 		public override bool Ready { get => curWaypoints != null && asyncSearchObject == null; }
 		public override Vec3d CurrentTarget { get => curWaypoints[curWaypoints.Count - 1]; }
-		
+
 		public SentryTraverser(EntitySentry entity) : base(entity) {
 			this.entity = entity;
 			if (entity?.Properties.Server?.Attributes?.GetTreeAttribute("pathfinder") != null) {
@@ -415,6 +415,8 @@ namespace VSKingdom {
 				anims = curMoveAnims;
 			} else if (entity.Controls.Forward) {
 				anims = curWalkAnims;
+			} else if (curMoveSpeed > 0.01f) {
+				anims = curWalkAnims;
 			} else if (curMoveSpeed < 0.01f) {
 				StopMovement();
 			}
@@ -422,7 +424,7 @@ namespace VSKingdom {
 				entity.AnimManager.StartAnimation(new AnimationMetaData() {
 					Animation = anims,
 					Code = anims,
-					BlendMode = EnumAnimationBlendMode.Average,
+					BlendMode = EnumAnimationBlendMode.AddAverage,
 					ElementWeight = new Dictionary<string, float> {
 						{ "UpperFootR", 2f },
 						{ "UpperFootL", 2f },

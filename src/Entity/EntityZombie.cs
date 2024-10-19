@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Reflection;
 using Vintagestory.API.Client;
 using Vintagestory.API.Server;
 using Vintagestory.API.Common;
@@ -8,16 +9,20 @@ using Vintagestory.API.Datastructures;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Util;
 using Vintagestory.GameContent;
-using VSKingdom.Utilities;
+using Vintagestory.Essentials;
+using static VSKingdom.Utilities.DamagesUtil;
 
 namespace VSKingdom {
 	public class EntityZombie : EntityHumanoid {
 		public EntityZombie() { }
 		public virtual bool zombified { get; set; }
-		public virtual bool canRevive { get; set; }
+		public virtual bool  canRevive { get; set; }
+		public virtual float walkSpeed { get; set; }
+		public virtual float moveSpeed { get; set; }
 		public virtual string inventory => "gear-" + EntityId;
 		public virtual InventorySentry gearInv { get; set; }
 		public virtual InvSentryDialog gearDialog { get; set; }
+		public virtual WaypointsTraverser pathfinder { get; set; }
 		public override ItemSlot LeftHandItemSlot => gearInv[15];
 		public override ItemSlot RightHandItemSlot => gearInv[16];
 		public virtual ItemSlot BackItemSlot => gearInv[17];
@@ -36,33 +41,19 @@ namespace VSKingdom {
 			} else {
 				gearInv.LateInitialize(inventory, api);
 			}
+			walkSpeed = properties.Attributes["walkSpeed"].AsFloat(0.02f);
+			moveSpeed = properties.Attributes["moveSpeed"].AsFloat(0.04f);
 			if (api is ICoreServerAPI sapi) {
 				WatchedAttributes.RegisterModifiedListener("inventory", ReadInventoryFromAttributes);
-				GetBehavior<EntityBehaviorHealth>().onDamaged += (dmg, dmgSource) => DamagesUtil.HandleDamaged(World.Api, this, dmg, dmgSource);
+				var taskBehaviors = GetBehavior<EntityBehaviorTaskAI>();
+				var pathTraverser = new WaypointsTraverser(this);
+				taskBehaviors.PathTraverser = pathTraverser;
+				taskBehaviors.TaskManager.AllTasks.ForEach(task => typeof(AiTaskBase)
+					.GetField("pathTraverser", BindingFlags.Instance | BindingFlags.NonPublic)
+					.SetValue(task, pathTraverser));
+				this.pathfinder = pathTraverser;
+				GetBehavior<EntityBehaviorHealth>().onDamaged += (dmg, dmgSource) => HandleDamaged(World.Api, this, dmg, dmgSource);
 				ReadInventoryFromAttributes();
-			}
-		}
-
-		public override void OnEntitySpawn() {
-			base.OnEntitySpawn();
-			if (Api.Side != EnumAppSide.Server) { return; }
-			if (zombified) { return; }
-			for (int i = 0; i < GearsDressCodes.Length; i++) {
-				string spawnCode = GearsDressCodes[i] + "Spawn";
-				if (Properties.Attributes[spawnCode].Exists) {
-					try {
-						var _items = Api.World.GetItem(new AssetLocation(GenericUtil.GetRandom(Properties.Attributes[spawnCode].AsArray<string>(null))));
-						var _stack = new ItemStack(_items, 1);
-						int _durab = (int)_stack.Attributes.GetDecimal("durability") / 2;
-						_items.Durability = Api.World.Rand.Next(1, _durab);
-						if (!TryGiveItemStack(_stack)) {
-							var newstack = Api.World.SpawnItemEntity(_stack, ServerPos.XYZ) as EntityItem;
-							GearInventory[i].Itemstack = newstack?.Itemstack;
-							newstack.Die(EnumDespawnReason.PickedUp, null);
-						}
-						GearInvSlotModified(i);
-					} catch { }
-				}
 			}
 		}
 
@@ -83,6 +74,9 @@ namespace VSKingdom {
 
 		public override void OnTesselation(ref Shape entityShape, string shapePathForLogging) {
 			base.OnTesselation(ref entityShape, shapePathForLogging);
+			if (GearInventory.Empty) {
+				return;
+			}
 			for (int i = 0; i < GearInventory.Count; i++) {
 				addGearToShape(GearInventory[i], entityShape, shapePathForLogging);
 			}

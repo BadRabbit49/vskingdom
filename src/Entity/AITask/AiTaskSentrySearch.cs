@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
+using Vintagestory.API.MathTools;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
-using Vintagestory.API.MathTools;
 using Vintagestory.API.Datastructures;
 using Vintagestory.GameContent;
 using static VSKingdom.Utilities.GenericUtil;
@@ -40,8 +40,8 @@ namespace VSKingdom {
 		public override void AfterInitialize() {
 			world = entity.World;
 			bhPhysics = entity.GetBehavior<EntityBehaviorControlledPhysics>();
-			pathTraverser = entity.GetBehavior<EntityBehaviorTaskAI>().PathTraverser;
 			bhEmo = entity.GetBehavior<EntityBehaviorEmotionStates>();
+			pathTraverser = entity.GetBehavior<EntityBehaviorTaskAI>().PathTraverser;
 			tasksManager = entity.GetBehavior<EntityBehaviorTaskAI>().TaskManager;
 		}
 

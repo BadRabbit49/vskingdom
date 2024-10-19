@@ -292,61 +292,7 @@
 			{
 				"code": "idle",
 				"animation": "idle",
-				"blendMode": "Average",
-				"animationSpeed": 1,
-				"weight": 10,
-				"triggeredBy": { "onControls": [ "Idle" ], "matchExact": true }
-			},
-			{
-				"code": "walk",
-				"animation": "walk", 
-				"blendMode": "Average", 
-				"mulWithWalkSpeed": true,
-				"animationSpeed": 1.3,
-				"triggeredBy": { "onControls": [ "Move" ], "matchExact": true } 
-			},
-			{
-				"code": "move",
-				"animation": "move",
-				"blendMode": "Average",
-				"mulWithWalkSpeed": true,
-				"elementWeight": { "UpperFootR": 2, "UpperFootL": 2, "LowerFootR": 2, "LowerFootL": 2, "UpperArmR": 2, "LowerArmR": 2, "UpperArmL": 2, "LowerArmL": 2 },
-				"triggeredBy": { "onControls": [ "Move", "SprintMode" ], "matchExact": true }
-			},
-			{
-				"code": "duck",
-				"animation": "duck", 
-				"blendMode": "Average", 
-				"mulWithWalkSpeed": true,
-				"animationSpeed": 3,
-				"weight": 2,
-				"triggeredBy": { "onControls": [ "Move", "SneakMode" ], "matchExact": true } 
-			},
-			{
-				"code": "duckidle",
-				"animation": "duck", 
-				"blendMode": "Average", 
-				"weight": 2,
-				"triggeredBy": { "onControls": [ "Idle", "SneakMode" ], "matchExact": true } 
-			},
-			{
-				"code": "swim",
-				"animation": "swim",
-				"blendMode": "Average",
-				"mulWithWalkSpeed": true,
-				"triggeredBy": { "onControls": [ "Move", "Swim" ], "matchExact": true }
-			},
-			{
-				"code": "swimidle",
-				"animation": "swimidle",
-				"blendMode": "Average",
-				"triggeredBy": { "onControls": [ "Idle", "Swim" ], "matchExact": true }
-			},
-			{
-				"code": "jump",
-				"animation": "jump",
-				"blendMode": "Average",
-				"triggeredBy": { "onControls": [ "Idle", "Jump" ], "matchExact": true }
+				"blendMode": "AddAverage"
 			},
 			{
 				"code": "dies",
@@ -355,40 +301,6 @@
 				"animationSpeed": 1.75,
 				"weight": 10,
 				"triggeredBy": { "onControls": [ "Dead" ] }
-			},
-			{
-				"code": "draw",
-				"animation": "draw",
-				"blendMode": "Add",
-				"elementWeight": { "UpperArmR": 20, "LowerArmR": 20, "UpperArmL": 20, "LowerArmL": 20 },
-				"elementBlendMode": { "UpperArmR": "AddAverage", "LowerArmR": "AddAverage", "UpperArmL": "AddAverage", "LowerArmL": "AddAverage" }
-			},
-			{
-				"code": "fire",
-				"animation": "fire",
-				"blendMode": "Add",
-				"elementWeight": { "UpperArmR": 20, "LowerArmR": 20, "UpperArmL": 20, "LowerArmL": 20 },
-				"elementBlendMode": { "UpperArmR": "AddAverage", "LowerArmR": "AddAverage", "UpperArmL": "AddAverage", "LowerArmL": "AddAverage" }
-			},
-			{
-				"code": "load",
-				"animation": "load",
-				"blendMode": "Add",
-				"elementWeight": { "UpperArmR": 20, "LowerArmR": 20, "UpperArmL": 20, "LowerArmL": 20 },
-				"elementBlendMode": { "UpperArmR": "AddAverage", "LowerArmR": "AddAverage", "UpperArmL": "AddAverage", "LowerArmL": "AddAverage" }
-			},
-			{
-				"code": "bash",
-				"animation": "bash",
-				"blendMode": "Add",
-				"elementWeight": { "UpperArmR": 20, "LowerArmR": 20, "UpperArmL": 20, "LowerArmL": 20 },
-				"elementBlendMode": { "UpperArmR": "AddAverage", "LowerArmR": "AddAverage", "UpperArmL": "AddAverage", "LowerArmL": "AddAverage" }
-			},
-			{
-				"code": "hurt",
-				"animation": "hurt",
-				"blendMode": "Add",
-				"animationSpeed": 3
 			}
 		]
 	},

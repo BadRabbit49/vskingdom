@@ -18,5 +18,6 @@
   "Kingdom_MinCreateLevel": -1,
   "Kingdom_CreateCooldown": -1,
   "Kingdom_MaxUserCreated": -1,
-  "Zombies_EnableSpawning": true
+  "Zombies_EnableSpawning": true,
+  "Zombies_EnableInfected": true
 }

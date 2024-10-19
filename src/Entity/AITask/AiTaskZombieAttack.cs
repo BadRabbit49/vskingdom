@@ -1,17 +1,17 @@
 using System;
 using System.Collections.Generic;
+using Vintagestory.API.MathTools;
 using Vintagestory.API.Common;
 using Vintagestory.API.Common.Entities;
 using Vintagestory.API.Config;
-using Vintagestory.API.MathTools;
 using Vintagestory.API.Datastructures;
 using Vintagestory.GameContent;
-using Vintagestory.API.Client;
 using VSKingdom.Utilities;
+using Vintagestory.API.Server;
 
 namespace VSKingdom {
-	public class AiTaskZombieInfect : AiTaskBaseTargetable {
-		public AiTaskZombieInfect(EntityZombie entity) : base(entity) { this.entity = entity; }
+	public class AiTaskZombieAttack : AiTaskBaseTargetable {
+		public AiTaskZombieAttack(EntityZombie entity) : base(entity) { this.entity = entity; }
 		#pragma warning disable CS0108
 		public EntityZombie entity;
 		#pragma warning restore CS0108
@@ -19,20 +19,19 @@ namespace VSKingdom {
 		protected bool animsRunning = false;
 		protected bool killedTarget = false;
 		protected bool hittingDoors = false;
-		protected Int32 stuckCounter = 0;
-		protected Int64 durationOfMs = 1500;
 		protected Int32 targetMemory = 50000;
+		protected Int64 durationOfMs = 1500;
 		protected Int64 cooldownAtMs = 0;
 		protected Int64 lastEngageMs = 0;
-		protected Int64 lastHelpedMs = 0;
+		protected Int64 nextAlertsMs = 0;
 		protected Int64 nextAttackMs = 0;
-		protected Int64 doorBashedMs = 0;
 		protected float curTurnAngle = 0;
 		protected string lastAnimCode;
 		protected string currAnimCode;
 		protected string[] animations;
 		protected BlockPos barricaded;
 		protected AiTaskManager tasksManager;
+		protected AiTaskZombieSearch searcherTask => tasksManager.GetTask<AiTaskZombieSearch>();
 
 		public override void AfterInitialize() {
 			world = entity.Api.World;
@@ -76,18 +75,21 @@ namespace VSKingdom {
 			// Record last animMeta so we can stop it if we need to.
 			lastAnimCode = currAnimCode;
 			// Initialize a random attack animation and sounds!
-			currAnimCode = animations[world.Rand.Next(1, animations.Length - 1)];
+			currAnimCode = animations[world.Rand.Next(0, animations.Length - 1)];
 			switch (world.Rand.Next(1, 2)) {
-				case 1: sound = new AssetLocation("game:sounds/player/strike1"); break;
-				case 2: sound = new AssetLocation("game:sounds/player/strike2"); break;
+				case 1: sound = new AssetLocation("game:sounds/creature/drifter-hit"); break;
+				case 2: sound = new AssetLocation("game:sounds/creature/fox/attack"); break;
 			}
 			cancelAttack = false;
 			animsRunning = false;
 			killedTarget = false;
-			hittingDoors = IsBarricaded(barricaded ?? null);
-			entity.Controls.Sprint = !hittingDoors;
-			doorBashedMs = 0;
+			hittingDoors = searcherTask?.IsBarricaded(barricaded ?? null) ?? false;
 			curTurnAngle = pathTraverser.curTurnRadPerSec;
+			if (hittingDoors) {
+				searcherTask.SetTargetVec3(barricaded.ToVec3d());
+			} else {
+				searcherTask.SetTargetEnts(targetEntity);
+			}
 		}
 		
 		public override bool ContinueExecute(float dt) {
@@ -95,14 +97,15 @@ namespace VSKingdom {
 				if (cancelAttack) {
 					return false;
 				}
+				bool alreadyTrace = false;
 				if (hittingDoors) {
-					pathTraverser.WalkTowards(barricaded.ToVec3d(), 0.02f, 0, null, null);
-					hittingDoors = HitBarricade();
+					hittingDoors = searcherTask?.HitBarricade(barricaded) ?? false;
 					lastEngageMs = world.ElapsedMilliseconds + targetMemory;
 					if (TracingUtil.CanSeeEntity(entity, targetEntity)) {
 						hittingDoors = false;
+						alreadyTrace = true;
 						lastEngageMs = world.ElapsedMilliseconds + targetMemory;
-						FollowTarget();
+						searcherTask.SetTargetEnts(targetEntity);
 					}
 					if (hittingDoors) {
 						return world.ElapsedMilliseconds < lastEngageMs;
@@ -122,9 +125,9 @@ namespace VSKingdom {
 					nextAttackMs = world.ElapsedMilliseconds + 1500L;
 					killedTarget = AttackTarget();
 				}
-				if (TracingUtil.CanSeeEntity(entity, targetEntity)) {
+				if (alreadyTrace || TracingUtil.CanSeeEntity(entity, targetEntity)) {
 					lastEngageMs = world.ElapsedMilliseconds + targetMemory;
-					FollowTarget();
+					searcherTask.SetTargetEnts(targetEntity);
 				}
 				return !killedTarget && world.ElapsedMilliseconds < lastEngageMs;
 			} catch {
@@ -134,68 +137,35 @@ namespace VSKingdom {
 
 		public override void FinishExecute(bool cancelled) {
 			cooldownUntilMs = world.ElapsedMilliseconds + mincooldown + world.Rand.Next(maxcooldown - mincooldown);
-			entity.Controls.Sprint = false;
-			if ((!targetEntity?.Alive ?? true) || !IsTargetableEntity(targetEntity, (float)targetEntity.ServerPos.DistanceTo(entity.ServerPos))) {
-				pathTraverser.Stop();
+			if (!targetEntity?.Alive ?? true) {
+				searcherTask?.ResetsTargets();
 			}
-			if (currAnimCode != null) {
-				entity.AnimManager.StopAnimation(currAnimCode);
-			}
-		}
-
-		public override bool Notify(string key, object data) {
-			if (key == "seekEntity" && data != null) {
-				targetEntity = (Entity)data;
-				return true;
-			}
-			return false;
+			entity.AnimManager.StopAnimation(currAnimCode);
 		}
 
 		public override void OnEntityHurt(DamageSource source, float damage) {
-			if (damage < 1 || source?.GetCauseEntity() == null) {
+			if (world.ElapsedMilliseconds < nextAlertsMs || source?.GetCauseEntity() == null) {
 				return;
 			}
-			if (source.GetCauseEntity() != null && lastHelpedMs + 5000 < world.ElapsedMilliseconds) {
-				targetEntity = source.GetCauseEntity();
-				lastHelpedMs = world.ElapsedMilliseconds;
-				// Alert all surrounding units! We're under attack!
-				foreach (EntityZombie zombie in world.GetEntitiesAround(entity.ServerPos.XYZ, 20f, 4f, entity => (entity is EntityZombie))) {
-					var taskManager = zombie.GetBehavior<EntityBehaviorTaskAI>()?.TaskManager;
-					taskManager.GetTask<AiTaskZombieInfect>()?.OnAllyAttacked(source.SourceEntity);
-				}
+			nextAlertsMs = world.ElapsedMilliseconds + 20000L;
+			// Call the horde here! We're under attack!
+			foreach (EntityZombie zombie in world.GetEntitiesAround(entity.ServerPos.XYZ, 20f, 4f, entity => (entity is EntityZombie))) {
+				var taskManager = zombie.GetBehavior<EntityBehaviorTaskAI>()?.TaskManager;
+				taskManager.GetTask<AiTaskZombieAttack>()?.HordeAlerted(source.SourceEntity);
 			}
 			base.OnEntityHurt(source, damage);
 		}
 
-		public void OnAllyAttacked(Entity targetEnt) {
-			// Prioritize attacks of other people. Assess threat level in future.
+		public void HordeAlerted(Entity targetEnt) {
 			if (!targetEntity?.Alive ?? true) {
 				targetEntity = targetEnt;
 			}
 		}
 
-		private bool HitBarricade() {
-			if (world.ElapsedMilliseconds > doorBashedMs) {
-				doorBashedMs = world.ElapsedMilliseconds + 2500;
-				entity.AnimManager.StopAnimation("hit");
-				entity.AnimManager.StartAnimation(new AnimationMetaData() {
-					Animation = "hit",
-					Code = "hit",
-					BlendMode = EnumAnimationBlendMode.AddAverage,
-					ElementWeight = new Dictionary<string, float> {
-						{ "UpperTorso", 5f },
-						{ "UpperArmR", 10f },
-						{ "LowerArmR", 10f },
-						{ "UpperArmL", 10f },
-						{ "LowerArmL", 10f }
-					}
-				}.Init());
-				world.PlaySoundAt(sound, entity, null, true, soundRange);
-				world.BlockAccessor.DamageBlock(barricaded, barricaded.FacingFrom(entity.ServerPos.AsBlockPos), 6f);
-			}
-			return world.BlockAccessor.GetBlock(barricaded).BlockId != 0;
+		public void SetBarricade(BlockPos pos) {
+			barricaded = pos.Copy();
 		}
-
+		
 		private bool AttackTarget() {
 			if (!hasDirectContact(targetEntity, 1.3f, 1.3f)) {
 				return false;
@@ -217,76 +187,68 @@ namespace VSKingdom {
 					{ "LowerTorso", EnumAnimationBlendMode.AddAverage }
 				}
 			}.Init());
+			int chances = rand.Next(0, 100);
+			var hitType = EnumDamageType.BluntAttack;
+			if (chances > 90) {
+				// Bite attack!
+				hitType = EnumDamageType.PiercingAttack;
+			} else if (chances > 70) {
+				// Scratch attack!
+				hitType = EnumDamageType.SlashingAttack;
+			}
 			world.PlaySoundAt(sound, entity, null, true, soundRange);
 			bool alive = targetEntity.Alive;
 			targetEntity.ReceiveDamage(new DamageSource {
 				Source = EnumDamageSource.Entity,
 				SourceEntity = entity,
-				Type = EnumDamageType.SlashingAttack,
+				Type = hitType,
 				DamageTier = 3,
 				KnockbackStrength = -1.5f
 			}, 3f * GlobalConstants.CreatureDamageModifier);
-			if (alive && !targetEntity.Alive) {
-				InfectTarget();
+			if (alive && !targetEntity.Alive && entity.Api.World.Config.GetBool("Zombies_EnableInfected")) {
+				cancelAttack = true;
+				InfectTarget(targetEntity);
 			}
 			return true;
 		}
 
-		private bool IsBarricaded(BlockPos pos) {
-			if (pos == null || pos.HorizontalManhattenDistance(entity.ServerPos.AsBlockPos) > 3) {
-				return false;
-			}
-			return BlockBehaviorDoor.getDoorAt(world, pos) != null;
-		}
-
-		protected void OnGoals() {
-			entity.Controls.Sprint = pathTraverser.Active;
-			entity.Controls.Forward = pathTraverser.Active;
-			pathTraverser.Retarget();
-		}
-
-		protected void OnStuck() {
-			stuckCounter++;
-			// If a door is present, try breaking into it (if not iron or reinforced!)
-			if (IsBarricaded(entity.ServerPos.HorizontalAheadCopy(1).AsBlockPos)) {
-				barricaded = entity.ServerPos.HorizontalAheadCopy(1).AsBlockPos;
-			}
-			if (stuckCounter > 5) {
-				cancelAttack = true;
-			}
-			entity.Controls.Sprint = pathTraverser.Active;
-			entity.Controls.Forward = pathTraverser.Active;
-		}
-		
-		protected void NoPaths() {
-			cancelAttack = true;
-			pathTraverser.Stop();
-			entity.Controls.Sprint = pathTraverser.Active;
-			entity.Controls.Forward = pathTraverser.Active;
-		}
-
-		protected void FollowTarget() {
-			stuckCounter = 0;
-			entity.Controls.Sprint = true;
-			int searchDepth = world.Rand.Next(3500, 10000);
-			pathTraverser.NavigateTo_Async(targetEntity.ServerPos.XYZ.OffsetCopy(rand.Next(-1, 1), 0, rand.Next(-1, 1)), 1, entity.SelectionBox.XSize, OnGoals, OnStuck, NoPaths, searchDepth, 0);
-		}
-		
-		protected void InfectTarget() {
-			if (targetEntity is EntitySentry sentry) {
-				Entity zombieEnt = entity.Api.World.ClassRegistry.CreateEntity("vskingdom:zombie-masc");
-				EntityZombie zombie = zombieEnt as EntityZombie;
+		private void InfectTarget(Entity target) {
+			if (target is EntitySentry sentry) {
+				EntityProperties properties = entity.World.GetEntityType(new AssetLocation($"vskingdom:zombie-{target.Code.EndVariant() ?? "masc"}"));
+				EntityZombie zombie = (EntityZombie)entity.Api.World.ClassRegistry.CreateEntity(properties);
 				zombie.zombified = true;
 				zombie.canRevive = true;
 				zombie.ServerPos.SetFrom(sentry.ServerPos);
 				zombie.Pos.SetFrom(sentry.ServerPos);
-				//zombie.TryGiveItemStack
-				entity.Api.World.SpawnEntity(zombieEnt);
+				entity.Api.World.SpawnEntity(zombie);
 				for (int i = 0; i < sentry.gearInv.Count; i++) {
 					if (!sentry.gearInv[i].Empty) {
 						sentry.gearInv[i].TryPutInto(entity.Api.World, zombie.gearInv[i], sentry.gearInv[i].StackSize);
 					}
 				}
+				targetEntity.Die(EnumDespawnReason.Removed);
+			} else if (target is EntityPlayer player) {
+				EntityProperties properties = entity.World.GetEntityType(new AssetLocation("vskingdom:zombie-masc"));
+				EntityZombie zombie = (EntityZombie)entity.Api.World.ClassRegistry.CreateEntity(properties);
+				zombie.zombified = true;
+				zombie.canRevive = true;
+				zombie.ServerPos.SetFrom(player.ServerPos);
+				zombie.Pos.SetFrom(player.ServerPos);
+				entity.Api.World.SpawnEntity(zombie);
+				for (int i = 0; i < player.GearInventory.Count; i++) {
+					if (!player.GearInventory[i].Empty && player.GearInventory[i]?.Itemstack.Item is ItemWearable) {
+						player.GearInventory[i].TryPutInto(entity.Api.World, zombie.gearInv[i], 1);
+					}
+				}
+			} else if (target is EntityHumanoid human) {
+				EntityProperties properties = entity.World.GetEntityType(new AssetLocation("game:drifter-normal"));
+				EntityDrifter zombie = (EntityDrifter)entity.Api.World.ClassRegistry.CreateEntity(properties);
+				zombie.ServerPos.SetFrom(human.ServerPos);
+				zombie.Pos.SetFrom(human.ServerPos);
+				if (entity.Api.World is IServerWorldAccessor && !human.GearInventory.Empty) {
+					(human.GearInventory as InventoryBase)?.DropAll(human.ServerPos.XYZ.Add(0.5, 0.5, 0.5));
+				}
+				entity.Api.World.SpawnEntity(zombie);
 				targetEntity.Die(EnumDespawnReason.Removed);
 			}
 		}

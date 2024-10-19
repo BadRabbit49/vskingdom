@@ -292,8 +292,7 @@
 			{
 				"code": "idle",
 				"animation": "idle",
-				"blendMode": "Add",
-				"animationSpeed": 1
+				"blendMode": "AddAverage"
 			},
 			{
 				"code": "dies",
@@ -302,12 +301,6 @@
 				"animationSpeed": 1.75,
 				"weight": 10,
 				"triggeredBy": { "onControls": [ "Dead" ] }
-			},
-			{
-				"code": "hurt",
-				"animation": "hurt",
-				"blendMode": "AddAverage",
-				"animationSpeed": 3
 			}
 		]
 	},

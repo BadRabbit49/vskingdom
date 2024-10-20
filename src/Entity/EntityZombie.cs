@@ -16,10 +16,14 @@ namespace VSKingdom {
 	public class EntityZombie : EntityHumanoid {
 		public EntityZombie() { }
 		public virtual bool zombified { get; set; }
-		public virtual bool  canRevive { get; set; }
-		public virtual float walkSpeed { get; set; }
-		public virtual float moveSpeed { get; set; }
-		public virtual string inventory => "gear-" + EntityId;
+		public virtual Single walkSpeed { get; set; } = 0.020f;
+		public virtual Single moveSpeed { get; set; } = 0.040f;
+		public virtual String idleAnims { get; set; } = "idle";
+		public virtual String walkAnims { get; set; } = "walk";
+		public virtual String moveAnims { get; set; } = "move";
+		public virtual String swimAnims { get; set; } = "swim";
+		public virtual String duckAnims { get; set; } = "duck";
+		public virtual String inventory => "gear-" + EntityId;
 		public virtual InventorySentry gearInv { get; set; }
 		public virtual InvSentryDialog gearDialog { get; set; }
 		public virtual WaypointsTraverser pathfinder { get; set; }

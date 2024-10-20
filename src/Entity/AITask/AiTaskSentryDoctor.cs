@@ -42,13 +42,13 @@ namespace VSKingdom {
 		}
 
 		public override bool ShouldExecute() {
-			if (cooldownUntilMs > entity.World.ElapsedMilliseconds || entity.World.ElapsedMilliseconds - lastHealedMs < durationOfMs) {
+			if (cooldownUntilMs > entity.World.ElapsedMilliseconds) {
 				return false;
 			}
 			Vec3d position = entity.ServerPos.XYZ.Add(0.0, entity.SelectionBox.Y2 / 2f, 0.0).Ahead(entity.SelectionBox.XSize / 2f, 0f, entity.ServerPos.Yaw);
 			maximumRange = entity.WatchedAttributes.GetFloat("engageRange", 16f);
 			targetEntity = TriagePatients(entity.World.GetEntitiesAround(position, maximumRange, maximumRange / 2f, (Entity ent) => IsTargetableEntity(ent, maximumRange) && hasDirectContact(ent, maximumRange, maximumRange / 2f)));
-			lastHealedMs = entity.World.ElapsedMilliseconds;
+			cooldownUntilMs = entity.World.ElapsedMilliseconds + durationOfMs;
 			return targetEntity != null;
 		}
 
@@ -105,7 +105,7 @@ namespace VSKingdom {
 				return false;
 			}
 		}
-
+		
 		public override void FinishExecute(bool cancelled) {
 			cooldownUntilMs = entity.World.ElapsedMilliseconds + mincooldown + entity.World.Rand.Next(maxcooldown - mincooldown);
 			if ((!targetEntity?.Alive ?? true) || !IsTargetableEntity(targetEntity, (float)targetEntity.ServerPos.DistanceTo(entity.ServerPos))) {

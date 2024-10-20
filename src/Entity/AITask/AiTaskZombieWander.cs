@@ -1,24 +1,26 @@
 ﻿using System;
 using System.Linq;
-using Vintagestory.API.Server;
 using Vintagestory.API.Config;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Datastructures;
+using Vintagestory.GameContent;
+using System.Collections.Generic;
 
 namespace VSKingdom {
-	public class AiTaskSentryWander : AiTaskBase {
-		public AiTaskSentryWander(EntitySentry entity) : base(entity) { this.entity = entity; }
+	public class AiTaskZombieWander : AiTaskBase {
+		public AiTaskZombieWander(EntityZombie entity) : base(entity) { this.entity = entity; }
 		#pragma warning disable CS0108
-		public EntitySentry entity;
+		public EntityZombie entity;
 		#pragma warning restore CS0108
-		protected bool cancelWanders;
-		protected long failedWanders;
-		protected long lastCheckedMs;
-		protected long durationOfMs;
-		protected float wanderChance;
-		protected float targetRanges;
-		protected float maxSquareDis;
+		protected Boolean cancelWander;
+		protected Int32 failedWander;
+		protected Int64 durationOfMs;
+		protected Single wanderChance;
+		protected Single wanderRanges;
+		protected Single targetRanges;
+		protected Single currentSpeed;
+		protected String prvAnimation;
 		protected Vec3d curTargetPos;
 		protected NatFloat wanderRangeHor = NatFloat.createStrongerInvexp(3, 40);
 		protected NatFloat wanderRangeVer = NatFloat.createStrongerInvexp(3, 10);
@@ -26,35 +28,35 @@ namespace VSKingdom {
 			get => entity.WatchedAttributes.GetInt("failedConsecutivePathfinds", 0);
 			set => entity.WatchedAttributes.SetInt("failedConsecutivePathfinds", value);
 		}
-		protected float wanderRange { get => entity.WatchedAttributes.GetFloat("wanderRange", 1f); }
+
+		public override void AfterInitialize() {
+			world = entity.World;
+			bhEmo = entity.GetBehavior<EntityBehaviorEmotionStates>();
+			pathTraverser = entity.GetBehavior<EntityBehaviorTaskAI>().PathTraverser;
+		}
 
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			base.LoadConfig(taskConfig, aiConfig);
-			this.durationOfMs = taskConfig["durationOfMs"].AsInt(1500);
+			this.durationOfMs = taskConfig["lastCooldown"].AsInt(1500);
 			this.targetRanges = taskConfig["targetRanges"].AsFloat(0.12f);
+			this.wanderChance = taskConfig["wanderRanges"].AsFloat(6f);
 			this.wanderChance = taskConfig["wanderChance"].AsFloat(0.15f);
 			this.whenNotInEmotionState = taskConfig["whenNotInEmotionState"].AsString("aggressiveondamage|fleeondamage");
 		}
 
 		public override bool ShouldExecute() {
-			if (!entity.ruleOrder[0]) {
-				return false;
-			}
 			if (cooldownUntilMs > entity.World.ElapsedMilliseconds) {
 				return false;
 			}
 			cooldownUntilMs = entity.World.ElapsedMilliseconds + durationOfMs;
-			if (entity.ruleOrder[1] || entity.ruleOrder[5] || !EmotionStatesSatisifed()) {
+			if (!EmotionStatesSatisifed()) {
 				return false;
 			}
 			if (rand.NextDouble() > wanderChance) {
-				failedWanders = 0;
+				failedWander = 0;
 				return false;
 			}
-			maxSquareDis = entity.cachedData.postRange * entity.cachedData.postRange;
-			if (entity.ruleOrder[6] || entity.ServerPos.SquareDistanceTo(entity.cachedData.postBlock) > maxSquareDis) {
-				curTargetPos = entity.cachedData.postBlock.Clone().Offset(rand.Next(-1, 1), 0, rand.Next(-1, 1));
-			} else if (entity.InLava || ((entity.Swimming || entity.FeetInLiquid) && entity.World.Rand.NextDouble() < 0.04f)) {
+			if (entity.InLava || ((entity.Swimming || entity.FeetInLiquid) && entity.World.Rand.NextDouble() < 0.04f)) {
 				curTargetPos = LeaveTheWatersTarget();
 			} else {
 				curTargetPos = LoadNextWanderTarget();
@@ -64,15 +66,14 @@ namespace VSKingdom {
 
 		public override void StartExecute() {
 			base.StartExecute();
-			cancelWanders = false;
-			wanderRangeHor = NatFloat.createInvexp(1f, wanderRange);
-			wanderRangeVer = NatFloat.createInvexp(1f, wanderRange / 2f);
-			bool ok = pathTraverser.WalkTowards(curTargetPos, 0.02f, targetRanges, OnGoals, OnStuck);
+			cancelWander = false;
+			wanderRangeHor = NatFloat.createInvexp(1f, wanderRanges);
+			wanderRangeVer = NatFloat.createInvexp(1f, wanderRanges / 2f);
+			bool ok = pathTraverser.WalkTowards(curTargetPos, entity.walkSpeed, targetRanges, OnGoals, OnStuck);
 		}
 
 		public override bool ContinueExecute(float dt) {
-			if (cancelWanders || !entity.ruleOrder[0] || entity.ruleOrder[1] || entity.ruleOrder[5] || !EmotionStatesSatisifed()) {
-				cancelWanders = true;
+			if (cancelWander || !EmotionStatesSatisifed()) {
 				return false;
 			}
 			// If we are a climber dude and encountered a wall, let's not try to get behind the wall.
@@ -94,14 +95,7 @@ namespace VSKingdom {
 		}
 
 		public override void FinishExecute(bool cancelled) {
-			cooldownUntilMs = entity.World.ElapsedMilliseconds + mincooldown + entity.World.Rand.Next(maxcooldown - mincooldown);
-			if (entity.ruleOrder[6] && entity.ServerPos.SquareDistanceTo(entity.cachedData.postBlock) < maxSquareDis) {
-				HasReturnedTo();
-			}
-		}
-
-		public virtual void PauseExecute(EntityAgent entity) {
-			cancelWanders = true;
+			cooldownUntilMs = entity.World.ElapsedMilliseconds + durationOfMs;
 		}
 
 		private Vec3d LeaveTheWatersTarget() {
@@ -205,35 +199,65 @@ namespace VSKingdom {
 			failedPathfinds++;
 			return null;
 		}
-		
+
 		private void OnStuck() {
-			cancelWanders = true;
-			failedWanders++;
+			cancelWander = true;
+			failedWander++;
 		}
 
 		private void OnGoals() {
 			pathTraverser.Retarget();
-			failedWanders = 0;
+			failedWander = 0;
 		}
 
 		private void NoPaths() {
-			cancelWanders = true;
+			cancelWander = true;
 		}
 
 		private int ToFloor(int x, int y, int z) {
-			int tries = 5;
-			while (tries-- > 0) {
-				if (world.BlockAccessor.IsSideSolid(x, y, z, BlockFacing.UP)) { return y + 1; }
+			for (int i = 5; i > 0; i--) {
+				if (world.BlockAccessor.IsSideSolid(x, y, z, BlockFacing.UP)) {
+					return y + 1;
+				}
 				y--;
 			}
 			return -1;
 		}
 
-		private void HasReturnedTo() {
-			entity.ruleOrder[6] = false;
-			SentryOrdersToServer updatedOrders = new SentryOrdersToServer() { entityUID = entity.EntityId, returning = false, usedorder = false };
-			IServerPlayer nearestPlayer = entity.ServerAPI.World.NearestPlayer(entity.ServerPos.X, entity.ServerPos.Y, entity.ServerPos.Z) as IServerPlayer;
-			entity.ServerAPI?.Network.GetChannel("sentrynetwork").SendPacket<SentryOrdersToServer>(updatedOrders, nearestPlayer);
+		private void Animate(bool forcedSprint) {
+			String anims = entity.idleAnims;
+			if (!pathTraverser.Active) {
+				entity.AnimManager.StopAnimation(prvAnimation);
+			} else if (entity.Swimming) {
+				anims = entity.swimAnims;
+			} else if (entity.FeetInLiquid) {
+				anims = entity.walkAnims;
+			} else if (entity.Controls.Sneak) {
+				anims = entity.duckAnims;
+			} else if (forcedSprint) {
+				anims = entity.moveAnims;
+			} else if (currentSpeed > 0.01f) {
+				anims = entity.walkAnims;
+			} else if (currentSpeed < 0.01f) {
+				entity.AnimManager.StopAnimation(prvAnimation);
+			}
+			if (!entity.AnimManager.IsAnimationActive(anims)) {
+				entity.AnimManager.StartAnimation(new AnimationMetaData() {
+					Animation = anims,
+					Code = anims,
+					BlendMode = EnumAnimationBlendMode.AddAverage,
+					MulWithWalkSpeed = anims != entity.idleAnims,
+					EaseInSpeed = 999f,
+					EaseOutSpeed = 999f,
+					ElementWeight = new Dictionary<string, float> {
+						{ "UpperFootR", 2f },
+						{ "UpperFootL", 2f },
+						{ "LowerFootR", 2f },
+						{ "LowerFootL", 2f }
+					},
+				}.Init());
+			}
+			prvAnimation = anims;
 		}
 	}
 }

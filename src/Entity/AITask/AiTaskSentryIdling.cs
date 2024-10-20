@@ -14,12 +14,7 @@ namespace VSKingdom {
 		public EntitySentry entity;
 		#pragma warning restore CS0108
 		protected bool cancelIdling = false;
-		protected bool isInEntRange = false;
 		protected bool arrowSharing = false;
-		protected int minduration;
-		protected int maxduration;
-		protected long idleUntilMs;
-		protected long lastInRange;
 		protected float turnSpeedMul = 0.75f;
 		protected float currentTemps => entity.Api.World.BlockAccessor.GetClimateAt(entity.ServerPos.AsBlockPos, EnumGetClimateMode.NowValues).Temperature;
 		protected float currentHours => entity.World.Calendar.HourOfDay;
@@ -34,7 +29,6 @@ namespace VSKingdom {
 		protected string[] animsLate;
 		protected string[] animsCold;
 		protected string[] animsSwim;
-		protected Entity lookatEnt;
 		protected EntityBehaviorHealth healthBehavior;
 		protected EntityPartitioning partitionUtil;
 		protected AssetLocation onBlockBelowCode;
@@ -46,58 +40,45 @@ namespace VSKingdom {
 
 		public override void LoadConfig(JsonObject taskConfig, JsonObject aiConfig) {
 			this.partitionUtil = entity.Api.ModLoader.GetModSystem<EntityPartitioning>();
-			this.minduration = taskConfig["minduration"].AsInt(2000);
-			this.maxduration = taskConfig["maxduration"].AsInt(4000);
+			this.mincooldown = taskConfig["mincooldown"].AsInt(2000);
+			this.maxcooldown = taskConfig["maxcooldown"].AsInt(4000);
 			this.turnSpeedMul = taskConfig["turnSpeedMul"].AsFloat(0.75f);
 			this.animsIdle = taskConfig["animsIdle"].AsArray<string>(new string[] { "idle1", "idle2" });
 			this.animsHurt = taskConfig["animsHurt"].AsArray<string>(new string[] { "hurtidle" });
 			this.animsLate = taskConfig["animsLate"].AsArray<string>(new string[] { "yawn", "stretch" });
 			this.animsCold = taskConfig["animsCold"].AsArray<string>(new string[] { "coldidle" });
 			this.animsSwim = taskConfig["animsSwim"].AsArray<string>(new string[] { "swimidle" });
-			idleUntilMs = entity.World.ElapsedMilliseconds + minduration + entity.World.Rand.Next(maxduration - minduration);
 			base.LoadConfig(taskConfig, aiConfig);
 		}
 
 		public override bool ShouldExecute() {
-			long elapsedMilliseconds = entity.World.ElapsedMilliseconds;
-			if (cooldownUntilMs < elapsedMilliseconds && entity.World.Rand.NextDouble() < 1.1) {
-				if (!EmotionStatesSatisifed()) {
-					return false;
-				}
-				if (elapsedMilliseconds - lastInRange > 2000) {
-					isInEntRange = InRange();
-					lastInRange = elapsedMilliseconds;
-				}
-				if (isInEntRange) {
-					return false;
-				}
-				Block block = entity.World.BlockAccessor.GetBlock(new BlockPos((int)entity.ServerPos.X, (int)entity.ServerPos.Y - 1, (int)entity.ServerPos.Z, (int)entity.ServerPos.Dimension), 1);
-				if (!block.SideSolid[BlockFacing.UP.Index]) {
-					return false;
-				}
-				if (onBlockBelowCode == null) {
-					return true;
-				}
-				Block block2 = entity.World.BlockAccessor.GetBlock(entity.ServerPos.AsBlockPos);
-				if (!block2.WildCardMatch(onBlockBelowCode)) {
-					if (block2.Replaceable >= 6000) {
-						return block.WildCardMatch(onBlockBelowCode);
-					}
-					return false;
-				}
+			if (cooldownUntilMs > entity.World.ElapsedMilliseconds) {
+				return false;
+			}
+			cooldownUntilMs = entity.World.ElapsedMilliseconds + mincooldown + entity.World.Rand.Next(maxcooldown - mincooldown);
+			if (!EmotionStatesSatisifed()) {
+				return false;
+			}
+			Block block = entity.World.BlockAccessor.GetBlock(new BlockPos((int)entity.ServerPos.X, (int)entity.ServerPos.Y - 1, (int)entity.ServerPos.Z, (int)entity.ServerPos.Dimension), 1);
+			if (!block.SideSolid[BlockFacing.UP.Index]) {
+				return false;
+			}
+			if (onBlockBelowCode == null) {
 				return true;
 			}
-			return entity.Alive && cooldownUntilMs < entity.World.ElapsedMilliseconds;
+			Block block2 = entity.World.BlockAccessor.GetBlock(entity.ServerPos.AsBlockPos);
+			if (!block2.WildCardMatch(onBlockBelowCode)) {
+				if (block2.Replaceable >= 6000) {
+					return block.WildCardMatch(onBlockBelowCode);
+				}
+				return false;
+			}
+			return entity.Alive;
 		}
 
 		public override void StartExecute() {
 			cancelIdling = false;
 			arrowSharing = !entity.AmmoItemSlot.Empty && entity.AmmoItemSlot.StackSize > 10;
-			if (maxduration < 0) {
-				idleUntilMs = -1L;
-			} else {
-				idleUntilMs = entity.World.ElapsedMilliseconds + minduration + entity.World.Rand.Next(maxduration - minduration);
-			}
 			if (entity.World.Rand.NextDouble() < 0.1) {
 				if (currentTemps < 0) {
 					entity.AnimManager.StartAnimation(currAnims = animsCold[entity.World.Rand.Next(0, animsCold.Length - 1)]);
@@ -118,7 +99,6 @@ namespace VSKingdom {
 					entity.AnimManager.StartAnimation(currAnims = animsIdle[entity.World.Rand.Next(0, animsIdle.Length - 1)]);
 				}
 			}
-			idleUntilMs = entity.World.ElapsedMilliseconds + minduration + entity.World.Rand.Next(maxduration - minduration);
 			if (!(sound != null) || !(entity.World.Rand.NextDouble() <= (double)soundChance)) {
 				return;
 			}
@@ -151,26 +131,9 @@ namespace VSKingdom {
 		}
 
 		public override bool ContinueExecute(float dt) {
-			if (rand.NextDouble() < 0.3) {
-				long elapsedMilliseconds = entity.World.ElapsedMilliseconds;
-				if (elapsedMilliseconds - lastInRange > 1500) {
-					isInEntRange = InRange();
-					lastInRange = elapsedMilliseconds;
-				}
-				if (isInEntRange && (lookatEnt?.Alive ?? false)) {
-					Vec3f targetVec = lookatEnt.ServerPos.XYZFloat.Sub(entity.ServerPos.XYZFloat);
-					targetVec.Set((float)(lookatEnt.ServerPos.X - entity.ServerPos.X), (float)(lookatEnt.ServerPos.Y - entity.ServerPos.Y), (float)(lookatEnt.ServerPos.Z - entity.ServerPos.Z));
-					float desiredYaw = (float)Math.Atan2(targetVec.X, targetVec.Z);
-					float yawDist = GameMath.AngleRadDistance(entity.ServerPos.Yaw, desiredYaw);
-					entity.ServerPos.Yaw += GameMath.Clamp(yawDist, -curTurnAnglePerSec * dt, curTurnAnglePerSec * dt);
-					entity.ServerPos.Yaw = entity.ServerPos.Yaw % GameMath.TWOPI;
-					isInEntRange = lookatEnt.ServerPos.SquareHorDistanceTo(entity.ServerPos.XYZ) <= 4;
-					return true;
-				}
-			}
 			if (!cancelIdling) {
-				if (idleUntilMs >= 0) {
-					return entity.World.ElapsedMilliseconds < idleUntilMs;
+				if (cooldownUntilMs >= 0) {
+					return entity.World.ElapsedMilliseconds < cooldownUntilMs;
 				}
 				return entity.ServerPos.Motion.Length() > 2;
 			}
@@ -202,19 +165,6 @@ namespace VSKingdom {
 
 		public override void OnEntityHurt(DamageSource source, float damage) {
 			cancelIdling = true;
-		}
-
-		private bool InRange() {
-			bool found = false;
-			partitionUtil.WalkEntities(entity.ServerPos.XYZ, 2, delegate (Entity ent) {
-				if (ent.Alive && ent is EntityPlayer) {
-					lookatEnt = ent;
-					found = true;
-					return true;
-				}
-				return false;
-			}, EnumEntitySearchType.Creatures);
-			return lookatEnt != null && found;
 		}
 	}
 }

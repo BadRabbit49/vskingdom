@@ -96,7 +96,17 @@ namespace VSKingdom.Utilities {
 			}
 			return false;
 		}
-		
+
+		public static Vec3d GetHitTarget(Entity entity, Vec3d target) {
+			SourceEntity = entity.EntityId;
+			IgnoreAssets = false;
+			IgnoredArray = null;
+			FriendlyFire = false;
+			var eyesPos = entity.ServerPos.XYZ.AddCopy(entity.LocalEyePos);
+			entity.World.RayTraceForSelection(eyesPos, target, ref BlocksSelect, ref EntitySelect, BlocksFilter, EntityFilter);
+			return BlocksSelect?.Position?.ToVec3d() ?? EntitySelect?.Position ?? target;
+		}
+
 		private static string cachedKingdom;
 		private static string cachedLeaders;
 		private static string[] cachedEnemies;

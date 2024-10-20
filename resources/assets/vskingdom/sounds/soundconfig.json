@@ -1,0 +1,6 @@
+{
+	soundsets: {
+		"schizo/screaming": ["schizo/screaming/screaming1", "schizo/screaming/screaming2", "schizo/screaming/screaming3"],
+		"schizo/footsteps": ["schizo/footsteps/footsteps1", "schizo/footsteps/footsteps2", "schizo/footsteps/footsteps3"]
+	}
+}

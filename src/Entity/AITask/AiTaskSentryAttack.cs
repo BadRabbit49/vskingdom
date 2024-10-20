@@ -24,7 +24,6 @@ namespace VSKingdom {
 		protected bool usingAShield = false;
 		protected char shieldedHand = 'L';
 		protected long durationOfMs = 1500L;
-		protected long cooldownAtMs = 0L;
 		protected long lastHelpedMs = 0L;
 		protected long nextAttackMs = 0L;
 		protected float maximumRange = 20f;
@@ -57,10 +56,11 @@ namespace VSKingdom {
 		}
 
 		public override bool ShouldExecute() {
-			if (!entity.cachedData.usesMelee || !entity.cachedData.weapReady || !entity.ruleOrder[2]) {
+			if (cooldownUntilMs > entity.World.ElapsedMilliseconds) {
 				return false;
 			}
-			if (cooldownUntilMs > entity.World.ElapsedMilliseconds || entity.World.ElapsedMilliseconds - cooldownAtMs < durationOfMs) {
+			cooldownUntilMs = entity.World.ElapsedMilliseconds + durationOfMs;
+			if (!entity.cachedData.usesMelee || !entity.cachedData.weapReady || !entity.ruleOrder[2]) {
 				return false;
 			}
 			if (entity.World.ElapsedMilliseconds - attackedByEntityMs > 30000) {
@@ -79,7 +79,6 @@ namespace VSKingdom {
 					targetEntity = targetList[rand.Next(0, targetList.Length - 1)];
 				}
 			}
-			cooldownAtMs = entity.World.ElapsedMilliseconds;
 			return targetEntity?.Alive ?? false;
 		}
 
@@ -183,14 +182,15 @@ namespace VSKingdom {
 						entity.AnimManager.StopAnimation(shieldAnimsR);
 					}
 				}
-				return cooldownAtMs + durationOfMs > entity.World.ElapsedMilliseconds;
+				return cooldownUntilMs > entity.World.ElapsedMilliseconds;
 			} catch {
 				return false;
 			}
 		}
 
 		public override void FinishExecute(bool cancelled) {
-			cooldownUntilMs = entity.World.ElapsedMilliseconds + mincooldown + entity.World.Rand.Next(maxcooldown - mincooldown);
+			durationOfMs = mincooldown + entity.World.Rand.Next(maxcooldown - mincooldown);
+			cooldownUntilMs = entity.World.ElapsedMilliseconds + durationOfMs;
 			if ((!targetEntity?.Alive ?? true) || !IsTargetableEntity(targetEntity, (float)targetEntity.ServerPos.DistanceTo(entity.ServerPos))) {
 				searchTask?.ResetsTargets();
 				searchTask?.StopMovements();

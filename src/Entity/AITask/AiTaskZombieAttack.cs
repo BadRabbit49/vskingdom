@@ -50,24 +50,20 @@ namespace VSKingdom {
 		}
 
 		public override bool ShouldExecute() {
-			if (cooldownUntilMs > world.ElapsedMilliseconds || world.ElapsedMilliseconds - cooldownAtMs < durationOfMs) {
+			if (cooldownUntilMs > world.ElapsedMilliseconds) {
 				return false;
 			}
+			cooldownUntilMs = world.ElapsedMilliseconds + durationOfMs;
 			if (world.ElapsedMilliseconds - attackedByEntityMs > 30000) {
 				attackedByEntity = null;
 			}
-			if (retaliateAttacks && attackedByEntity != null && attackedByEntity.Alive && attackedByEntity.IsInteractable && IsTargetableEntity(attackedByEntity, 32f, ignoreEntityCode: true) && hasDirectContact(attackedByEntity, 32f, 32f / 2f)) {
-				targetEntity = attackedByEntity;
+			Vec3d position = entity.ServerPos.XYZ.Add(0.0, entity.SelectionBox.Y2 / 2f, 0.0).Ahead(entity.SelectionBox.XSize / 2f, 0f, entity.ServerPos.Yaw);
+			if (rand.Next(0, 1) == 0) {
+				targetEntity = world.GetNearestEntity(position, 0.5f, 32f / 2f, (Entity ent) => IsTargetableEntity(ent, 32f) && hasDirectContact(ent, 32f, 32f / 2f));
 			} else {
-				Vec3d position = entity.ServerPos.XYZ.Add(0.0, entity.SelectionBox.Y2 / 2f, 0.0).Ahead(entity.SelectionBox.XSize / 2f, 0f, entity.ServerPos.Yaw);
-				if (rand.Next(0, 1) == 0) {
-					targetEntity = world.GetNearestEntity(position, 0.5f, 32f / 2f, (Entity ent) => IsTargetableEntity(ent, 32f) && hasDirectContact(ent, 32f, 32f / 2f));
-				} else {
-					var targetList = world.GetEntitiesAround(position, 0.5f, 32f / 2f, (Entity ent) => IsTargetableEntity(ent, 32f) && hasDirectContact(ent, 32f, 32f / 2f));
-					targetEntity = targetList[rand.Next(0, targetList.Length - 1)];
-				}
+				var targetList = world.GetEntitiesAround(position, 0.5f, 32f / 2f, (Entity ent) => IsTargetableEntity(ent, 32f) && hasDirectContact(ent, 32f, 32f / 2f));
+				targetEntity = targetList[rand.Next(0, targetList.Length - 1)];
 			}
-			cooldownAtMs = world.ElapsedMilliseconds;
 			return targetEntity?.Alive ?? false;
 		}
 
@@ -196,61 +192,31 @@ namespace VSKingdom {
 				// Scratch attack!
 				hitType = EnumDamageType.SlashingAttack;
 			}
-			world.PlaySoundAt(sound, entity, null, true, soundRange);
+			entity.World.PlaySoundAt(sound, entity, null, true, soundRange);
 			bool alive = targetEntity.Alive;
-			targetEntity.ReceiveDamage(new DamageSource {
+			var damage = new DamageSource {
 				Source = EnumDamageSource.Entity,
 				SourceEntity = entity,
 				Type = hitType,
 				DamageTier = 3,
 				KnockbackStrength = -1.5f
-			}, 3f * GlobalConstants.CreatureDamageModifier);
-			if (alive && !targetEntity.Alive && entity.Api.World.Config.GetBool("Zombies_EnableInfected")) {
+			};
+			targetEntity.ReceiveDamage(damage, 3f * GlobalConstants.CreatureDamageModifier);
+			if (alive && !targetEntity.Alive) {
 				cancelAttack = true;
-				InfectTarget(targetEntity);
+			}
+			if (entity.Api.World.Config.GetBool("Zombies_EnableInfected")) {
+				InfectTarget(targetEntity, damage);
 			}
 			return true;
 		}
 
-		private void InfectTarget(Entity target) {
-			if (target is EntitySentry sentry) {
-				EntityProperties properties = entity.World.GetEntityType(new AssetLocation($"vskingdom:zombie-{target.Code.EndVariant() ?? "masc"}"));
-				EntityZombie zombie = (EntityZombie)entity.Api.World.ClassRegistry.CreateEntity(properties);
-				zombie.zombified = true;
-				zombie.canRevive = true;
-				zombie.ServerPos.SetFrom(sentry.ServerPos);
-				zombie.Pos.SetFrom(sentry.ServerPos);
-				entity.Api.World.SpawnEntity(zombie);
-				for (int i = 0; i < sentry.gearInv.Count; i++) {
-					if (!sentry.gearInv[i].Empty) {
-						sentry.gearInv[i].TryPutInto(entity.Api.World, zombie.gearInv[i], sentry.gearInv[i].StackSize);
-					}
-				}
-				targetEntity.Die(EnumDespawnReason.Removed);
-			} else if (target is EntityPlayer player) {
-				EntityProperties properties = entity.World.GetEntityType(new AssetLocation("vskingdom:zombie-masc"));
-				EntityZombie zombie = (EntityZombie)entity.Api.World.ClassRegistry.CreateEntity(properties);
-				zombie.zombified = true;
-				zombie.canRevive = true;
-				zombie.ServerPos.SetFrom(player.ServerPos);
-				zombie.Pos.SetFrom(player.ServerPos);
-				entity.Api.World.SpawnEntity(zombie);
-				for (int i = 0; i < player.GearInventory.Count; i++) {
-					if (!player.GearInventory[i].Empty && player.GearInventory[i]?.Itemstack.Item is ItemWearable) {
-						player.GearInventory[i].TryPutInto(entity.Api.World, zombie.gearInv[i], 1);
-					}
-				}
-			} else if (target is EntityHumanoid human) {
-				EntityProperties properties = entity.World.GetEntityType(new AssetLocation("game:drifter-normal"));
-				EntityDrifter zombie = (EntityDrifter)entity.Api.World.ClassRegistry.CreateEntity(properties);
-				zombie.ServerPos.SetFrom(human.ServerPos);
-				zombie.Pos.SetFrom(human.ServerPos);
-				if (entity.Api.World is IServerWorldAccessor && !human.GearInventory.Empty) {
-					(human.GearInventory as InventoryBase)?.DropAll(human.ServerPos.XYZ.Add(0.5, 0.5, 0.5));
-				}
-				entity.Api.World.SpawnEntity(zombie);
-				targetEntity.Die(EnumDespawnReason.Removed);
+		private void InfectTarget(Entity target, DamageSource damage) {
+			if (!target.HasBehavior<EntityBehaviorClockwins>()) {
+				target.AddBehavior(new EntityBehaviorClockwins(target));
+				return;
 			}
+			target.GetBehavior<EntityBehaviorClockwins>()?.Worsen(DamagesUtil.HandleDamaged(entity.Api, target as EntityAgent, 0.2f, damage));
 		}
 	}
 }

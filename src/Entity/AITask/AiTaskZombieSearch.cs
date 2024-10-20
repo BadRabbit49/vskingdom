@@ -17,19 +17,13 @@ namespace VSKingdom {
 		protected Int64 lastAttackMs;
 		protected Int64 lastHurtAtMs;
 		protected Int64 lastFinishMs;
-		protected Int64 doorBashedMs = 0;
-		protected float currentUpdateTime;
+		protected Int64 doorBashedMs;
 		protected float currentFollowTime;
 		protected float maximumFollowTime;
 		protected float seekingRange;
-		protected float curMoveSpeed;
+		protected float currentSpeed;
 		protected Vec3d curTargetPos;
-		protected Vec3d lastGoalReachedPos;
-		protected string curIdleAnims = "idle";
-		protected string curWalkAnims = "walk";
-		protected string curMoveAnims = "move";
-		protected string curSwimAnims = "swim";
-		protected string curDuckAnims = "duck";
+		protected Vec3d lastGoalReachedAt;
 		protected string prvAnimation;
 		protected Dictionary<long, int> futilityCounters;
 		protected EnumAttackPattern attackPattern;
@@ -50,8 +44,6 @@ namespace VSKingdom {
 			base.LoadConfig(taskConfig, aiConfig);
 			this.partitionUtil = entity.Api.ModLoader.GetModSystem<EntityPartitioning>();
 			this.retaliateAttacks = taskConfig["retaliateAttacks"].AsBool(true);
-			this.mincooldown = taskConfig["mincooldown"].AsInt(1000);
-			this.maxcooldown = taskConfig["maxcooldown"].AsInt(1500);
 			this.maximumFollowTime = taskConfig["maximumFollowTime"].AsFloat(60f);
 			this.seekingRange = taskConfig["seekingRange"].AsFloat(25f);
 		}
@@ -85,7 +77,6 @@ namespace VSKingdom {
 				base.StartExecute();
 			}
 			currentFollowTime += dt;
-			currentUpdateTime += dt;
 			Vec3d vec3 = entity.ServerPos.XYZ.Add(0.0, entity.SelectionBox.Y2 / 2f, 0.0).Ahead(entity.SelectionBox.XSize / 2f, 0f, entity.ServerPos.Yaw);
 			double dist = targetEntity.SelectionBox.ToDouble().Translate(targetEntity.ServerPos.XYZ).ShortestDistanceFrom(vec3);
 			bool flag = targetEntity != null && targetEntity.Alive && !cancelSearch && pathTraverser.Active;
@@ -172,23 +163,23 @@ namespace VSKingdom {
 
 		private void DoDirect() {
 			// Just go forward towards the target!
-			curMoveSpeed = entity.moveSpeed;
+			currentSpeed = entity.moveSpeed;
 			Animate(true);
-			pathTraverser.NavigateTo_Async(curTargetPos.OffsetCopy(rand.Next(-1, 1), curMoveSpeed, rand.Next(-1, 1)), 1, 1.5f, OnGoals, OnStuck, DoSieged, world.Rand.Next(3500, 10000), 0);
+			pathTraverser.NavigateTo_Async(curTargetPos.OffsetCopy(rand.Next(-1, 1), currentSpeed, rand.Next(-1, 1)), 1, 1.5f, OnGoals, OnStuck, DoSieged, world.Rand.Next(3500, 10000), 0);
 		}
 
 		private void DoSieged() {
 			// Unable to perform direct attack pattern, trying sieged!
-			curMoveSpeed = entity.walkSpeed;
+			currentSpeed = entity.walkSpeed;
 			Animate(false);
-			pathTraverser.NavigateTo_Async(curTargetPos, curMoveSpeed, 1.5f, OnGoals, OnStuck, NoPaths, world.Rand.Next(1500, 3500), 2);
+			pathTraverser.NavigateTo_Async(curTargetPos, currentSpeed, 1.5f, OnGoals, OnStuck, NoPaths, world.Rand.Next(1500, 3500), 2);
 		}
 
 		private void OnGoals() {
 			if (cancelSearch || targetEntity == null) {
 				return;
 			}
-			if (lastGoalReachedPos != null && lastGoalReachedPos.SquareDistanceTo(entity.ServerPos) < 0.005f) {
+			if (lastGoalReachedAt != null && lastGoalReachedAt.SquareDistanceTo(entity.ServerPos) < 0.005f) {
 				if (futilityCounters == null) {
 					futilityCounters = new Dictionary<long, int>();
 				} else {
@@ -200,7 +191,7 @@ namespace VSKingdom {
 					}
 				}
 			}
-			lastGoalReachedPos = new Vec3d(entity.Pos);
+			lastGoalReachedAt = new Vec3d(entity.Pos);
 			pathTraverser.Retarget();
 		}
 
@@ -216,20 +207,20 @@ namespace VSKingdom {
 		}
 
 		private void Animate(bool forcedSprint) {
-			String anims = curIdleAnims;
+			String anims = entity.idleAnims;
 			if (!pathTraverser.Active) {
 				entity.AnimManager.StopAnimation(prvAnimation);
 			} else if (entity.Swimming) {
-				anims = curSwimAnims;
+				anims = entity.swimAnims;
 			} else if (entity.FeetInLiquid) {
-				anims = curWalkAnims;
+				anims = entity.walkAnims;
 			} else if (entity.Controls.Sneak) {
-				anims = curDuckAnims;
+				anims = entity.duckAnims;
 			} else if (forcedSprint) {
-				anims = curMoveAnims;
-			} else if (curMoveSpeed > 0.01f) {
-				anims = curWalkAnims;
-			} else if (curMoveSpeed < 0.01f) {
+				anims = entity.moveAnims;
+			} else if (currentSpeed > 0.01f) {
+				anims = entity.walkAnims;
+			} else if (currentSpeed < 0.01f) {
 				entity.AnimManager.StopAnimation(prvAnimation);
 			}
 			if (!entity.AnimManager.IsAnimationActive(anims)) {
@@ -237,7 +228,7 @@ namespace VSKingdom {
 					Animation = anims,
 					Code = anims,
 					BlendMode = EnumAnimationBlendMode.AddAverage,
-					MulWithWalkSpeed = anims != curIdleAnims,
+					MulWithWalkSpeed = anims != entity.idleAnims,
 					EaseInSpeed = 999f,
 					EaseOutSpeed = 999f,
 					ElementWeight = new Dictionary<string, float> {

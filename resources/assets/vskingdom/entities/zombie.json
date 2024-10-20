@@ -86,74 +86,14 @@
 						"priority": 2.0
 					},
 					{
-						"code": "stayclosetoentity",
-						"priority": 1.4,
-						"entityCodeByType": { "*": "zombie-masc" },
-						"movespeed": 0.02,
-						"maxDistance": 5,
-						"searchRange": 25,
-						"animation": "walk",
-						"whenNotInEmotionState": "aggressiveondamage"
-					},
-					{
-						"code": "idle",
-						"priority": 1.2,
-						"priorityForCancel": 1.35,
-						"minduration": 4000,
-						"maxduration": 6000,
-						"chance": 0.001,
-						"initialMinCoolDown": 2000,
-						"initialMaxCoolDown": 150000,
-						"mincooldown": 300000,
-						"maxcooldown": 10000000,
-						"animation": "idle1",
-						"animationSpeed": 1.25,
-						"whenNotInEmotionState": "aggressiveondamage"
-					},
-					{
-						"code": "idle",
-						"priority": 1.1,
-						"priorityForCancel": 1.35,
-						"minduration": 4000,
-						"maxduration": 6000,
-						"chance": 0.001,
-						"initialMinCoolDown": 2000,
-						"initialMaxCoolDown": 150000,
-						"mincooldown": 300000,
-						"maxcooldown": 10000000,
-						"animation": "idle2",
-						"whenNotInEmotionState": "aggressiveondamage"
-					},
-					{
-						"code": "wander", 
-						"priority": 1.0, 
-						"movespeed": 0.01,
-						"animationSpeed": 1.2,
-						"animation": "walk",
-						"preferredLightLevel": 15,
+						"code": "ZombieWander",
+						"priority": 1.0,
+						"preferredLightLevel": 10,
 						"duringDayTimeFrames": [ { "fromHour": 18, "toHour": 24 }, { "fromHour": 0, "toHour": 4 } ],
 						"whenNotInEmotionState": "aggressiveondamage"
 					},
 					{
-						"code": "wander", 
-						"priority": 0.9,
-						"priorityForCancel": 1.1,
-						"movespeed": 0.008,
-						"animationSpeed": 1.1,
-						"animation": "walk",
-						"preferredLightLevel": 8,
-						"duringDayTimeFrames": [ { "fromHour": 18, "toHour": 24 }, { "fromHour": 0, "toHour": 4 } ],
-						"whenNotInEmotionState": "aggressiveondamage"
-					},
-					{
-						"code": "getoutofwater",
-						"priority": 1.4,
-						"movespeed": 0.04,
-						"animation": "walk",
-						"animationSpeed": 1.55
-					},
-					{
-						"code": "lookaround", 
+						"code": "ZombieIdling",
 						"priority": 0.5,
 						"whenNotInEmotionState": "aggressiveondamage"
 					}
@@ -190,7 +130,6 @@
 	"idleSoundRange": 14,
 	"sounds": {
 		"hurt": "creature/drifter-hurt",
-		"death": "creature/drifter-death",
-		"idle": "creature/drifter-idle"
+		"death": "creature/drifter-death"
 	}
 }
